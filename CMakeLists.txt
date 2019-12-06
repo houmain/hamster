@@ -1,17 +1,18 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pagesowned)
 
-# webrecorder
-include (ExternalProject)
+option(ENABLE_WEBRECORDER "Build webrecorder")
+if(ENABLE_WEBRECORDER)
+    include (ExternalProject)
 
-ExternalProject_Add(webrecorder
-    GIT_REPOSITORY https://github.com/houmaster/webrecorder
-    CMAKE_ARGS ${CMAKE_ARGS}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
-)
+    ExternalProject_Add(webrecorder
+        GIT_REPOSITORY https://github.com/houmaster/webrecorder
+        CMAKE_ARGS ${CMAKE_ARGS}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+    )
+endif()
 
-# pagesowned
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
@@ -42,12 +43,10 @@ include_directories(. ${INCLUDES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
 add_executable(pagesowned ${SOURCES} ${HEADERS})
 
-# ctrl_c
 if(WIN32)
     add_executable(ctrl_c WIN32 src/ctrl_c.cpp)
 endif()
 
-# installer
 if(NOT WIN32)
     install(TARGETS pagesowned DESTINATION "bin")
 else()

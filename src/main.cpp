@@ -87,7 +87,7 @@ namespace {
     auto arguments = std::vector<std::string>{
       g_webrecorder_path.u8string(),
       "-d", "B",
-      "-f", "S",
+      "-f", "P",
       "-v", "R",
       "-i", '\"' + std::string(url) + '\"',
       "-o", '\"' + std::string(filename) + '\"'
