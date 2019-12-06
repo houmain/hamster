@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "Pages Owned",
+  "description": "Allows to make web sites offline readable (by bookmarking them).",
+  "version": "0.1",
+  "applications": {
+    "gecko": {
+      "id": "pagesowned@localhost",
+      "strict_min_version": "54.0a1"
+    }
+  },
+
+  "permissions": [
+    "nativeMessaging",
+    "storage",
+    "tabs",
+    "bookmarks",
+    "history",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": [
+      "NativeClient.js",
+      "WebRecorder.js",
+      "BookmarkLibrary.js",
+      "background.js"
+    ]
+  }
+}
