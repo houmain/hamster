@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pagesowned)
 
-add_subdirectory(libs/webrecorder)
+option(BUILD_WEBRECORDER "Build webrecorder")
+if(BUILD_WEBRECORDER)
+  add_subdirectory(libs/webrecorder)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -50,7 +53,7 @@ else()
     set(CPACK_PACKAGE_VENDOR "Albert Kalchmair")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Pages Owned")
     configure_file(LICENSE license.txt COPYONLY)
-    set(CPACK_RESOURCE_FILE_LICENSE license.txt)
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
     set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/wix_patch.xml")
     include(CPack)
 endif()

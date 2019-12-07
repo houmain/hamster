@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <map>
 #include <filesystem>
+#include <array>
 
 namespace {
   using Response = json::Writer;
@@ -125,7 +126,7 @@ namespace {
     // reset to default
     auto error = std::error_code();
     if (library_root.empty() ||
-        !std::filesystem::is_directory(library_root, error)) {
+        !std::filesystem::exists(library_root, error)) {
       library_root = g_default_library_root;
       std::filesystem::create_directories(library_root);
     }
@@ -189,9 +190,12 @@ namespace {
 } // namespace
 
 #if !defined(_WIN32)
+#  include <unistd.h>
 
-int main(int, const char* argv[], const char* env[]) {
-  g_webrecorder_path = std::filesystem::path(argv[0]).replace_filename("webrecorder");
+int main(int, const char*[], const char* env[]) {
+  auto path = std::array<char, 1024>{ };
+  readlink("/proc/self/exe", path.data(), path.size());
+  g_webrecorder_path = std::filesystem::path(path.data()).replace_filename("webrecorder");
 
   for (auto it = env; *it; ++it)
     if (!std::strncmp(*it, "HOME=", 5)) {
@@ -208,17 +212,18 @@ int main(int, const char* argv[], const char* env[]) {
 #  include <fcntl.h>
 
 int wmain(int, wchar_t* argv[]) {
-  g_webrecorder_path = std::filesystem::path(argv[0]).replace_filename("webrecorder.exe");
+  auto path = std::array<wchar_t, MAX_PATH>{ };
+  GetModuleFileNameW(NULL, path.data(), path.size());
+  g_webrecorder_path = std::filesystem::path(path.data()).replace_filename("webrecorder.exe");
 
-  WCHAR path[MAX_PATH];
-  SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path);
-  g_default_library_root = std::filesystem::path(path) / "PagesOwned";
+  SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path.data());
+  g_default_library_root = std::filesystem::path(path.data()) / "PagesOwned";
 
   (void)_setmode(fileno(stdout), _O_BINARY);
   (void)_setmode(fileno(stdin), _O_BINARY);
 #endif // _WIN32
 
-  if (!std::filesystem::is_regular_file(g_webrecorder_path)) {
+  if (!std::filesystem::exists(g_webrecorder_path)) {
     std::fprintf(stderr, "webrecorder not found\n");
     return 1;
   }
