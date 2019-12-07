@@ -1,0 +1,9 @@
+<CPackWiXPatch>
+  <CPackWiXFragment Id="CM_CP_pagesowned.exe">
+    <RegistryKey Root="HKLM"
+        Key="Software\Mozilla\NativeMessagingHosts\pagesowned"
+        Action="createAndRemoveOnUninstall">
+      <RegistryValue Type="string" Value="[INSTALL_ROOT]pagesowned.json"/>
+    </RegistryKey>
+  </CPackWiXFragment>
+</CPackWiXPatch>

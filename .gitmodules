@@ -1,0 +1,3 @@
+[submodule "libs/webrecorder"]
+	path = libs/webrecorder
+	url = https://github.com/houmaster/webrecorder.git

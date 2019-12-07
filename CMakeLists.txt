@@ -1,17 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pagesowned)
 
-option(ENABLE_WEBRECORDER "Build webrecorder")
-if(ENABLE_WEBRECORDER)
-    include (ExternalProject)
-
-    ExternalProject_Add(webrecorder
-        GIT_REPOSITORY https://github.com/houmaster/webrecorder
-        CMAKE_ARGS ${CMAKE_ARGS}
-            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-            -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
-    )
-endif()
+add_subdirectory(libs/webrecorder)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -52,4 +42,15 @@ if(NOT WIN32)
 else()
     install(TARGETS pagesowned DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
+    install(FILES pagesowned.json DESTINATION .)
+
+    set(CPACK_GENERATOR WIX)
+    set(CPACK_WIX_UPGRADE_GUID "FE3DD160-C524-49F0-B740-E84A37C13E26")
+    set(CPACK_PACKAGE_NAME "Pages Owned")
+    set(CPACK_PACKAGE_VENDOR "Albert Kalchmair")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Pages Owned")
+    configure_file(LICENSE license.txt COPYONLY)
+    set(CPACK_RESOURCE_FILE_LICENSE license.txt)
+    set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/wix_patch.xml")
+    include(CPack)
 endif()

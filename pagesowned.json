@@ -1,0 +1,7 @@
+{
+  "name": "pagesowned",
+  "description": "pagesowned native messaging",
+  "path": "pagesowned.exe",
+  "type": "stdio",
+  "allowed_extensions": [ "pagesowned@localhost" ]
+}
