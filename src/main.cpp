@@ -16,6 +16,11 @@ namespace {
   std::filesystem::path g_library_root;
   std::map<int, Webrecorder> g_webrecorders;
 
+  void create_directories_handle_symlinks(const std::filesystem::path& path) {
+    if (!std::filesystem::is_symlink(path))
+      std::filesystem::create_directories(path);
+  }
+
   std::filesystem::path to_full_path(const std::vector<std::string_view> strings) {
     if (g_library_root.empty())
       throw std::runtime_error("library root not set");
@@ -38,7 +43,7 @@ namespace {
       if (std::filesystem::exists(to))
         throw std::runtime_error("file exists");
 
-      std::filesystem::create_directories(to.parent_path());
+      create_directories_handle_symlinks(to.parent_path());
       std::filesystem::rename(from, to);
     }
   }
@@ -83,7 +88,7 @@ namespace {
     const auto url = json::get_string(request, "url");
     const auto filename = json::get_string(request, "filename");
     const auto path = to_full_path(json::get_string_list(request, "path"));
-    std::filesystem::create_directories(path);
+    create_directories_handle_symlinks(path);
 
     auto arguments = std::vector<std::string>{
       g_webrecorder_path.u8string(),
@@ -128,7 +133,7 @@ namespace {
     if (library_root.empty() ||
         !std::filesystem::exists(library_root, error)) {
       library_root = g_default_library_root;
-      std::filesystem::create_directories(library_root);
+      create_directories_handle_symlinks(library_root);
     }
     // succeeded
     g_library_root = library_root;
