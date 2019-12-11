@@ -32,8 +32,7 @@ const NativeClient = {
     if (response.error) {
       console.error('SEND_ERROR', response.error)
       handler.reject(response)
-    }
-    else {
+    } else {
       handler.resolve(response)
     }
   },

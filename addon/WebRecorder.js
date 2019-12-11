@@ -25,8 +25,7 @@ const WebRecorder = {
         await handleOutput(event)
       }
       setTimeout(() => this.pollRecordingOutput(recorderId, handleOutput), 500)
-    }
-    else {
+    } else {
       await handleOutput()
     }
   },

@@ -115,13 +115,16 @@ const BookmarkLibrary = {
   async handleBookmarkCreated (id, createInfo) {
     await this.updateBeforeRequestListener()
     const { path, inLibrary } = await this.getBookmarkPath(id)
-    if (inLibrary)
+    if (inLibrary) {
       await this.undeleteFile(id)
+    }
 
     // automatically start recording
-    for (let currentTab of await browser.tabs.query({ active: true }))
-      if (currentTab.url === createInfo.url)
+    for (const currentTab of await browser.tabs.query({ active: true })) {
+      if (currentTab.url === createInfo.url) {
         return browser.tabs.reload(currentTab.id)
+      }
+    }
   },
 
   async handleBookmarkChanged (id, changeInfo) {
@@ -169,28 +172,28 @@ const BookmarkLibrary = {
       const recorder = this.recorderByBookmarkId[bookmark.id]
       if (recorder) {
         console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
-        //url = recorder.serverUrl + url.substring(recorder.url.length)
+        // url = recorder.serverUrl + url.substring(recorder.url.length)
         return browser.tabs.update(recorder.tabId, { active: true })
       }
     }
 
     // stop recording in current tab
     const recorder = this.recorderByTabId[tabId]
-    if (recorder)
+    if (recorder) {
       await this.stopRecording(recorder.tabId)
-
+    }
     return this.callOnRecordingFinished(bookmark.id,
       () => this.startRecording(tabId, url, bookmark))
   },
 
-  async startRecording(tabId, url, bookmark) {
+  async startRecording (tabId, url, bookmark) {
     console.log('startRecording begin', tabId, bookmark.id)
 
     // TODO: remove sanity check
-    for (let bookmarkId in this.recorderByBookmarkId) {
-      if (this.recorderByBookmarkId[bookmarkId].tabId == tabId) {
+    for (const bookmarkId in this.recorderByBookmarkId) {
+      if (this.recorderByBookmarkId[bookmarkId].tabId === tabId) {
         console.warn('other bookmark already recording in tab', tabId, bookmarkId)
-        return;
+        return
       }
     }
 
@@ -212,37 +215,35 @@ const BookmarkLibrary = {
       bookmark.url, event => this.handleRecordingOutput(tabId, recorder, event))
   },
 
-  async handleRecordingStarted(tabId, recorder, serverUrl) {
+  async handleRecordingStarted (tabId, recorder, serverUrl) {
     console.log('recording started', tabId, recorder.bookmark.id)
     recorder.serverUrl = serverUrl
     const url = serverUrl + recorder.url.substring(recorder.bookmark.url.length)
     return browser.tabs.update(tabId, { url: url })
   },
 
-  async handleRecordingFinished(tabId, recorder) {
+  async handleRecordingFinished (tabId, recorder) {
     console.log('recording finished', tabId, recorder.bookmark.id)
     for (const action of recorder.onFinished) {
       await action()
     }
   },
 
-  async handleRecordingOutput(tabId, recorder, event) {
+  async handleRecordingOutput (tabId, recorder, event) {
     if (!event) {
       await this.handleRecordingFinished(tabId, recorder)
-    }
-    else if (event.startsWith('ACCEPT ')) {
+    } else if (event.startsWith('ACCEPT ')) {
       await this.handleRecordingStarted(tabId, recorder, event.substring(7))
-    }
-    else {
+    } else {
       console.log(event)
     }
   },
 
   async stopRecording (tabId) {
     const recorder = this.recorderByTabId[tabId]
-    if (!recorder)
+    if (!recorder) {
       return
-
+    }
     console.log('stopRecording begin (cleared recorder)', tabId, recorder.bookmark.id)
     delete this.recorderByTabId[recorder.tabId]
     delete this.recorderByBookmarkId[recorder.bookmark.id]
@@ -276,4 +277,4 @@ const BookmarkLibrary = {
         this.handleBeforeRequest, { urls: urlFilters }, ['blocking'])
     }
   }
-};
+}
