@@ -8,6 +8,7 @@ class BookmarkLibrary {
     this._recorderByTabId = { }
     this._recorderByBookmarkId = { }
     this._nextRecorderId = 1
+    this._libraryBookmarkTitles = { }
   
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
@@ -60,7 +61,31 @@ class BookmarkLibrary {
     return this._backend.stopRecording(recorder.recorderId)
   }
 
+  getOriginalUrl (url, recorder) {
+    recorder = recorder || this._findRecorder(url)
+    if (recorder) {
+      return Utils.getOrigin(recorder.url) + Utils.getPath(url)
+    }
+  }
+
+  getLocalUrl (url, recorder) {
+    return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
+  }
+
+  _findRecorder (url) {
+    let origin = Utils.getOrigin(url)
+    for (let tabId in this._recorderByTabId) {
+      let recorder = this._recorderByTabId[tabId]
+      if (recorder.serverUrl.startsWith(origin)) {
+        return recorder
+      }
+    }
+  }
+
   async _forEachLibraryBookmark (callback) {
+    if (!this._root) {
+      return;
+    }    
     const rec = function (parent) {
       for (const bookmark of parent.children) {
         if (bookmark.type === 'folder') {
@@ -69,10 +94,8 @@ class BookmarkLibrary {
         callback(bookmark)
       }
     }
-    if (this._root) {
-      for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
-        rec(base)
-      }
+    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
+      rec(base)
     }
   }
 
@@ -145,7 +168,7 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkChanged (id, changeInfo) {
-    const bookmarkTitle = this.libraryBookmarkTitles[id]
+    const bookmarkTitle = this._libraryBookmarkTitles[id]
     await this._updateRequestListener()
     const { path, inLibrary } = await this._getBookmarkPath(id)
     if (inLibrary) {
@@ -156,7 +179,7 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkMoved (id, moveInfo) {
-    const bookmarkTitle = this.libraryBookmarkTitles[id]
+    const bookmarkTitle = this._libraryBookmarkTitles[id]
     await this._updateRequestListener()
     const source = await this._getBookmarkPath(moveInfo.oldParentId)
     const target = await this._getBookmarkPath(moveInfo.parentId)
@@ -172,7 +195,7 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkRemoved (id, removeInfo) {
-    const bookmarkTitle = this.libraryBookmarkTitles[id]
+    const bookmarkTitle = this._libraryBookmarkTitles[id]
     await this._updateRequestListener()
     const source = await this._getBookmarkPath(removeInfo.parentId)
     source.path.push(bookmarkTitle)
@@ -183,17 +206,20 @@ class BookmarkLibrary {
 
   async _handleBookmarkRequested (tabId, url) {
     const bookmark = await this._findLibraryBookmark(url)
+    if (!bookmark) {
+      return
+    }
     // switch to tab when bookmark is already being recorded
-    if (bookmark) {
-      const recorder = this._recorderByBookmarkId[bookmark.id]
-      if (recorder) {
-        console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
-        // url = recorder.serverUrl + url.substring(recorder.url.length)
-        return browser.tabs.update(recorder.tabId, { active: true })
-      }
+    const recorder = this._recorderByBookmarkId[bookmark.id]
+    if (recorder) {
+      //console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
+      return browser.tabs.update(recorder.tabId, { 
+        url: this.getLocalUrl(url, recorder),
+        active: true
+      })
     }
     // stop recording in current tab
-    const recorder = this._recorderByTabId[tabId]
+    recorder = this._recorderByTabId[tabId]
     if (recorder) {
       await this.stopRecording(recorder.tabId)
     }
@@ -238,7 +264,7 @@ class BookmarkLibrary {
         urlFilters.push(url)
       }
     })
-    this.libraryBookmarkTitles = bookmarkTitles
+    this._libraryBookmarkTitles = bookmarkTitles
 
     const listener = (details => {
       this._handleBookmarkRequested(details.tabId, details.url)

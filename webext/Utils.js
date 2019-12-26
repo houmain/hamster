@@ -13,15 +13,23 @@ class Utils {
     return (await browser.bookmarks.get(bookmarkId))[0];
   }
 
-  static async findLibraryRoot () {
+  static async findBookmarkFolder (title) {
     const root = await this.getBookmarksRoot()
     const bases = await browser.bookmarks.getChildren(root.id)
     for (const base of bases) {
       const children = await browser.bookmarks.getChildren(base.id)
-      const child = children.find(c => c.title === LIBRARY_TITLE)
+      const child = children.find(c => c.type === 'folder' && c.title === title)
       if (child) {
         return child
       }
     }
+  }
+
+  static getOrigin(url) {
+    return new URL(url).origin
+  }
+
+  static getPath(url) {
+    return new URL(url).pathname
   }
 }
