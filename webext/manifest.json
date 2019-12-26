@@ -1,0 +1,58 @@
+{
+  "manifest_version": 2,
+  "name": "Pages Owned",
+  "author": "Albert Kalchmair",
+  "version": "0.0.1",
+  "description": "__MSG_manifest_extension_description__",
+  "homepage_url": "https://github.com/houmaster/pagesowned",
+  "default_locale": "en",
+  "applications": {
+    "gecko": {
+      "id": "pagesowned@localhost",
+      "strict_min_version": "56.0a1"
+    }
+  },  
+  "permissions": [
+    "nativeMessaging",
+    "storage",
+    "tabs",
+    "bookmarks",
+    "history",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+  "page_action": {
+    "default_icon": "icons/icon.svg",
+    "default_title": "__MSG_manifest_page_action_default_title__",
+    "show_matches": ["<all_urls>"],
+    "browser_style": true,
+    "pinned": true
+  },
+  "icons": {
+    "16": "icons/icon.svg",
+    "24": "icons/icon.svg",
+    "32": "icons/icon.svg",
+    "48": "icons/icon.svg",
+    "64": "icons/icon.svg",
+    "96": "icons/icon.svg",
+    "128": "icons/icon.svg",
+    "256": "icons/icon.svg",
+    "512": "icons/icon.svg",
+    "1024": "icons/icon.svg"
+  },
+  "background": {
+    "scripts": [
+      "globals.js",
+      "Utils.js",
+      "background/NativeClient.js",
+      "background/Backend.js",
+      "background/BookmarkLibrary.js",
+      "background/background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "browser_style": true
+  }
+}

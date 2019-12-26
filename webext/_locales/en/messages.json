@@ -1,0 +1,8 @@
+{
+  "manifest_extension_description": {
+    "message": "Allows to make web sites offline readable (by bookmarking them)."
+  },
+  "manifest_page_action_default_title": {
+    "message": "Own page."
+  }
+}
