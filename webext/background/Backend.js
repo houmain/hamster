@@ -4,7 +4,7 @@ class Backend {
 
   constructor (nativeClient) {
     this._nativeClient = nativeClient
-    this._nativeClient.onConnected = () => this._applySettings()
+    this._nativeClient.addConnectionHandler(() => this._applySettings())
   }
 
   async startRecording (recorderId, path, filename, url, handleOutput) {

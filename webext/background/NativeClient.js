@@ -1,16 +1,17 @@
 'use strict'
 
 class NativeClient {
-  constructor() {
+  constructor(nativeClientId) {
+    this._nativeClientId = nativeClientId
     this._port = null,
     this._nextRequestId = 1
     this._responseHandlers = []
     this._libraryBookmarkTitles = {}
-    this._onConnected = null
+    this._connectionHandlers = []
   }
 
-  set onConnected (callback)  { 
-    this._onConnected = callback 
+  addConnectionHandler (callback)  { 
+    this._connectionHandlers.push(callback)
   }
 
   sendRequest (request) {
@@ -22,11 +23,11 @@ class NativeClient {
   }
   
   _connect () {
-    this._port = browser.runtime.connectNative(NATIVE_CLIENT_ID)
+    this._port = browser.runtime.connectNative(this._nativeClientId)
     this._port.onMessage.addListener(response => this._handleResponse(response))
     this._port.onDisconnect.addListener(_port => this._handleDisconnect(_port))
-    if (this._onConnected) {
-      this._onConnected()
+    for (let callback of this._connectionHandlers) {
+      callback()
     }
   }
 

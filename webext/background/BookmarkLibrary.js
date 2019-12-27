@@ -9,7 +9,11 @@ class BookmarkLibrary {
     this._recorderByBookmarkId = { }
     this._nextRecorderId = 1
     this._libraryBookmarkTitles = { }
-  
+    this._beforeRequestListener = (details => {
+      this._handleBookmarkRequested(details.tabId, details.url)
+      return { cancel: true }
+    })
+
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
     browser.bookmarks.onRemoved.addListener((id, info) => this._handleBookmarkRemoved(id, info))
@@ -17,13 +21,18 @@ class BookmarkLibrary {
     browser.tabs.onRemoved.addListener(tabId => this.stopRecording(tabId))
   }
 
-  async setRoot (root) {
+  set root (root) {
     this._root = root
-    await this._updateRequestListener()
+    this._updateRequestListener()
+  }
+
+  get root () {
+    return this._root
   }
 
   async startRecording (tabId, url, bookmark) {
     console.log('startRecording begin', tabId, bookmark.id)
+    verify(tabId, url, bookmark)
 
     // TODO: remove sanity check
     for (const bookmarkId in this._recorderByBookmarkId) {
@@ -62,17 +71,21 @@ class BookmarkLibrary {
   }
 
   getOriginalUrl (url, recorder) {
+    verify(url)
     recorder = recorder || this._findRecorder(url)
     if (recorder) {
       return Utils.getOrigin(recorder.url) + Utils.getPath(url)
     }
+    return url
   }
 
   getLocalUrl (url, recorder) {
+    verify(url, recorder)
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
 
   _findRecorder (url) {
+    verify(url)
     let origin = Utils.getOrigin(url)
     for (let tabId in this._recorderByTabId) {
       let recorder = this._recorderByTabId[tabId]
@@ -84,7 +97,7 @@ class BookmarkLibrary {
 
   async _forEachLibraryBookmark (callback) {
     if (!this._root) {
-      return;
+      return
     }    
     const rec = function (parent) {
       for (const bookmark of parent.children) {
@@ -100,7 +113,8 @@ class BookmarkLibrary {
   }
 
   async _getBookmarkPath (bookmarkId) {
-    const bookmark = await Utils.getBookmark(bookmarkId)
+    const bookmark = await Utils.getBookmarkById(bookmarkId)
+    verify(bookmark)
     if (bookmark.id === this._root.id) {
       return { path: [], inLibrary: true }
     }
@@ -152,19 +166,23 @@ class BookmarkLibrary {
       () => this._backend.undeleteFile(undeleteId))
   }
 
+  async _updateBookmarkUrl (id, url) {
+    return browser.bookmarks.update(id, {
+      url: url
+    })
+  }
+
   async _handleBookmarkCreated (id, createInfo) {
+    // translate to original url when bookmarking a local url
+    const url = this.getOriginalUrl(createInfo.url)
+    if (url !== createInfo.url) {
+      await this._updateBookmarkUrl(id, url)
+    }
     await this._updateRequestListener()
     const { path, inLibrary } = await this._getBookmarkPath(id)
     if (inLibrary) {
       await this._undeleteFile(id)
     }
-
-    // automatically start recording
-    //for (const currentTab of await browser.tabs.query({ active: true })) {
-    //  if (currentTab.url === createInfo.url) {
-    //    return browser.tabs.reload(currentTab.id)
-    //  }
-    //}
   }
 
   async _handleBookmarkChanged (id, changeInfo) {
@@ -206,11 +224,10 @@ class BookmarkLibrary {
 
   async _handleBookmarkRequested (tabId, url) {
     const bookmark = await this._findLibraryBookmark(url)
-    if (!bookmark) {
-      return
-    }
+    verify(bookmark)
+
     // switch to tab when bookmark is already being recorded
-    const recorder = this._recorderByBookmarkId[bookmark.id]
+    let recorder = this._recorderByBookmarkId[bookmark.id]
     if (recorder) {
       //console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
       return browser.tabs.update(recorder.tabId, { 
@@ -266,14 +283,11 @@ class BookmarkLibrary {
     })
     this._libraryBookmarkTitles = bookmarkTitles
 
-    const listener = (details => {
-      this._handleBookmarkRequested(details.tabId, details.url)
-      return { cancel: true }
-    })
-    let result = window.browser.webRequest.onBeforeRequest.removeListener(listener)
+    window.browser.webRequest.onBeforeRequest.removeListener(
+      this._beforeRequestListener)
     if (urlFilters.length > 0) {
       window.browser.webRequest.onBeforeRequest.addListener(
-        listener, { urls: urlFilters }, ['blocking'])
+        this._beforeRequestListener, { urls: urlFilters }, ['blocking'])
     }
   }
 }

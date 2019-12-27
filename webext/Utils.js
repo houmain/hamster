@@ -1,5 +1,13 @@
 'use strict'
 
+function verify () {
+  for (var i = 0; i < arguments.length; i++) {
+    if (!arguments[i]) {
+      throw "verification failed"
+    }
+  }  
+}
+
 class Utils {
   static async getBookmarksRoot () {
     let roots = await browser.bookmarks.get('root________')
@@ -9,11 +17,15 @@ class Utils {
     return roots[0]
   }
 
-  static async getBookmark (bookmarkId) {
+  static async getBookmarkById (bookmarkId) {
     return (await browser.bookmarks.get(bookmarkId))[0];
   }
 
-  static async findBookmarkFolder (title) {
+  static async findBookmarkByUrl (url) {
+    return (await browser.bookmarks.search({ url: url }))[0]
+  }  
+
+  static async findBookmarkFolderByTitle (title) {
     const root = await this.getBookmarksRoot()
     const bases = await browser.bookmarks.getChildren(root.id)
     for (const base of bases) {
@@ -31,5 +43,9 @@ class Utils {
 
   static getPath(url) {
     return new URL(url).pathname
+  }
+
+  static async getActiveTab() {
+    return (await browser.tabs.query({ active: true, currentWindow: true }))[0]
   }
 }
