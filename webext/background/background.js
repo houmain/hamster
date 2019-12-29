@@ -2,6 +2,17 @@
 
 let bookmarkLibrary = null
 
+async function updatePageAction () {
+  let tab = await Utils.getActiveTab()
+  let url = bookmarkLibrary.getOriginalUrl(tab.url)
+  let icon = (await Utils.findBookmarkByUrl(url) ?
+    "icons/recorded.svg" : "icons/icon.svg")
+  return browser.pageAction.setIcon({
+    tabId: tab.id,
+    path: icon
+  })
+}
+
 async function onPageActionClicked (data) {
   let activeTab = await Utils.getActiveTab()
   let url = bookmarkLibrary.getOriginalUrl(activeTab.url)
@@ -30,6 +41,13 @@ async function onPageActionClicked (data) {
       browser.history.addUrl({ url: url })
     }
   })
+
+  browser.bookmarks.onCreated.addListener(updatePageAction)
+  browser.bookmarks.onChanged.addListener(updatePageAction)
+  browser.bookmarks.onRemoved.addListener(updatePageAction)
+  browser.bookmarks.onMoved.addListener(updatePageAction)
+  browser.tabs.onActivated.addListener(updatePageAction)
+  browser.tabs.onUpdated.addListener(updatePageAction)
 
   browser.pageAction.onClicked.addListener(onPageActionClicked)
 })()

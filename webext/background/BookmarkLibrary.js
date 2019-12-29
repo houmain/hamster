@@ -80,7 +80,7 @@ class BookmarkLibrary {
   }
 
   getLocalUrl (url, recorder) {
-    verify(url, recorder)
+    verify(url, recorder, recorder.serverUrl)
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
 
@@ -89,7 +89,7 @@ class BookmarkLibrary {
     let origin = Utils.getOrigin(url)
     for (let tabId in this._recorderByTabId) {
       let recorder = this._recorderByTabId[tabId]
-      if (recorder.serverUrl.startsWith(origin)) {
+      if (recorder.serverUrl && recorder.serverUrl.startsWith(origin)) {
         return recorder
       }
     }
