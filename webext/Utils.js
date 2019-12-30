@@ -50,6 +50,11 @@ class Utils {
     return new URL(url).pathname
   }
 
+  static getOriginPath(url) {
+    url = new URL(url)
+    return url.href.substr(0, url.href.length - url.search.length)
+  }
+
   static async getTabById (tabId) {
     verify(tabId)
     return browser.tabs.get(tabId)

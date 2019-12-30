@@ -84,6 +84,52 @@ class BookmarkLibrary {
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
 
+  async findBookmarkByUrl (url) {
+    let result = null
+    await this._forEachBookmark(function (bookmark) {
+      if (!result && 
+          bookmark.url && 
+          url.startsWith(Utils.getOriginPath(bookmark.url))) {
+        result = bookmark
+      }
+    })
+    return result
+  }
+
+  async forEachBookmarkFolder (callback) {
+    if (!this._root) {
+      return
+    }
+    const rec = function (bookmark, level) {
+      if (bookmark.type === 'folder') {
+        callback(bookmark, level)        
+        for (const child of bookmark.children) {
+          rec(child, level + 1)
+        }
+      }
+    }
+    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
+      rec(base, 0)
+    }
+  }
+
+  async _forEachBookmark (callback) {
+    if (!this._root) {
+      return
+    }
+    const rec = function (bookmark) {
+      for (const child of bookmark.children) {
+        if (child.type === 'folder') {
+          rec(child)
+        }
+        callback(child)
+      }
+    }
+    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
+      rec(base)
+    }
+  }
+
   _findRecorder (url) {
     verify(url)
     let origin = Utils.getOrigin(url)
@@ -92,23 +138,6 @@ class BookmarkLibrary {
       if (recorder.serverUrl && recorder.serverUrl.startsWith(origin)) {
         return recorder
       }
-    }
-  }
-
-  async _forEachLibraryBookmark (callback) {
-    if (!this._root) {
-      return
-    }    
-    const rec = function (parent) {
-      for (const bookmark of parent.children) {
-        if (bookmark.type === 'folder') {
-          rec(bookmark)
-        }
-        callback(bookmark)
-      }
-    }
-    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
-      rec(base)
     }
   }
 
@@ -123,16 +152,6 @@ class BookmarkLibrary {
     }
     const result = await this._getBookmarkPath(bookmark.parentId)
     result.path.push(bookmark.title)
-    return result
-  }
-
-  async _findLibraryBookmark (url) {
-    let result = null
-    await this._forEachLibraryBookmark(function (bookmark) {
-      if (bookmark.url && url.startsWith(bookmark.url)) {
-        result = bookmark
-      }
-    })
     return result
   }
 
@@ -223,7 +242,7 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkRequested (tabId, url) {
-    const bookmark = await this._findLibraryBookmark(url)
+    const bookmark = await this.findBookmarkByUrl(url)
     verify(bookmark)
 
     // switch to tab when bookmark is already being recorded
@@ -271,7 +290,7 @@ class BookmarkLibrary {
   async _updateRequestListener () {
     const bookmarkTitles = { }
     const urlFilters = []
-    await this._forEachLibraryBookmark(function (bookmark) {
+    await this._forEachBookmark(function (bookmark) {
       bookmarkTitles[bookmark.id] = bookmark.title
       if (bookmark.url) {
         let url = bookmark.url

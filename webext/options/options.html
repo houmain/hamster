@@ -7,6 +7,23 @@
 
 <body style="margin:10px">
   <form>
+    <div class="browser-style">
+      <label for="libraryRootBookmarkLocation">Library root location:</label><br>
+      <select name="libraryRootBookmarkLocation" class="browser-style">
+        <option value="A">Bookmarks Toolbar</option>
+        <option value="B">Bookmarks Menu</option>
+        <option value="-">Other Bookmarks</option>
+      </select>
+    </div>
+    <div class="browser-style">
+      <label for="libraryRootBookmarkLocationName">Library root name:</label><br>
+      <input type="text" id="libraryRootBookmarkLocationName" value="Pages Owned">
+    </div>
+    <div class="browser-style">
+      <label for="libraryRootPath">Library root in filesystem:</label><br>
+      <input type="text" id="libraryRootPath" value="C:\Pages Owned" readonly size="40">
+      <button type="button" class="browser-style">Browse</button>
+    </div>
   </form>
   <script src="options.js"></script>
 </body>

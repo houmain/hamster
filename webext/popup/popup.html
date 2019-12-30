@@ -5,9 +5,54 @@
     <meta charset="utf-8">
   </head>
 
-<body style="margin:10px">
-  <form>
-  </form>
+  <style>
+    body { width:300px; margin-top:16px }
+    #move-bookmark{ width: 246px }
+    img { width:16px; height:16px }
+    .panel-list-item img { margin-top:4px }
+    .select-with-icon img { margin-left:-4px; margin-bottom:-4px; margin-right:4px }
+    .icon { margin-right: 8px }
+    .select-with-icon { margin-left: 20px }
+    .panel-section-list { margin-top: -6px }
+    .panel-section-separator { margin-top:11px; margin-bottom:3px }
+  </style>
+<body>
+  <div title="Move to folder" class="select-with-icon">
+    <img src="/icons/Save.svg">
+    <select id="move-bookmark" class="browser-style">
+      <option value="A">Pages Owned</option>
+    </select>
+  </div>
+
+  <div title="Refresh mode" class="select-with-icon">
+    <img src="/icons/Forget.svg">
+    <select id="mode" class="browser-style">
+      <option value="A">Default (Lazy)</option>
+      <option value="A">Standard</option>
+      <option value="A">Lazy</option>
+      <option value="A">Disabled</option>
+      <option value="A">Bypass</option>
+    </select>
+  </div>
+
+  <div class="panel-section-list">
+    <div class="panel-list-item">
+      <div class="icon"><img src="/icons/Edit.svg"></div>
+      <div class="text">Rename</div>
+      <div class="text-shortcut"></div>
+    </div>
+    <div class="panel-list-item">
+      <div class="icon"><img src="/icons/Delete.svg"></div>
+      <div class="text">Delete</div>
+      <div class="text-shortcut"></div>
+    </div>
+
+    <div class="panel-section-separator"></div>
+    <div class="panel-list-item disabled">
+      Filesize: 0.0 Mb
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 
