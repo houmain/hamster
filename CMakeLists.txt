@@ -3,7 +3,7 @@ project(pagesowned)
 
 option(BUILD_WEBRECORDER "Build webrecorder")
 if(BUILD_WEBRECORDER)
-  add_subdirectory(libs/webrecorder)
+    add_subdirectory(libs/webrecorder)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -31,6 +31,17 @@ add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE)
 
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
+
+if(WIN32)
+    add_definitions(-DNOC_FILE_DIALOG_WIN32)
+else()
+    find_package(PkgConfig REQUIRED)
+    PKG_CHECK_MODULES(GTK3 REQUIRED gtk+-3.0)
+    include_directories(${GTK3_INCLUDE_DIRS})
+    link_directories(${GTK3_LIBRARY_DIRS})
+    add_definitions(${GTK3_CFLAGS_OTHER} -DNOC_FILE_DIALOG_GTK)
+    link_libraries(${GTK3_LIBRARIES})
+endif()
 
 include_directories(. ${INCLUDES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

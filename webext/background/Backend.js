@@ -53,6 +53,14 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
+  async browserDirectories (initialPath) {
+    const request = {
+      action: 'browserDirectories',
+      path: initialPath
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
   _applySettings () {
     const settings = browser.storage.local.get()
     const request = {

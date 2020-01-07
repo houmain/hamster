@@ -6,6 +6,8 @@
 #include <map>
 #include <filesystem>
 #include <array>
+#define NOC_FILE_DIALOG_IMPLEMENTATION
+#include "libs/noc/noc_file_dialog.h"
 
 namespace {
   using Response = json::Writer;
@@ -142,6 +144,17 @@ namespace {
     response.String(library_root.u8string());
   }
 
+  void browse_directories(Response& response, const Request& request) {
+    auto initial_path = std::string();
+    if (const auto path = json::try_get_string(request, "path"))
+      initial_path = path.value();
+    if (const auto path = noc_file_dialog_open(NOC_FILE_DIALOG_DIR,
+        nullptr, (initial_path.empty() ? nullptr : initial_path.c_str()), nullptr)) {
+      response.Key("path");
+      response.String(path);
+    }
+  }
+
   void handle_request(Response& response, const Request& request) {
     using Handler = std::function<void(Response&, const Request&)>;
     static const auto s_action_handlers = std::map<std::string_view, Handler> {
@@ -152,6 +165,7 @@ namespace {
       { "stopRecording", &stop_recording },
       { "getRecordingOutput", &get_recording_output },
       { "setLibraryRoot", &set_library_root },
+      { "browserDirectories", &browse_directories },
     };
 
     response.StartObject();

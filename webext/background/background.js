@@ -1,6 +1,11 @@
 'use strict'
 
+let backend = null
 let bookmarkLibrary = null
+
+function getBackend () {
+  return backend
+}
 
 function getBookmarkLibrary () {
   return bookmarkLibrary
@@ -46,7 +51,7 @@ async function onVisited (item) {
 
 ;(async function () {
   let nativeClient = new NativeClient(NATIVE_CLIENT_ID)
-  let backend = new Backend(nativeClient)
+  backend = new Backend(nativeClient)
   bookmarkLibrary = new BookmarkLibrary(backend)
 
   let root = await Utils.findBookmarkFolderByTitle(LIBRARY_TITLE)
