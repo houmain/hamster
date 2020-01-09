@@ -45,7 +45,8 @@ class BookmarkLibrary {
       recorderId: this._nextRecorderId++,
       tabId: tabId,
       url: url,
-      bookmark: bookmark,
+      bookmarkId: bookmark.id,
+      bookmarkUrl: bookmark.url,
       serverUrl: null,
       onFinished: []
     }
@@ -64,9 +65,9 @@ class BookmarkLibrary {
     if (!recorder) {
       return
     }
-    console.log('stopRecording begin (cleared recorder)', tabId, recorder.bookmark.id)
+    console.log('stopRecording begin (cleared recorder)', tabId, recorder.bookmarkId)
     delete this._recorderByTabId[recorder.tabId]
-    delete this._recorderByBookmarkId[recorder.bookmark.id]
+    delete this._recorderByBookmarkId[recorder.bookmarkId]
     return this._backend.stopRecording(recorder.recorderId)
   }
 
@@ -84,11 +85,19 @@ class BookmarkLibrary {
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
 
+  async getRecordingBookmarkInActiveTab () {
+    const tab = await Utils.getActiveTab()
+    verify(tab)
+    const recorder = this._recorderByTabId[tab.id]
+    if (recorder)
+      return Utils.getBookmarkById(recorder.bookmarkId)
+  }
+
   async findBookmarkByUrl (url) {
     let result = null
     await this._forEachBookmark(function (bookmark) {
-      if (!result && 
-          bookmark.url && 
+      if (!result &&
+          bookmark.url &&
           url.startsWith(Utils.getOriginPath(bookmark.url))) {
         result = bookmark
       }
@@ -102,7 +111,7 @@ class BookmarkLibrary {
     }
     const rec = function (bookmark, level) {
       if (bookmark.type === 'folder') {
-        callback(bookmark, level)        
+        callback(bookmark, level)
         for (const child of bookmark.children) {
           rec(child, level + 1)
         }
@@ -249,7 +258,7 @@ class BookmarkLibrary {
     let recorder = this._recorderByBookmarkId[bookmark.id]
     if (recorder) {
       //console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
-      return browser.tabs.update(recorder.tabId, { 
+      return browser.tabs.update(recorder.tabId, {
         url: this.getLocalUrl(url, recorder),
         active: true
       })
@@ -264,14 +273,14 @@ class BookmarkLibrary {
   }
 
   async _handleRecordingStarted (tabId, recorder, serverUrl) {
-    console.log('recording started', tabId, recorder.bookmark.id)
+    console.log('recording started', tabId, recorder.bookmarkId)
     recorder.serverUrl = serverUrl
-    const url = serverUrl + recorder.url.substring(recorder.bookmark.url.length)
+    const url = serverUrl + recorder.url.substring(recorder.bookmarkUrl.length)
     return browser.tabs.update(tabId, { url: url })
   }
 
   async _handleRecordingFinished (tabId, recorder) {
-    console.log('recording finished', tabId, recorder.bookmark.id)
+    console.log('recording finished', tabId, recorder.bookmarkId)
     for (const action of recorder.onFinished) {
       await action()
     }

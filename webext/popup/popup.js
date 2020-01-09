@@ -1,13 +1,19 @@
 
 let bookmarkLibrary = null
 
-function updateControls () {
+async function updateControls () {
+  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  document.getElementById('bookmark-title').value = bookmark.title
+
   const options = []
   bookmarkLibrary.forEachBookmarkFolder(
     function (folder, level) {
       const indent = '\u2502\xa0\xa0\xa0'.repeat(Math.max(level - 1, 0)) + '\u2514\u2574\xa0'.repeat(level ? 1 : 0)
       const option = document.createElement('option')
-      option.setAttribute('value', folder.bookmarkId)
+      option.setAttribute('value', folder.id)
+      if (folder.id === bookmark.parentId) {
+        option.setAttribute('selected', true)
+      }
       option.appendChild(document.createTextNode(indent + folder.title))
       options.push(option)
     }).then(
@@ -20,8 +26,49 @@ function updateControls () {
     })
 }
 
+async function moveBookmark () {
+  const select = document.getElementById('move-bookmark')
+  const option = select.options[select.selectedIndex]
+  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  browser.bookmarks.move(bookmark.id, {
+    parentId: option.value
+  })
+}
+
+async function updateRefreshMode () {
+  const select = document.getElementById('refresh-mode')
+  const option = select.options[select.selectedIndex]
+  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  // TODO
+  console.log('setting refresh mode of', bookmark.id, 'to', option.value)
+}
+
+async function renameBookmark () {
+  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const title = document.getElementById('bookmark-title').value
+  if (bookmark.title !== title) {
+    browser.bookmarks.update(bookmark.id, { title: title })
+  }
+}
+
+async function removeBookmark () {
+  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  browser.bookmarks.remove(bookmark.id)
+}
+
 ;(async function () {
   const background = await browser.runtime.getBackgroundPage()
   bookmarkLibrary = background.getBookmarkLibrary()
+
+  document.getElementById('bookmark-title').onkeypress = function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault()
+      event.target.blur()
+    }
+  }
+  document.getElementById('bookmark-title').onblur = renameBookmark
+  document.getElementById('move-bookmark').onchange = moveBookmark
+  document.getElementById('refresh-mode').onchange = updateRefreshMode
+  document.getElementById('remove-bookmark').onclick = removeBookmark
   document.addEventListener('DOMContentLoaded', updateControls)
 })()

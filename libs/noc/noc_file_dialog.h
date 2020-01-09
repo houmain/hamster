@@ -156,7 +156,7 @@ const char *noc_file_dialog_open(int flags,
                                  const char *default_path,
                                  const char *default_name)
 {
-    OPENFILENAME ofn;       // common dialog box structure
+    OPENFILENAMEA ofn;       // common dialog box structure
     char szFile[260];       // buffer for file name
     int ret;
 
@@ -178,9 +178,9 @@ const char *noc_file_dialog_open(int flags,
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (flags & NOC_FILE_DIALOG_OPEN)
-        ret = GetOpenFileName(&ofn);
+        ret = GetOpenFileNameA(&ofn);
     else
-        ret = GetSaveFileName(&ofn);
+        ret = GetSaveFileNameA(&ofn);
 
     free(g_noc_file_dialog_ret);
     g_noc_file_dialog_ret = ret ? strdup(szFile) : NULL;

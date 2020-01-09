@@ -7,16 +7,23 @@
 
   <style>
     body { width:300px; margin-top:16px }
-    #move-bookmark{ width: 246px }
+    #move-bookmark{ width:246px }
     img { width:16px; height:16px }
     .panel-list-item img { margin-top:4px }
     .select-with-icon img { margin-left:-4px; margin-bottom:-4px; margin-right:4px }
-    .icon { margin-right: 8px }
-    .select-with-icon { margin-left: 20px }
-    .panel-section-list { margin-top: -6px }
+    .icon { margin-right:8px }
+    .select-with-icon { margin-left:20px }
+    .panel-section-list { margin-top:-2px }
     .panel-section-separator { margin-top:11px; margin-bottom:3px }
+    textarea { width:246px; resize:vertical; }
   </style>
 <body>
+  <div title="Title" class="select-with-icon">
+    <img src="/icons/Edit.svg" style='vertical-align: top; margin-top:4px'>
+    <textarea id="bookmark-title" class="browser-style" rows=3>
+    </textarea>
+  </div>
+
   <div title="Move to folder" class="select-with-icon">
     <img src="/icons/Save.svg">
     <select id="move-bookmark" class="browser-style">
@@ -26,24 +33,18 @@
 
   <div title="Refresh mode" class="select-with-icon">
     <img src="/icons/Forget.svg">
-    <select id="mode" class="browser-style">
-      <option value="A">Default (Lazy)</option>
-      <option value="A">Standard</option>
-      <option value="A">Lazy</option>
-      <option value="A">Disabled</option>
-      <option value="A">Bypass</option>
+    <select id="refresh-mode" class="browser-style">
+      <option value="standard">Standard</option>
+      <option value="lazy">Lazy</option>
+      <option value="never">Never</option>
+      <option value="bypass">Bypass</option>
     </select>
   </div>
 
   <div class="panel-section-list">
     <div class="panel-list-item">
-      <div class="icon"><img src="/icons/Edit.svg"></div>
-      <div class="text">Rename</div>
-      <div class="text-shortcut"></div>
-    </div>
-    <div class="panel-list-item">
       <div class="icon"><img src="/icons/Delete.svg"></div>
-      <div class="text">Delete</div>
+      <div class="text" id="remove-bookmark">Remove</div>
       <div class="text-shortcut"></div>
     </div>
 
@@ -53,6 +54,7 @@
     </div>
   </div>
 
+  <script src="../Utils.js"></script>
   <script src="popup.js"></script>
 </body>
 

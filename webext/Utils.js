@@ -5,7 +5,7 @@ function verify () {
     if (!arguments[i]) {
       throw "verification failed"
     }
-  }  
+  }
 }
 
 class Utils {
@@ -25,7 +25,7 @@ class Utils {
   static async findBookmarkByUrl (url) {
     verify(url)
     return (await browser.bookmarks.search(url))[0]
-  }  
+  }
 
   static async findBookmarkFolderByTitle (title) {
     verify(title)
@@ -65,5 +65,18 @@ class Utils {
       active: true,
       currentWindow: true
     }))[0]
+  }
+
+  static async setSetting (key, value) {
+    let settings = { }
+    settings[key] = value
+    return browser.storage.local.set(settings)
+  }
+
+  static async getSetting (key, defaultValue) {
+    const settings = await browser.storage.local.get(key)
+    if (settings)
+      return settings[key]
+    return defaultValue
   }
 }
