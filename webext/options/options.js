@@ -3,14 +3,26 @@ let backend = null
 let bookmarkLibrary = null
 
 async function updateControls () {
+  const options = []
+  for (const folder of await Utils.getBookmarkBaseFolders()) {
+    options.push({
+      value: folder.id,
+      title: folder.title
+    })
+  }
+  Utils.updateSelectOptions('bookmark-library-root-parent', options)
+
+  const path = await getSetting('library_filesystem_root')
+  const root = document.getElementById('library-filesystem-root')
+  root.value = path
 }
 
 async function handleBrowseClicked () {
-  let path = await Utils.getSetting('library_filesystem_root')
+  const path = await Utils.getSetting('library_filesystem_root')
   const result = await backend.browserDirectories(path)
-  if (result) {
+  if (result.path) {
     await Utils.setSetting('library_filesystem_root', result.path)
-    let root = document.getElementById('library-filesystem-root')
+    const root = document.getElementById('library-filesystem-root')
     root.value = result.path
   }
 }
@@ -20,7 +32,7 @@ async function handleBrowseClicked () {
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
 
-  let browse = document.getElementById('library-filesystem-root-browse')
+  const browse = document.getElementById('library-filesystem-root-browse')
   browse.onclick = handleBrowseClicked
   document.addEventListener('DOMContentLoaded', updateControls)
 })()

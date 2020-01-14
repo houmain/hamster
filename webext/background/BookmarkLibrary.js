@@ -22,6 +22,7 @@ class BookmarkLibrary {
   }
 
   set root (root) {
+    verify(root)
     this._root = root
     this._updateRequestListener()
   }

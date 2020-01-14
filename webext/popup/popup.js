@@ -1,29 +1,33 @@
 
 let bookmarkLibrary = null
 
+function indentOptions () {
+  [].forEach.call(this.options, function(o) {
+    o.textContent = o.getAttribute('data-indent') + o.getAttribute('title')
+  });
+}
+function deindentOptions () {
+  [].forEach.call(this.options, function(o) {
+    o.textContent = o.getAttribute('title')
+  });
+}
+
 async function updateControls () {
   const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
   document.getElementById('bookmark-title').value = bookmark.title
 
   const options = []
-  bookmarkLibrary.forEachBookmarkFolder(
-    function (folder, level) {
-      const indent = '\u2502\xa0\xa0\xa0'.repeat(Math.max(level - 1, 0)) + '\u2514\u2574\xa0'.repeat(level ? 1 : 0)
-      const option = document.createElement('option')
-      option.setAttribute('value', folder.id)
-      if (folder.id === bookmark.parentId) {
-        option.setAttribute('selected', true)
-      }
-      option.appendChild(document.createTextNode(indent + folder.title))
-      options.push(option)
-    }).then(
-    function () {
-      const select = document.getElementById('move-bookmark')
-      select.innerHTML = ''
-      for (const option of options) {
-        select.appendChild(option)
-      }
+  await bookmarkLibrary.forEachBookmarkFolder(function (folder, level) {
+    const indent = '\u2502\xa0\xa0\xa0'.repeat(Math.max(level - 1, 0)) +
+      '\u2514\u2500\xa0'.repeat(level ? 1 : 0)
+    options.push({
+      value: folder.id,
+      title: folder.title,
+      selected: (folder.id === bookmark.parentId),
+      data: { indent: indent }
     })
+  })
+  Utils.updateSelectOptions('move-bookmark', options)
 }
 
 async function moveBookmark () {
@@ -59,6 +63,10 @@ async function removeBookmark () {
 ;(async function () {
   const background = await browser.runtime.getBackgroundPage()
   bookmarkLibrary = background.getBookmarkLibrary()
+
+  document.getElementById('move-bookmark').addEventListener('focus', indentOptions)
+  document.getElementById('move-bookmark').addEventListener('blur', deindentOptions)
+  document.getElementById('move-bookmark').addEventListener('change', function () { this.blur() })
 
   document.getElementById('bookmark-title').onkeypress = function(event) {
     if (event.keyCode == 13) {

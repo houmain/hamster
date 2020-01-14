@@ -49,12 +49,24 @@ async function onVisited (item) {
   return updatePageAction()
 }
 
+async function findLibraryRootByTitle (title) {
+  verify(title)
+  const bases = await Utils.getBookmarkBaseFolders()
+  for (const base of bases) {
+    const children = await browser.bookmarks.getChildren(base.id)
+    const child = children.find(c => c.type === 'folder' && c.title === title)
+    if (child) {
+      return child
+    }
+  }
+}
+
 ;(async function () {
   let nativeClient = new NativeClient(NATIVE_CLIENT_ID)
   backend = new Backend(nativeClient)
   bookmarkLibrary = new BookmarkLibrary(backend)
 
-  let root = await Utils.findBookmarkFolderByTitle(LIBRARY_TITLE)
+  let root = await findLibraryRootByTitle(LIBRARY_TITLE)
   bookmarkLibrary.root = root
 
   browser.history.onVisited.addListener(onVisited)

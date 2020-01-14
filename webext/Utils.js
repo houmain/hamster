@@ -17,6 +17,11 @@ class Utils {
     return roots[0]
   }
 
+  static async getBookmarkBaseFolders () {
+    const root = await this.getBookmarksRoot()
+    return browser.bookmarks.getChildren(root.id)
+  }
+
   static async getBookmarkById (bookmarkId) {
     verify(bookmarkId)
     return (await browser.bookmarks.get(bookmarkId))[0];
@@ -25,19 +30,6 @@ class Utils {
   static async findBookmarkByUrl (url) {
     verify(url)
     return (await browser.bookmarks.search(url))[0]
-  }
-
-  static async findBookmarkFolderByTitle (title) {
-    verify(title)
-    const root = await this.getBookmarksRoot()
-    const bases = await browser.bookmarks.getChildren(root.id)
-    for (const base of bases) {
-      const children = await browser.bookmarks.getChildren(base.id)
-      const child = children.find(c => c.type === 'folder' && c.title === title)
-      if (child) {
-        return child
-      }
-    }
   }
 
   static getOrigin(url) {
@@ -78,5 +70,23 @@ class Utils {
     if (settings)
       return settings[key]
     return defaultValue
+  }
+
+  static updateSelectOptions (id, options) {
+    const select = document.getElementById(id)
+    select.innerHTML = ''
+    for (const opt of options) {
+      const option = document.createElement('option')
+      option.setAttribute('value', opt.value)
+      option.setAttribute('title', opt.title)
+      for (const key in (opt.data || [])) {
+        option.setAttribute('data-' + key, opt.data[key])
+      }
+      if (opt.selected) {
+        option.setAttribute('selected', true)
+      }
+      option.appendChild(document.createTextNode(opt.title))
+      select.appendChild(option)
+    }
   }
 }
