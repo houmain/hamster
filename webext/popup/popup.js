@@ -60,8 +60,7 @@ async function removeBookmark () {
   browser.bookmarks.remove(bookmark.id)
 }
 
-;(async function () {
-  const background = await browser.runtime.getBackgroundPage()
+browser.runtime.getBackgroundPage().then(background => {
   bookmarkLibrary = background.getBookmarkLibrary()
 
   document.getElementById('move-bookmark').addEventListener('focus', indentOptions)
@@ -79,4 +78,4 @@ async function removeBookmark () {
   document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
   document.addEventListener('DOMContentLoaded', updateControls)
-})()
+})

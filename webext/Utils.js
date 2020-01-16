@@ -3,6 +3,7 @@
 function verify () {
   for (var i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
+      console.trace()
       throw "verification failed"
     }
   }
@@ -24,7 +25,7 @@ class Utils {
 
   static async getBookmarkById (bookmarkId) {
     verify(bookmarkId)
-    return (await browser.bookmarks.get(bookmarkId))[0];
+    return (await browser.bookmarks.get(bookmarkId))[0]
   }
 
   static async findBookmarkByUrl (url) {

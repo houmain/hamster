@@ -1,4 +1,4 @@
 'use strict'
 
 const NATIVE_CLIENT_ID = 'pagesowned'
-const LIBRARY_TITLE = 'Pages Owned'
+const DEFAULT_LIBRARY_TITLE = 'Pages Owned'

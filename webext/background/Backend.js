@@ -3,8 +3,24 @@
 class Backend {
 
   constructor (nativeClient) {
+    this._filesystemRoot = undefined
     this._nativeClient = nativeClient
-    this._nativeClient.addConnectionHandler(() => this._applySettings())
+    this._nativeClient.addConnectionHandler(() => this.setFilesystemRoot())
+  }
+
+  async setFilesystemRoot (filesystemRoot) {
+    const request = {
+      action: 'setLibraryRoot',
+      path: (filesystemRoot || this._filesystemRoot)
+    }
+    const response = await this._nativeClient.sendRequest(request)
+    if (response) {
+      this._filesystemRoot = response.path
+    }
+  }
+
+  get filesystemRoot () {
+    return this._filesystemRoot
   }
 
   async startRecording (recorderId, path, filename, url, handleOutput) {
@@ -59,15 +75,6 @@ class Backend {
       path: initialPath
     }
     return this._nativeClient.sendRequest(request)
-  }
-
-  _applySettings () {
-    const settings = browser.storage.local.get()
-    const request = {
-      action: 'setLibraryRoot',
-      path: settings.libraryRoot
-    }
-    this._nativeClient.sendRequest(request)
   }
 
   async _pollRecordingOutput (recorderId, handleOutput) {

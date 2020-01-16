@@ -90,8 +90,9 @@ class BookmarkLibrary {
     const tab = await Utils.getActiveTab()
     verify(tab)
     const recorder = this._recorderByTabId[tab.id]
-    if (recorder)
+    if (recorder) {
       return Utils.getBookmarkById(recorder.bookmarkId)
+    }
   }
 
   async findBookmarkByUrl (url) {

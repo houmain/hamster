@@ -1,7 +1,8 @@
 'use strict'
 
-let backend = null
-let bookmarkLibrary = null
+const nativeClient = new NativeClient(NATIVE_CLIENT_ID)
+const backend = new Backend(nativeClient)
+const bookmarkLibrary = new BookmarkLibrary(getBackend())
 
 function getBackend () {
   return backend
@@ -49,31 +50,10 @@ async function onVisited (item) {
   return updatePageAction()
 }
 
-async function findLibraryRootByTitle (title) {
-  verify(title)
-  const bases = await Utils.getBookmarkBaseFolders()
-  for (const base of bases) {
-    const children = await browser.bookmarks.getChildren(base.id)
-    const child = children.find(c => c.type === 'folder' && c.title === title)
-    if (child) {
-      return child
-    }
-  }
-}
-
-;(async function () {
-  let nativeClient = new NativeClient(NATIVE_CLIENT_ID)
-  backend = new Backend(nativeClient)
-  bookmarkLibrary = new BookmarkLibrary(backend)
-
-  let root = await findLibraryRootByTitle(LIBRARY_TITLE)
-  bookmarkLibrary.root = root
-
-  browser.history.onVisited.addListener(onVisited)
-  browser.bookmarks.onCreated.addListener(updatePageAction)
-  browser.bookmarks.onChanged.addListener(updatePageAction)
-  browser.bookmarks.onRemoved.addListener(updatePageAction)
-  browser.bookmarks.onMoved.addListener(updatePageAction)
-  browser.tabs.onActivated.addListener(updatePageAction)
-  browser.pageAction.onClicked.addListener(onPageActionClicked)
-})()
+browser.history.onVisited.addListener(onVisited)
+browser.bookmarks.onCreated.addListener(updatePageAction)
+browser.bookmarks.onChanged.addListener(updatePageAction)
+browser.bookmarks.onRemoved.addListener(updatePageAction)
+browser.bookmarks.onMoved.addListener(updatePageAction)
+browser.tabs.onActivated.addListener(updatePageAction)
+browser.pageAction.onClicked.addListener(onPageActionClicked)

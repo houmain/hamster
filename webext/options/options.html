@@ -5,27 +5,24 @@
     <meta charset="utf-8">
   </head>
 
-<body style="margin:10px">
+<body>
   <form>
-    <div class="browser-style">
-      <label for="bookmark-library-root-parent">Library root location:</label><br>
-      <select id="bookmark-library-root-parent" class="browser-style">
-        <option value="A">Bookmarks Toolbar</option>
-        <option value="B">Bookmarks Menu</option>
-        <option value="-">Other Bookmarks</option>
-      </select>
+    <div class="browser-style" style="margin-top:16px">
+      <label for="bookmark-root-parent">Library root location:</label><br>
+      <select id="bookmark-root-parent" class="browser-style"></select>
     </div>
-    <div class="browser-style">
-      <label for="bookmark-library-root-name">Library root name:</label><br>
-      <input type="text" id="bookmark-library-root-name" value="Pages Owned">
+    <div class="browser-style" style="margin-top:8px">
+      <label for="bookmark-root-title">Library root name:</label><br>
+      <input type="text" id="bookmark-root-title">
     </div>
-    <div class="browser-style">
-      <label for="library-filesystem-root">Library root in filesystem:</label><br>
-      <input type="text" id="library-filesystem-root" size="40" readonly>
-      <button type="button" id="library-filesystem-root-browse" class="browser-style">Browse</button>
+    <div class="browser-style" style="margin-top:16px">
+      <label for="filesystem-root">Library root in filesystem:</label><br>
+      <input type="text" id="filesystem-root" size="40" readonly>
+      <button type="button" id="filesystem-root-browse" class="browser-style">Browse</button>
     </div>
   </form>
 
+  <script src="../globals.js"></script>
   <script src="../Utils.js"></script>
   <script src="options.js"></script>
 </body>
