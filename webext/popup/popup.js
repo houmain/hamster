@@ -1,5 +1,5 @@
 
-let bookmarkLibrary = null
+let bookmarkLibrary = undefined
 
 function indentOptions () {
   [].forEach.call(this.options, function(o) {
@@ -37,6 +37,7 @@ async function moveBookmark () {
   browser.bookmarks.move(bookmark.id, {
     parentId: option.value
   })
+  select.blur()
 }
 
 async function updateRefreshMode () {
@@ -63,19 +64,17 @@ async function removeBookmark () {
 browser.runtime.getBackgroundPage().then(background => {
   bookmarkLibrary = background.getBookmarkLibrary()
 
-  document.getElementById('move-bookmark').addEventListener('focus', indentOptions)
-  document.getElementById('move-bookmark').addEventListener('blur', deindentOptions)
-  document.getElementById('move-bookmark').addEventListener('change', function () { this.blur() })
-
+  document.getElementById('bookmark-title').onchange = renameBookmark
   document.getElementById('bookmark-title').onkeypress = function(event) {
     if (event.keyCode == 13) {
       event.preventDefault()
       event.target.blur()
     }
   }
-  document.getElementById('bookmark-title').onblur = renameBookmark
   document.getElementById('move-bookmark').onchange = moveBookmark
-  document.getElementById('refresh-mode').onchange = updateRefreshMode
+  document.getElementById('move-bookmark').onfocus = indentOptions
+  document.getElementById('move-bookmark').onblur = deindentOptions
+  //document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
   document.addEventListener('DOMContentLoaded', updateControls)
 })

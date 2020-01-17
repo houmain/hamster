@@ -4,7 +4,7 @@ class BookmarkLibrary {
 
   constructor (backend) {
     this._backend = backend
-    this._root = null
+    this._rootId = null
     this._recorderByTabId = { }
     this._recorderByBookmarkId = { }
     this._nextRecorderId = 1
@@ -21,14 +21,14 @@ class BookmarkLibrary {
     browser.tabs.onRemoved.addListener(tabId => this.stopRecording(tabId))
   }
 
-  set root (root) {
-    verify(root)
-    this._root = root
-    this._updateRequestListener()
+  async setRootId (rootId) {
+    verify(rootId)
+    this._rootId = rootId
+    return this._updateRequestListener()
   }
 
-  get root () {
-    return this._root
+  get rootId () {
+    return this._rootId
   }
 
   async startRecording (tabId, url, bookmark) {
@@ -73,7 +73,6 @@ class BookmarkLibrary {
   }
 
   getOriginalUrl (url, recorder) {
-    verify(url)
     recorder = recorder || this._findRecorder(url)
     if (recorder) {
       return Utils.getOrigin(recorder.url) + Utils.getPath(url)
@@ -81,7 +80,7 @@ class BookmarkLibrary {
     return url
   }
 
-  getLocalUrl (url, recorder) {
+  _getLocalUrl (url, recorder) {
     verify(url, recorder, recorder.serverUrl)
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
@@ -108,7 +107,7 @@ class BookmarkLibrary {
   }
 
   async forEachBookmarkFolder (callback) {
-    if (!this._root) {
+    if (!this._rootId) {
       return
     }
     const rec = function (bookmark, level) {
@@ -119,13 +118,13 @@ class BookmarkLibrary {
         }
       }
     }
-    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
+    for (const base of await browser.bookmarks.getSubTree(this._rootId)) {
       rec(base, 0)
     }
   }
 
   async _forEachBookmark (callback) {
-    if (!this._root) {
+    if (!this._rootId) {
       return
     }
     const rec = function (bookmark) {
@@ -136,18 +135,19 @@ class BookmarkLibrary {
         callback(child)
       }
     }
-    for (const base of await browser.bookmarks.getSubTree(this._root.id)) {
+    for (const base of await browser.bookmarks.getSubTree(this._rootId)) {
       rec(base)
     }
   }
 
   _findRecorder (url) {
-    verify(url)
-    let origin = Utils.getOrigin(url)
-    for (let tabId in this._recorderByTabId) {
-      let recorder = this._recorderByTabId[tabId]
-      if (recorder.serverUrl && recorder.serverUrl.startsWith(origin)) {
-        return recorder
+    if (url) {
+      const origin = Utils.getOrigin(url)
+      for (const tabId in this._recorderByTabId) {
+        const recorder = this._recorderByTabId[tabId]
+        if (recorder.serverUrl && recorder.serverUrl.startsWith(origin)) {
+          return recorder
+        }
       }
     }
   }
@@ -155,7 +155,7 @@ class BookmarkLibrary {
   async _getBookmarkPath (bookmarkId) {
     const bookmark = await Utils.getBookmarkById(bookmarkId)
     verify(bookmark)
-    if (bookmark.id === this._root.id) {
+    if (bookmark.id === this._rootId) {
       return { path: [], inLibrary: true }
     }
     if (!bookmark.parentId) {
@@ -259,9 +259,12 @@ class BookmarkLibrary {
     // switch to tab when bookmark is already being recorded
     let recorder = this._recorderByBookmarkId[bookmark.id]
     if (recorder) {
-      //console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
+      if (!recorder.serverUrl) {
+        return
+      }
+      console.log('switched to recording tab', recorder.tabId, bookmark.id, url)
       return browser.tabs.update(recorder.tabId, {
-        url: this.getLocalUrl(url, recorder),
+        url: this._getLocalUrl(url, recorder),
         active: true
       })
     }

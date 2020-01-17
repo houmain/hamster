@@ -1,22 +1,7 @@
 
-let backend = null
-let bookmarkLibrary = null
-
-async function findLibraryRootByTitle (title) {
-  verify(title)
-  const bases = await Utils.getBookmarkBaseFolders()
-  for (const base of bases) {
-    const children = await browser.bookmarks.getChildren(base.id)
-    const child = children.find(c => c.type === 'folder' && c.title === title)
-    if (child) {
-      return child
-    }
-  }
-  return browser.bookmarks.create({
-    parentId: bases[0].id,
-    title: title
-  });
-}
+let backend = undefined
+let bookmarkLibrary = undefined
+let restoreOptions = undefined
 
 async function updateControls () {
   const options = []
@@ -27,50 +12,44 @@ async function updateControls () {
     })
   }
   Utils.updateSelectOptions('bookmark-root-parent', options)
+
+  const root = await Utils.getBookmarkById(bookmarkLibrary.rootId)
+  const rootParent = document.getElementById('bookmark-root-parent')
+  rootParent.value = root.parentId
+  const rootTitle = document.getElementById('bookmark-root-title')
+  rootTitle.value = root.title
+
+  const filesystemRoot = document.getElementById('filesystem-root')
+  filesystemRoot.value = backend.filesystemRoot
 }
 
-async function restoreOptions () {
-  await updateControls()
-
-  try {
-    const bookmarkRootId = await Utils.getSetting('bookmark_root_id')
-    if (bookmarkRootId) {
-      bookmarkLibrary.root = await Utils.getBookmarkById(bookmarkRootId)
-    }
-  }
-  catch (ex) {
-  }
-  if (!bookmarkLibrary.root) {
-    bookmarkLibrary.root = await findLibraryRootByTitle(DEFAULT_LIBRARY_TITLE)
-    await Utils.setSetting('bookmark_root_id', bookmarkLibrary.root.id)
-  }
-
-  const parent = document.getElementById('bookmark-root-parent')
-  parent.value = bookmarkLibrary.root.parentId
-
-  const title = document.getElementById('bookmark-root-title')
-  title.value = bookmarkLibrary.root.title
-
-  const filesystemRoot = await Utils.getSetting('filesystem_root')
-  await backend.setFilesystemRoot(filesystemRoot)
-  const root = document.getElementById('filesystem-root')
-  root.value = backend.filesystemRoot
+async function moveBookmarkRoot () {
+  const parentId = document.getElementById('bookmark-root-parent').value
+  return browser.bookmarks.move(bookmarkLibrary.rootId, { parentId: parentId })
 }
 
-async function handleBrowseClicked () {
+async function renameBookmarkRoot () {
+  const title = document.getElementById('bookmark-root-title').value
+  return browser.bookmarks.update(bookmarkLibrary.rootId, { title: title })
+}
+
+async function browseFilesystemRoot () {
   const result = await backend.browserDirectories(backend.filesystemRoot)
   if (result.path) {
     await Utils.setSetting('filesystem_root', result.path)
-    return restoreOptions()
+    await restoreOptions()
+    return updateControls()
   }
 }
 
 browser.runtime.getBackgroundPage().then(background => {
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
+  restoreOptions = background.restoreOptions
 
-  const browse = document.getElementById('filesystem-root-browse')
-  browse.onclick = handleBrowseClicked
+  document.getElementById('bookmark-root-parent').onchange = moveBookmarkRoot
+  document.getElementById('bookmark-root-title').onchange = renameBookmarkRoot
+  document.getElementById('filesystem-root-browse').onclick = browseFilesystemRoot
 
-  document.addEventListener('DOMContentLoaded', restoreOptions)
+  document.addEventListener('DOMContentLoaded', updateControls)
 })

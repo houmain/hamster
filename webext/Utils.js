@@ -10,17 +10,8 @@ function verify () {
 }
 
 class Utils {
-  static async getBookmarksRoot () {
-    let roots = await browser.bookmarks.get('root________')
-    if (browser.runtime.lastError) {
-      roots = await browser.bookmarks.get('0')
-    }
-    return roots[0]
-  }
-
   static async getBookmarkBaseFolders () {
-    const root = await this.getBookmarksRoot()
-    return browser.bookmarks.getChildren(root.id)
+    return browser.bookmarks.getChildren('root________')
   }
 
   static async getBookmarkById (bookmarkId) {

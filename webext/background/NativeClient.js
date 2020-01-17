@@ -10,7 +10,7 @@ class NativeClient {
     this._connectionHandlers = []
   }
 
-  addConnectionHandler (callback)  { 
+  addConnectionHandler (callback)  {
     this._connectionHandlers.push(callback)
   }
 
@@ -21,7 +21,7 @@ class NativeClient {
       this._send(request)
     })
   }
-  
+
   _connect () {
     this._port = browser.runtime.connectNative(this._nativeClientId)
     this._port.onMessage.addListener(response => this._handleResponse(response))
@@ -65,7 +65,7 @@ class NativeClient {
     } finally {
       if (!sent) {
         this._connect()
-        window.setTimeout(() => this._send(message), 10)
+        this._port.postMessage(message)
       }
     }
   }
