@@ -65,8 +65,8 @@ browser.runtime.getBackgroundPage().then(background => {
   bookmarkLibrary = background.getBookmarkLibrary()
 
   document.getElementById('bookmark-title').onchange = renameBookmark
-  document.getElementById('bookmark-title').onkeypress = function(event) {
-    if (event.keyCode == 13) {
+  document.getElementById('bookmark-title').onkeypress = function (event) {
+    if (event.keyCode === 13) {
       event.preventDefault()
       event.target.blur()
     }
@@ -74,7 +74,7 @@ browser.runtime.getBackgroundPage().then(background => {
   document.getElementById('move-bookmark').onchange = moveBookmark
   document.getElementById('move-bookmark').onfocus = indentOptions
   document.getElementById('move-bookmark').onblur = deindentOptions
-  //document.getElementById('refresh-mode').onchange = updateRefreshMode
+  document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
   document.addEventListener('DOMContentLoaded', updateControls)
 })

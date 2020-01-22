@@ -29,7 +29,9 @@ class Backend {
       id: recorderId,
       filename: filename,
       url: url,
-      path: path
+      path: path,
+      followLink: 'P',
+      validation: 'R',
     }
     await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
@@ -73,6 +75,14 @@ class Backend {
     const request = {
       action: 'browserDirectories',
       path: initialPath
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
+  async setHostBlockList (list) {
+    const request = {
+      action: 'setHostBlockList',
+      list: list
     }
     return this._nativeClient.sendRequest(request)
   }

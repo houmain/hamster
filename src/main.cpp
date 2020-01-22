@@ -6,6 +6,8 @@
 #include <map>
 #include <filesystem>
 #include <array>
+#include <random>
+#include <fstream>
 #define NOC_FILE_DIALOG_IMPLEMENTATION
 #include "libs/noc/noc_file_dialog.h"
 
@@ -16,7 +18,17 @@ namespace {
   std::filesystem::path g_default_library_root;
   std::filesystem::path g_webrecorder_path;
   std::filesystem::path g_library_root;
+  std::filesystem::path g_host_block_list_path;
   std::map<int, Webrecorder> g_webrecorders;
+
+  std::filesystem::path generate_temporary_filename() {
+    auto rand = std::random_device();
+    auto filename = std::string("pagesowned_");
+    for (auto i = 0; i < 10; i++)
+      filename.push_back('0' + rand() % 10);
+    filename += ".tmp";
+    return std::filesystem::temp_directory_path() / filename;
+  }
 
   void create_directories_handle_symlinks(const std::filesystem::path& path) {
     if (!std::filesystem::is_symlink(path))
@@ -85,24 +97,52 @@ namespace {
     std::filesystem::remove_all(trash_path);
   }
 
-  void start_recording(Response&, const Request& request) {
+  void start_recording(Response& response, const Request& request) {
     const auto id = json::get_int(request, "id");
     const auto url = json::get_string(request, "url");
     const auto filename = json::get_string(request, "filename");
     const auto path = to_full_path(json::get_string_list(request, "path"));
+    const auto follow_link = json::try_get_string(request, "followLink");
+    const auto validation = json::try_get_string(request, "validation");
+    const auto write_file = json::try_get_bool(request, "writeFile");
+    const auto read_file = json::try_get_bool(request, "readFile");
+    const auto append_file = json::try_get_bool(request, "appendFile");
+    const auto download = json::try_get_bool(request, "download");
+
     create_directories_handle_symlinks(path);
+
+    auto disable = std::string("B");
+    if (write_file.has_value() && !write_file.value())
+      disable.push_back('W');
+    if (read_file.has_value() && !read_file.value())
+      disable.push_back('R');
+    if (append_file.has_value() && !append_file.value())
+      disable.push_back('A');
+    if (download.has_value() && !download.value())
+      disable.push_back('D');
 
     auto arguments = std::vector<std::string>{
       g_webrecorder_path.u8string(),
-      "-d", "B",
-      "-f", "P",
-      "-v", "R",
+      "-d", disable,
+      "-f", std::string(follow_link.value_or("N")),
+      "-v", std::string(validation.value_or("N")),
       "-i", '\"' + std::string(url) + '\"',
       "-o", '\"' + std::string(filename) + '\"'
     };
+    if (!g_host_block_list_path.empty())
+      arguments.insert(end(arguments), {
+        "-b", '\"' + g_host_block_list_path.u8string() + '\"',
+      });
+
     g_webrecorders.emplace(std::piecewise_construct,
       std::forward_as_tuple(id),
       std::forward_as_tuple(std::move(arguments), path.u8string()));
+
+    if (std::filesystem::is_regular_file(filename)) {
+      const auto file_size = std::filesystem::file_size(filename);
+      response.Key("fileSize");
+      response.Uint64(file_size);
+    }
   }
 
   void stop_recording(Response&, const Request& request) {
@@ -155,6 +195,14 @@ namespace {
     }
   }
 
+  void set_host_block_list(Response&, const Request& request) {
+    const auto list = json::get_string(request, "list");
+    if (g_host_block_list_path.empty())
+      g_host_block_list_path = generate_temporary_filename();
+    auto file = std::ofstream(g_host_block_list_path, std::ios::binary);
+    file.write(list.data(), static_cast<std::streamsize>(list.size()));
+  }
+
   void handle_request(Response& response, const Request& request) {
     using Handler = std::function<void(Response&, const Request&)>;
     static const auto s_action_handlers = std::map<std::string_view, Handler> {
@@ -166,6 +214,7 @@ namespace {
       { "getRecordingOutput", &get_recording_output },
       { "setLibraryRoot", &set_library_root },
       { "browserDirectories", &browse_directories },
+      { "setHostBlockList", &set_host_block_list },
     };
 
     response.StartObject();
@@ -262,6 +311,9 @@ int wmain(int, wchar_t* argv[]) {
         }));
       }
     }
+
+    if (!g_host_block_list_path.empty())
+      std::filesystem::remove(g_host_block_list_path);
   }
   catch (const std::exception& ex) {
     std::fprintf(stderr, "unhanded exception: %s\n", ex.what());
