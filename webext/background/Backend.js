@@ -33,8 +33,9 @@ class Backend {
       followLink: 'P',
       validation: 'R',
     }
-    await this._nativeClient.sendRequest(request)
+    const response = await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
+    return response
   }
 
   async stopRecording (recorderId) {

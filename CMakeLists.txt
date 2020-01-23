@@ -13,21 +13,43 @@ set(SOURCES
     src/common.cpp
     src/Webrecorder.cpp
     src/Json.cpp
-    libs/utf8/utf8.cpp
     libs/TinyProcessLib/process.cpp
+    libs/webrecorder/src/Archive.cpp
+    libs/webrecorder/src/HeaderStore.cpp
+    libs/webrecorder/src/common.cpp
+    libs/webrecorder/libs/siphash/siphash.c
+    libs/webrecorder/libs/utf8/utf8.cpp
+    libs/webrecorder/libs/siphash/siphash.c
+    libs/webrecorder/libs/minizip/zip.c
+    libs/webrecorder/libs/minizip/unzip.c
+    libs/webrecorder/libs/minizip/ioapi.c
 )
 file(GLOB_RECURSE HEADERS include *.h)
 
+set(INCLUDES libs/webrecorder)
+
 if(NOT MSVC)
-    set(SOURCES ${SOURCES} libs/TinyProcessLib/process_unix.cpp)
+    add_compile_options(-Wall -Wextra -Wsign-conversion)
+
+    set(SOURCES ${SOURCES}
+        libs/TinyProcessLib/process_unix.cpp
+    )
     add_compile_options(-Wall -Wextra -Wsign-conversion)
     link_libraries(stdc++fs)
 else()
-    set(SOURCES ${SOURCES} libs/TinyProcessLib/process_win.cpp)
-    add_compile_options(/GR- /W1)
+    add_compile_options(/GR- /W1 -D_WIN32_WINNT=0x0501)
+    set(MSVC_SHARED_RUNTIME OFF)
+
+    set(SOURCES ${SOURCES}
+        libs/TinyProcessLib/process_win.cpp
+        libs/webrecorder/libs/minizip/iowin32.c
+    )
+    set(INCLUDES ${INCLUDES} libs/webrecorder/libs/zlib/include)
+    link_directories(libs/webrecorder/libs/zlib/lib64)
 endif()
 
-add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE)
+add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
+link_libraries(z)
 
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
@@ -57,6 +79,7 @@ else()
     install(TARGETS pagesowned DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
     install(FILES pagesowned.json DESTINATION .)
+    install(FILES libs/zlib/bin64/zlib.dll DESTINATION .)
 
     set(CPACK_GENERATOR WIX)
     set(CPACK_WIX_UPGRADE_GUID "FE3DD160-C524-49F0-B740-E84A37C13E26")

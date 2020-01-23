@@ -138,8 +138,10 @@ namespace {
       std::forward_as_tuple(id),
       std::forward_as_tuple(std::move(arguments), path.u8string()));
 
-    if (std::filesystem::is_regular_file(filename)) {
-      const auto file_size = std::filesystem::file_size(filename);
+    const auto full_path = path / get_legal_filename(std::string(filename));
+
+    if (std::filesystem::is_regular_file(full_path)) {
+      const auto file_size = std::filesystem::file_size(full_path);
       response.Key("fileSize");
       response.Uint64(file_size);
     }

@@ -49,6 +49,7 @@ class BookmarkLibrary {
       bookmarkId: bookmark.id,
       bookmarkUrl: bookmark.url,
       serverUrl: null,
+      fileSize: null,
       onFinished: []
     }
     this._recorderByTabId[tabId] = recorder
@@ -57,8 +58,11 @@ class BookmarkLibrary {
 
     const { path, inLibrary } = await this._getBookmarkPath(bookmark.id)
     const filename = path.pop()
-    return this._backend.startRecording(recorder.recorderId, path, filename,
-      bookmark.url, event => this._handleRecordingOutput(tabId, recorder, event))
+    const response = await this._backend.startRecording(
+      recorder.recorderId, path, filename, bookmark.url,
+      event => this._handleRecordingOutput(tabId, recorder, event))
+
+    recorder.fileSize = response.fileSize
   }
 
   async stopRecording (tabId) {
@@ -85,12 +89,14 @@ class BookmarkLibrary {
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
   }
 
-  async getRecordingBookmarkInActiveTab () {
-    const tab = await Utils.getActiveTab()
+  getRecordingInfo (tab) {
     verify(tab)
     const recorder = this._recorderByTabId[tab.id]
     if (recorder) {
-      return Utils.getBookmarkById(recorder.bookmarkId)
+      return {
+        bookmarkId: recorder.bookmarkId,
+        fileSize: recorder.fileSize,
+      }
     }
   }
 

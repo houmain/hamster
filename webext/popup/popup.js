@@ -12,8 +12,27 @@ function deindentOptions () {
   });
 }
 
+async function getRecordingInfo() {
+  const tab = await Utils.getActiveTab()
+  return bookmarkLibrary.getRecordingInfo(tab)
+}
+
+async function getRecordingBookmark() {
+  const info = await getRecordingInfo()
+  return Utils.getBookmarkById(info.bookmarkId)
+}
+
+function humanFileSize(bytes) {
+  const units = ['bytes', 'KiB','MiB','GiB']
+  for (let u = 0;; ++u, bytes /= 1024) {
+    if (bytes < 1024 || u == units.length - 1) {
+      return bytes.toFixed(1) + ' ' + units[u]
+    }
+  }
+}
+
 async function updateControls () {
-  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const bookmark = await getRecordingBookmark()
   document.getElementById('bookmark-title').value = bookmark.title
 
   const options = []
@@ -28,12 +47,16 @@ async function updateControls () {
     })
   })
   Utils.updateSelectOptions('move-bookmark', options)
+
+  const info = await getRecordingInfo()
+  const status = document.getElementById('bookmark-status')
+  status.innerText = 'Filesize: ' + humanFileSize(info.fileSize ? info.fileSize : 0)
 }
 
 async function moveBookmark () {
   const select = document.getElementById('move-bookmark')
   const option = select.options[select.selectedIndex]
-  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const bookmark = await getRecordingBookmark()
   browser.bookmarks.move(bookmark.id, {
     parentId: option.value
   })
@@ -43,13 +66,13 @@ async function moveBookmark () {
 async function updateRefreshMode () {
   const select = document.getElementById('refresh-mode')
   const option = select.options[select.selectedIndex]
-  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const bookmark = await getRecordingBookmark()
   // TODO
   console.log('setting refresh mode of', bookmark.id, 'to', option.value)
 }
 
 async function renameBookmark () {
-  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const bookmark = await getRecordingBookmark()
   const title = document.getElementById('bookmark-title').value
   if (bookmark.title !== title) {
     browser.bookmarks.update(bookmark.id, { title: title })
@@ -57,7 +80,7 @@ async function renameBookmark () {
 }
 
 async function removeBookmark () {
-  const bookmark = await bookmarkLibrary.getRecordingBookmarkInActiveTab()
+  const bookmark = await getRecordingBookmark()
   browser.bookmarks.remove(bookmark.id)
 }
 
