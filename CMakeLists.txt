@@ -13,6 +13,7 @@ set(SOURCES
     src/common.cpp
     src/Webrecorder.cpp
     src/Json.cpp
+    src/Database.cpp
     libs/TinyProcessLib/process.cpp
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp
@@ -35,7 +36,7 @@ if(NOT MSVC)
         libs/TinyProcessLib/process_unix.cpp
     )
     add_compile_options(-Wall -Wextra -Wsign-conversion)
-    link_libraries(stdc++fs)
+    link_libraries(stdc++fs sqlite3)
 else()
     add_compile_options(/GR- /W1 -D_WIN32_WINNT=0x0501)
     set(MSVC_SHARED_RUNTIME OFF)
@@ -43,6 +44,7 @@ else()
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_win.cpp
         libs/webrecorder/libs/minizip/iowin32.c
+        libs/sqlite/sqlite3.c
     )
     set(INCLUDES ${INCLUDES} libs/webrecorder/libs/zlib/include)
     link_directories(libs/webrecorder/libs/zlib/lib64)

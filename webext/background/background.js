@@ -12,7 +12,7 @@ function getBookmarkLibrary () {
   return bookmarkLibrary
 }
 
-async function updatePageAction (tabId, event) {
+async function updatePageAction () {
   const tab = await Utils.getActiveTab()
   const url = bookmarkLibrary.getOriginalUrl(tab.url)
   const isInLibrary = await bookmarkLibrary.findBookmarkByUrl(url)
