@@ -50,7 +50,9 @@ int get_int(const Value& message, const char* name) {
 }
 
 std::optional<std::string_view> try_get_string(const Value& message, const char* name) {
-  auto it = (message.IsObject() ? message.FindMember(name) : message.MemberEnd());
+  if (!message.IsObject())
+    return std::nullopt;
+  const auto it = message.FindMember(name);
   if (it == message.MemberEnd() || !it->value.IsString())
     return std::nullopt;
   return std::string_view(it->value.GetString());
