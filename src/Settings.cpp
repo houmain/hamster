@@ -5,7 +5,7 @@
 bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
   for (auto i = 1; i < argc; i++) {
     const auto argument = std::string_view(argv[i]);
-    if (argument == "-s") {
+    if (argument == "-b") {
       settings.run_stdio_interface = true;
     }
     else if (argument == "-h" || argument == "--help") {
@@ -38,7 +38,7 @@ void print_help_message(const char* argv0) {
     "pagesowned %s (c) 2020 by Albert Kalchmair\n"
     "\n"
     "Usage: %s [-options] [JSON]\n"
-    "  -s          run stdio JSON command interface.\n"
+    "  -b          run binary stdio JSON command interface.\n"
     "  -h, --help  print this help.\n"
     "\n"
     "All Rights Reserved.\n"

@@ -36,10 +36,15 @@ namespace {
 #endif
 } // namespace
 
-Webrecorder::Webrecorder(const std::vector<std::string>& arguments,
-            const std::string& working_directory)
-  : m_process(utf8_to_native(arguments), utf8_to_native(working_directory),
-      std::bind(&Webrecorder::handle_output, this, _1, _2)),
+Webrecorder::Webrecorder(
+    std::filesystem::path filename,
+    const std::vector<std::string>& arguments,
+    const std::string& working_directory,
+    std::function<void(std::filesystem::path)> on_finished)
+  : m_filename(std::move(filename)),
+    m_on_finished(std::move(on_finished)),
+    m_process(utf8_to_native(arguments), utf8_to_native(working_directory),
+    std::bind(&Webrecorder::handle_output, this, _1, _2)),
     m_thread(&Webrecorder::thread_func, this) {
 
   // wait for first output, so first poll receives it, to optimize latency
@@ -49,7 +54,10 @@ Webrecorder::Webrecorder(const std::vector<std::string>& arguments,
 }
 
 Webrecorder::~Webrecorder() {
+  stop();
   m_thread.join();
+  if (m_on_finished)
+    m_on_finished(m_filename);
 }
 
 void Webrecorder::stop() {

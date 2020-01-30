@@ -1,5 +1,6 @@
 
 #include "Logic.h"
+#include "Database.h"
 #include "common.h"
 #include <random>
 #include <fstream>
@@ -131,11 +132,11 @@ void Logic::start_recording(Response& response, const Request& request) {
       "-b", '\"' + m_host_block_list_path.u8string() + '\"',
     });
 
+  const auto full_path = path / get_legal_filename(std::string(filename));
   m_webrecorders.emplace(std::piecewise_construct,
     std::forward_as_tuple(id),
-    std::forward_as_tuple(std::move(arguments), path.u8string()));
-
-  const auto full_path = path / get_legal_filename(std::string(filename));
+    std::forward_as_tuple(full_path, std::move(arguments), path.u8string(),
+      std::bind(&Logic::on_recording_finished, this, std::placeholders::_1)));
 
   if (std::filesystem::is_regular_file(full_path)) {
     const auto file_size = std::filesystem::file_size(full_path);
@@ -148,6 +149,10 @@ void Logic::stop_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   if (auto it = m_webrecorders.find(id); it != m_webrecorders.end())
     it->second.stop();
+}
+
+void Logic::on_recording_finished(const std::filesystem::path& filename) {
+  m_database->update_index(filename);
 }
 
 void Logic::get_recording_output(Response& response, const Request& request) {
@@ -176,6 +181,9 @@ void Logic::set_library_root(Response& response, const Request& request) {
     library_root = m_settings.default_library_root;
     create_directories_handle_symlinks(library_root);
   }
+
+  m_database = std::make_unique<Database>(library_root / ".pagesowned.sqlite");
+
   // succeeded
   m_library_root = library_root;
 

@@ -16,7 +16,9 @@ set(SOURCES
     src/StdioInterface.cpp
     src/Logic.cpp
     src/Database.cpp
+    src/Indexing.cpp
     src/Settings.cpp
+    src/sqlite.cpp
     libs/TinyProcessLib/process.cpp
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp
@@ -49,12 +51,19 @@ else()
         libs/webrecorder/libs/minizip/iowin32.c
         libs/sqlite/sqlite3.c
     )
-    set(INCLUDES ${INCLUDES} libs/webrecorder/libs/zlib/include)
-    link_directories(libs/webrecorder/libs/zlib/lib64)
+    set(INCLUDES ${INCLUDES}
+      libs/sqlite
+      libs/webrecorder/libs/gumbo/include
+      libs/webrecorder/libs/zlib/include
+    )
+    link_directories(
+      libs/webrecorder/libs/gumbo/lib64
+      libs/webrecorder/libs/zlib/lib64
+    )
 endif()
 
 add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
-link_libraries(z)
+link_libraries(gumbo z)
 
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
@@ -84,7 +93,8 @@ else()
     install(TARGETS pagesowned DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
     install(FILES pagesowned.json DESTINATION .)
-    install(FILES libs/zlib/bin64/zlib.dll DESTINATION .)
+    install(FILES libs/webrecorder/libs/gumbo/bin64/gumbo.dll DESTINATION .)
+    install(FILES libs/webrecorder/libs/zlib/bin64/zlib.dll DESTINATION .)
 
     set(CPACK_GENERATOR WIX)
     set(CPACK_WIX_UPGRADE_GUID "FE3DD160-C524-49F0-B740-E84A37C13E26")

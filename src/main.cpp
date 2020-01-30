@@ -1,6 +1,7 @@
 
 #include "StdioInterface.h"
 #include <cstring>
+#include <array>
 
 #if !defined(_WIN32)
 #  include <unistd.h>
@@ -27,7 +28,18 @@ int main(int argc, const char* argv[], const char* env[]) try {
 #  include <io.h>
 #  include <fcntl.h>
 
-int wmain(int, wchar_t* argv[]) {
+std::string wide_to_utf8(std::wstring_view str) {
+  auto result = std::string();
+  result.resize(WideCharToMultiByte(CP_UTF8, 0, str.data(),
+    static_cast<int>(str.size()), NULL, 0, NULL, 0));
+  WideCharToMultiByte(CP_UTF8, 0,
+    str.data(), static_cast<int>(str.size()),
+    result.data(), static_cast<int>(result.size()),
+    NULL, 0);
+  return result;
+}
+
+int wmain(int argc, wchar_t* wargv[]) try {
   auto settings = Settings{ };
 
   auto path = std::array<wchar_t, MAX_PATH>{ };
@@ -40,15 +52,18 @@ int wmain(int, wchar_t* argv[]) {
 
   (void)_setmode(fileno(stdout), _O_BINARY);
   (void)_setmode(fileno(stdin), _O_BINARY);
+
+  auto argv_strings = std::vector<std::string>();
+  for (auto i = 0; i < argc; ++i)
+    argv_strings.push_back(wide_to_utf8(wargv[i]));
+  auto argv_vector = std::vector<const char*>();
+  for (const auto& string : argv_strings)
+    argv_vector.push_back(string.c_str());
+  const auto argv = argv_vector.data();
 #endif // _WIN32
 
   if (!interpret_commandline(settings, argc, argv)) {
     print_help_message(argv[0]);
-    return 1;
-  }
-
-  if (!std::filesystem::exists(settings.webrecorder_path)) {
-    std::fprintf(stderr, "webrecorder not found\n");
     return 1;
   }
 
