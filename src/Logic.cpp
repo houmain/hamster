@@ -2,6 +2,7 @@
 #include "Logic.h"
 #include "Database.h"
 #include "common.h"
+#include "platform.h"
 #include <random>
 #include <fstream>
 #define NOC_FILE_DIALOG_IMPLEMENTATION
@@ -109,7 +110,9 @@ void Logic::start_recording(Response& response, const Request& request) {
 
   create_directories_handle_symlinks(path);
 
-  auto disable = std::string("B");
+  auto disable = std::string{ };
+  if (!m_settings.open_browser)
+    disable.push_back('B');
   if (write_file.has_value() && !write_file.value())
     disable.push_back('W');
   if (read_file.has_value() && !read_file.value())
@@ -120,7 +123,7 @@ void Logic::start_recording(Response& response, const Request& request) {
     disable.push_back('D');
 
   auto arguments = std::vector<std::string>{
-    m_settings.webrecorder_path.u8string(),
+    webrecorder_path().u8string(),
     "-d", disable,
     "-f", std::string(follow_link.value_or("N")),
     "-v", std::string(validation.value_or("N")),
@@ -178,7 +181,7 @@ void Logic::set_library_root(Response& response, const Request& request) {
   auto error = std::error_code();
   if (library_root.empty() ||
       !std::filesystem::exists(library_root, error)) {
-    library_root = m_settings.default_library_root;
+    library_root = default_library_root();
     create_directories_handle_symlinks(library_root);
   }
 

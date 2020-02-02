@@ -1,66 +1,77 @@
 
-#include "StdioInterface.h"
-#include <cstring>
-#include <array>
+#include "platform.h"
+#include "Settings.h"
+#include "Logic.h"
+#include "common.h"
 
-#if !defined(_WIN32)
-#  include <unistd.h>
-
-int main(int argc, const char* argv[], const char* env[]) try {
-  auto settings = Settings{ };
-
-  auto path = std::array<char, 1024>{ };
-  readlink("/proc/self/exe", path.data(), path.size());
-  settings.webrecorder_path =
-    std::filesystem::path(path.data()).replace_filename("webrecorder");
-
-  for (auto it = env; *it; ++it)
-    if (!std::strncmp(*it, "HOME=", 5)) {
-      settings.default_library_root = std::filesystem::u8path(*it + 5) / "PagesOwned";
-      break;
+namespace {
+  void handle_request(Logic& logic, Response& response, const Request& request) {
+    response.StartObject();
+    if (auto request_id = json::try_get_int(request, "requestId")) {
+      response.Key("requestId");
+      response.Int(request_id.value());
     }
+    logic.handle_request(response, request);
+    response.EndObject();
+  }
 
-#else // _WIN32
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#  include <Windows.h>
-#  include <Shlobj.h>
-#  include <io.h>
-#  include <fcntl.h>
+  void handle_error(Response& response,
+      const json::Document& request, const std::exception& ex) {
+    response.StartObject();
+    if (auto request_id = json::try_get_int(request, "requestId")) {
+      response.Key("requestId");
+      response.Int(request_id.value());
+    }
+    response.Key("error");
+    response.String(ex.what());
+    response.EndObject();
+  }
 
-std::string wide_to_utf8(std::wstring_view str) {
-  auto result = std::string();
-  result.resize(WideCharToMultiByte(CP_UTF8, 0, str.data(),
-    static_cast<int>(str.size()), NULL, 0, NULL, 0));
-  WideCharToMultiByte(CP_UTF8, 0,
-    str.data(), static_cast<int>(str.size()),
-    result.data(), static_cast<int>(result.size()),
-    NULL, 0);
-  return result;
-}
+  std::string_view read_plain(std::vector<char>& buffer) {
+    buffer.resize(1024);
+    for (;;) {
+      const auto line = std::fgets(buffer.data(),
+        static_cast<int>(buffer.size()), stdin);
+      if (!line)
+        return { };
+      if (!trim(line).empty())
+        return std::string_view{ line };
+    }
+  }
 
-int wmain(int argc, wchar_t* wargv[]) try {
+  void write_plain(const std::string& message) {
+    std::fprintf(stdout, "%s\n", message.c_str());
+  }
+
+  std::string_view read_binary(std::vector<char>& buffer) {
+    auto length = uint32_t{ };
+    if (std::fread(&length, 1, 4, stdin) == 4) {
+      buffer.resize(length);
+      if (std::fread(buffer.data(), 1, length, stdin) == length)
+        return std::string_view(buffer.data(), length);
+    }
+    return { };
+  }
+
+  void write_binary(const std::string& message) {
+    auto length = static_cast<uint32_t>(message.size());
+    if (std::fwrite(&length, 1, 4, stdout) == 4) {
+      std::fwrite(message.data(), 1, length, stdout);
+      std::fflush(stdout);
+    }
+  }
+
+  std::string_view read(bool plain, std::vector<char>& buffer) {
+    return (plain ? read_plain(buffer) : read_binary(buffer));
+  }
+
+  void write(bool plain, const std::string& message) {
+  return (plain ? write_plain(message) : write_binary(message));
+  }
+} // namespace
+
+int run(int argc, const char* argv[]) noexcept try {
   auto settings = Settings{ };
-
-  auto path = std::array<wchar_t, MAX_PATH>{ };
-  GetModuleFileNameW(NULL, path.data(), path.size());
-  settings.webrecorder_path =
-    std::filesystem::path(path.data()).replace_filename("webrecorder.exe");
-
-  SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path.data());
-  settings.default_library_root = std::filesystem::path(path.data()) / "PagesOwned";
-
-  (void)_setmode(fileno(stdout), _O_BINARY);
-  (void)_setmode(fileno(stdin), _O_BINARY);
-
-  auto argv_strings = std::vector<std::string>();
-  for (auto i = 0; i < argc; ++i)
-    argv_strings.push_back(wide_to_utf8(wargv[i]));
-  auto argv_vector = std::vector<const char*>();
-  for (const auto& string : argv_strings)
-    argv_vector.push_back(string.c_str());
-  const auto argv = argv_vector.data();
-#endif // _WIN32
 
   if (!interpret_commandline(settings, argc, argv)) {
     print_help_message(argv[0]);
@@ -69,21 +80,28 @@ int wmain(int argc, wchar_t* wargv[]) try {
 
   auto logic = Logic(settings);
 
-  for (const auto& json : settings.json_input) {
-    auto request = json::parse(json);
-    auto response = json::build_string([&](Response& response) {
-      response.StartObject();
-      logic.handle_request(response, request);
-      response.EndObject();
-    });
-    std::fprintf(stdout, "%s\n", response.c_str());
+  auto buffer = std::vector<char>();
+  for (;;) {
+    auto line = read(settings.plain_stdio_interface, buffer);
+    if (line.empty())
+      break;
+    auto request = json::parse(line);
+    try {
+      write(settings.plain_stdio_interface,
+          json::build_string([&](Response& response) {
+        handle_request(logic, response, request);
+      }));
+    }
+    catch (const std::exception& ex) {
+      write(settings.plain_stdio_interface,
+          json::build_string([&](Response& response) {
+        handle_error(response, request, ex);
+      }));
+    }
   }
-
-  if (settings.run_stdio_interface) {
-    auto stdio = StdioInterface(&logic);
-    stdio.run();
-  }
+  return 0;
 }
 catch (const std::exception& ex) {
   std::fprintf(stderr, "unhanded exception: %s\n", ex.what());
+  return 1;
 }

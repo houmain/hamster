@@ -13,12 +13,12 @@ set(SOURCES
     src/common.cpp
     src/Webrecorder.cpp
     src/Json.cpp
-    src/StdioInterface.cpp
     src/Logic.cpp
     src/Database.cpp
     src/Indexing.cpp
     src/Settings.cpp
     src/sqlite.cpp
+    src/platform.cpp
     libs/TinyProcessLib/process.cpp
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp

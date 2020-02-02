@@ -5,19 +5,19 @@
 bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
   for (auto i = 1; i < argc; i++) {
     const auto argument = std::string_view(argv[i]);
-    if (argument == "-b") {
-      settings.run_stdio_interface = true;
+    if (argument == "-p") {
+      settings.plain_stdio_interface = true;
+    }
+    else if (argument == "-b") {
+      settings.open_browser = true;
     }
     else if (argument == "-h" || argument == "--help") {
       return false;
     }
     else {
-      settings.json_input.emplace_back(unquote(argv[i]));
+      return false;
     }
   }
-  if (!settings.run_stdio_interface &&
-      settings.json_input.empty())
-    return false;
   return true;
 }
 
@@ -37,8 +37,9 @@ void print_help_message(const char* argv0) {
   printf(
     "pagesowned %s (c) 2020 by Albert Kalchmair\n"
     "\n"
-    "Usage: %s [-options] [JSON]\n"
-    "  -b          run binary stdio JSON command interface.\n"
+    "Usage: %s [-options]\n"
+    "  -p          run plain stdio JSON command interface.\n"
+    "  -b          enable opening of browser"
     "  -h, --help  print this help.\n"
     "\n"
     "All Rights Reserved.\n"
