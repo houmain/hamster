@@ -3,7 +3,6 @@
 #include "gumbo.h"
 #include "libs/webrecorder/src/Archive.h"
 #include "libs/webrecorder/src/HeaderStore.h"
-#include <stack>
 
 bool for_each_archive_html(const std::filesystem::path& filename,
     std::function<void(ArchiveHtml)> file_callback) {
@@ -53,24 +52,33 @@ void for_html_text(std::string_view html,
 
   if (output->root->type != GUMBO_NODE_ELEMENT)
     return;
-  auto element_stack = std::stack<const GumboNode*>();
-  element_stack.push(output->root);
 
-  while (!element_stack.empty()) {
-    const auto node = element_stack.top();
-    element_stack.pop();
-    const auto& element = node->v.element;
-
+  const auto rec = [&](const GumboElement& element, const auto& rec) {
+    switch (element.tag) {
+      case GUMBO_TAG_TITLE:
+      case GUMBO_TAG_SCRIPT:
+      case GUMBO_TAG_STYLE:
+      case GUMBO_TAG_NOSCRIPT:
+      case GUMBO_TAG_TEXTAREA:
+        return;
+      default:
+        break;
+    }
     for (auto i = 0u; i < element.children.length; ++i) {
       const auto& child = *static_cast<const GumboNode*>(element.children.data[i]);
       if (child.type == GUMBO_NODE_TEXT) {
-        text_callback({ child.v.text.original_text.data,
-                        child.v.text.original_text.length });
+        auto text = std::string_view(child.v.text.original_text.data,
+                                     child.v.text.original_text.length);
+        text = trim(text);
+        if (!text.empty())
+          text_callback(text);
       }
       else if (child.type == GUMBO_NODE_ELEMENT) {
-        element_stack.push(&child);
+        rec(child.v.element, rec);
       }
     }
-  }
+  };
+  rec(output->root->v.element, rec);
+
   gumbo_destroy_output(&kGumboDefaultOptions, output);
 }

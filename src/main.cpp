@@ -41,6 +41,7 @@ namespace {
 
   void write_plain(const std::string& message) {
     std::fprintf(stdout, "%s\n", message.c_str());
+    std::fflush(stdout);
   }
 
   std::string_view read_binary(std::vector<char>& buffer) {
@@ -88,15 +89,15 @@ int run(int argc, const char* argv[]) noexcept try {
     auto request = json::parse(line);
     try {
       write(settings.plain_stdio_interface,
-          json::build_string([&](Response& response) {
-        handle_request(logic, response, request);
-      }));
+        json::build_string([&](Response& response) {
+          handle_request(logic, response, request);
+        }));
     }
     catch (const std::exception& ex) {
       write(settings.plain_stdio_interface,
-          json::build_string([&](Response& response) {
-        handle_error(response, request, ex);
-      }));
+        json::build_string([&](Response& response) {
+          handle_error(response, request, ex);
+        }));
     }
   }
   return 0;

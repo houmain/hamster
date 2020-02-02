@@ -24,7 +24,9 @@ Document parse(std::string_view message) {
 }
 
 std::optional<bool> try_get_bool(const Value& message, const char* name) {
-  auto it = (message.IsObject() ? message.FindMember(name) : message.MemberEnd());
+  if (!message.IsObject())
+    return std::nullopt;
+  const auto it = message.FindMember(name);
   if (it == message.MemberEnd() || !it->value.IsBool())
     return std::nullopt;
   return it->value.GetBool();
@@ -37,7 +39,9 @@ bool get_bool(const Value& message, const char* name) {
 }
 
 std::optional<int> try_get_int(const Value& message, const char* name) {
-  auto it = (message.IsObject() ? message.FindMember(name) : message.MemberEnd());
+  if (!message.IsObject())
+    return std::nullopt;
+  const auto it = message.FindMember(name);
   if (it == message.MemberEnd() || !it->value.IsInt())
     return std::nullopt;
   return it->value.GetInt();

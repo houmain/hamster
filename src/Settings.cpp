@@ -14,9 +14,6 @@ bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
     else if (argument == "-h" || argument == "--help") {
       return false;
     }
-    else {
-      return false;
-    }
   }
   return true;
 }
