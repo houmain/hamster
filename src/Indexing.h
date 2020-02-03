@@ -6,7 +6,7 @@
 
 struct ArchiveHtml {
   int64_t uid;
-  std::string filename;
+  std::string url;
   std::string_view html;
 };
 

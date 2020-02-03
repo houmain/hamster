@@ -25,11 +25,14 @@ private:
   void undelete_file(Response&, const Request& request);
   void start_recording(Response& response, const Request& request);
   void stop_recording(Response&, const Request& request);
-  void on_recording_finished(const std::filesystem::path& filename);
   void get_recording_output(Response& response, const Request& request);
   void set_library_root(Response& response, const Request& request);
   void browse_directories(Response& response, const Request& request);
   void set_host_block_list(Response&, const Request& request);
+  void get_file_size(Response& response, const Request& request);
+  Database& database();
+  void update_search_index(Response&, const Request& request);
+  void execute_search(Response& response, const Request& request);
 
   const Settings& m_settings;
   std::unique_ptr<Database> m_database;

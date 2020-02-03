@@ -8,10 +8,8 @@
 
 class Webrecorder {
 public:
-  Webrecorder(std::filesystem::path filename,
-              const std::vector<std::string>& arguments,
-              const std::string& working_directory,
-              std::function<void(std::filesystem::path)> on_finished);
+  Webrecorder(const std::vector<std::string>& arguments,
+              const std::string& working_directory);
   ~Webrecorder();
 
   void stop();
@@ -23,8 +21,6 @@ private:
   void handle_output(const char* data, size_t size);
   void handle_finished();
 
-  const std::filesystem::path m_filename;
-  const std::function<void(const std::filesystem::path&)> m_on_finished;
   TinyProcessLib::Process m_process;
   std::thread m_thread;
   mutable std::mutex m_output_mutex;

@@ -14,6 +14,7 @@ struct Exception : std::runtime_error {
   using runtime_error::runtime_error;
 };
 
+using size_t = rapidjson::SizeType;
 using Document = rapidjson::Document;
 using Value = rapidjson::Value;
 using Writer = rapidjson::Writer<rapidjson::StringBuffer>;

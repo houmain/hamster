@@ -9,6 +9,9 @@
 #include "libs/noc/noc_file_dialog.h"
 
 namespace {
+  const auto trash_directory_name = ".trash";
+  const auto index_database_filename = ".pagesowned.sqlite";
+
   std::filesystem::path generate_temporary_filename() {
     auto rand = std::random_device();
     auto filename = std::string("pagesowned_");
@@ -73,7 +76,7 @@ void Logic::delete_file(Response&, const Request& request) {
   const auto file_path = to_full_path(path);
   const auto undelete_id = json::try_get_string(request, "undeleteId");
   if (undelete_id) {
-    path.insert(begin(path), { ".trash", *undelete_id });
+    path.insert(begin(path), { trash_directory_name, *undelete_id });
     const auto trash_path = to_full_path(path);
     if (std::filesystem::exists(file_path))
       do_move_file(file_path, trash_path);
@@ -88,7 +91,7 @@ void Logic::delete_file(Response&, const Request& request) {
 
 void Logic::undelete_file(Response&, const Request& request) {
   const auto undelete_id = json::get_string(request, "undeleteId");
-  const auto trash_path = to_full_path({ ".trash", undelete_id });
+  const auto trash_path = to_full_path({ trash_directory_name, undelete_id });
   if (!std::filesystem::is_directory(trash_path))
     return;
   for (const auto& file : std::filesystem::directory_iterator(trash_path))
@@ -96,7 +99,7 @@ void Logic::undelete_file(Response&, const Request& request) {
   std::filesystem::remove_all(trash_path);
 }
 
-void Logic::start_recording(Response& response, const Request& request) {
+void Logic::start_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   const auto url = json::get_string(request, "url");
   const auto filename = json::get_string(request, "filename");
@@ -135,27 +138,15 @@ void Logic::start_recording(Response& response, const Request& request) {
       "-b", '\"' + m_host_block_list_path.u8string() + '\"',
     });
 
-  const auto full_path = path / get_legal_filename(std::string(filename));
   m_webrecorders.emplace(std::piecewise_construct,
     std::forward_as_tuple(id),
-    std::forward_as_tuple(full_path, std::move(arguments), path.u8string(),
-      std::bind(&Logic::on_recording_finished, this, std::placeholders::_1)));
-
-  if (std::filesystem::is_regular_file(full_path)) {
-    const auto file_size = std::filesystem::file_size(full_path);
-    response.Key("fileSize");
-    response.Uint64(file_size);
-  }
+    std::forward_as_tuple(std::move(arguments), path.u8string()));
 }
 
 void Logic::stop_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   if (auto it = m_webrecorders.find(id); it != m_webrecorders.end())
     it->second.stop();
-}
-
-void Logic::on_recording_finished(const std::filesystem::path& filename) {
-  m_database->update_index(filename);
 }
 
 void Logic::get_recording_output(Response& response, const Request& request) {
@@ -184,9 +175,6 @@ void Logic::set_library_root(Response& response, const Request& request) {
     library_root = default_library_root();
     create_directories_handle_symlinks(library_root);
   }
-
-  m_database = std::make_unique<Database>(library_root / ".pagesowned.sqlite");
-
   // succeeded
   m_library_root = library_root;
 
@@ -213,6 +201,50 @@ void Logic::set_host_block_list(Response&, const Request& request) {
   file.write(list.data(), static_cast<std::streamsize>(list.size()));
 }
 
+void Logic::get_file_size(Response& response, const Request& request) {
+  const auto filename = json::get_string(request, "filename");
+  const auto path = to_full_path(json::get_string_list(request, "path")) /
+                    get_legal_filename(std::string(filename));
+  if (std::filesystem::is_regular_file(path)) {
+    const auto file_size = std::filesystem::file_size(path);
+    response.Key("fileSize");
+    response.Uint64(file_size);
+  }
+}
+
+Database& Logic::database() {
+  if (m_library_root.empty())
+    throw std::runtime_error("library root not set");
+  if (!m_database)
+    m_database = std::make_unique<Database>(m_library_root / index_database_filename);
+  return *m_database;
+}
+
+void Logic::update_search_index(Response&, const Request& request) {
+  const auto filename = json::get_string(request, "filename");
+  const auto path = to_full_path(json::get_string_list(request, "path")) /
+                    get_legal_filename(std::string(filename));
+  database().update_index(path);
+}
+
+void Logic::execute_search(Response& response, const Request& request) {
+  const auto query = json::get_string(request, "query");
+  response.Key("matches");
+  response.StartArray();
+  database().execute_search(query,
+    [&](SearchResult r) {
+      response.StartObject();
+      response.String("uid");
+      response.Int64(r.uid);
+      response.String("url");
+      response.String(r.url.data(), static_cast<json::size_t>(r.url.size()));
+      response.String("snippet");
+      response.String(r.snippet.data(), static_cast<json::size_t>(r.snippet.size()));
+      response.EndObject();
+    });
+  response.EndArray();
+}
+
 void Logic::handle_request(Response& response, const Request& request) {
   using Handler = void(Logic::*)(Response&, const Request&);
   static const auto s_action_handlers = std::map<std::string_view, Handler> {
@@ -225,6 +257,9 @@ void Logic::handle_request(Response& response, const Request& request) {
     { "setLibraryRoot", &Logic::set_library_root },
     { "browserDirectories", &Logic::browse_directories },
     { "setHostBlockList", &Logic::set_host_block_list },
+    { "getFileSize", &Logic::get_file_size },
+    { "updateSearchIndex", &Logic::update_search_index },
+    { "executeSearch", &Logic::execute_search },
   };
   const auto action = json::get_string(request, "action");
   const auto it = s_action_handlers.find(action);
