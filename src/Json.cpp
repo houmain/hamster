@@ -6,11 +6,13 @@
 namespace json {
 
 namespace {
-  const Value& check_array(const Value& message, const char* name) {
-    auto it = (message.IsObject() ? message.FindMember(name) : message.MemberEnd());
+  const Value* try_get_array(const Value& message, const char* name) {
+    if (!message.IsObject())
+      return nullptr;
+    auto it = message.FindMember(name);
     if (it == message.MemberEnd() || !it->value.IsArray())
-      throw Exception("array '" + std::string(name) + "' expected");
-    return it->value;
+      return nullptr;
+    return &it->value;
   }
 } // namespace
 
@@ -69,25 +71,29 @@ std::string_view get_string(const Value& message, const char* name) {
 }
 
 std::vector<int> get_int_list(const Value& message, const char* name) {
-  const auto& array = check_array(message, name);
-  auto result = std::vector<int>();
-  for (auto it = array.Begin(), end = array.End(); it != end; ++it) {
-    if (!it->IsInt())
-      throw Exception("int expected");
-    result.push_back(it->GetInt());
+  if (const auto array = try_get_array(message, name)) {
+    auto result = std::vector<int>();
+    for (auto it = array->Begin(), end = array->End(); it != end; ++it) {
+      if (!it->IsInt())
+        throw Exception("int expected");
+      result.push_back(it->GetInt());
+    }
+    return result;
   }
-  return result;
+  throw Exception("array '" + std::string(name) + "' expected");
 }
 
 std::vector<std::string_view> get_string_list(const Value& message, const char* name) {
-  const auto& array = check_array(message, name);
-  auto result = std::vector<std::string_view>();
-  for (auto it = array.Begin(), end = array.End(); it != end; ++it) {
-    if (!it->IsString())
-      throw Exception("string expected");
-    result.push_back(it->GetString());
+  if (const auto array = try_get_array(message, name)) {
+    auto result = std::vector<std::string_view>();
+    for (auto it = array->Begin(), end = array->End(); it != end; ++it) {
+      if (!it->IsString())
+        throw Exception("string expected");
+      result.push_back(it->GetString());
+    }
+    return result;
   }
-  return result;
+  throw Exception("array '" + std::string(name) + "' expected");
 }
 
 std::string build_string(const std::function<void(Writer&)>& write) {

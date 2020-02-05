@@ -36,14 +36,12 @@ set(INCLUDES libs/webrecorder)
 
 if(NOT MSVC)
     add_compile_options(-Wall -Wextra -Wsign-conversion)
-
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_unix.cpp
     )
-    add_compile_options(-Wall -Wextra -Wsign-conversion)
     link_libraries(stdc++fs sqlite3)
 else()
-    add_compile_options(/GR- /W1 -D_WIN32_WINNT=0x0501)
+    add_compile_options(/GR- /W1 -D_WIN32_WINNT=0x0501 -DSQLITE_ENABLE_FTS5)
     set(MSVC_SHARED_RUNTIME OFF)
 
     set(SOURCES ${SOURCES}

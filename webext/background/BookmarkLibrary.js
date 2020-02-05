@@ -33,7 +33,7 @@ class BookmarkLibrary {
 
   async startRecording (tabId, url, bookmark) {
     console.log('startRecording begin', tabId, bookmark.id)
-    verify(tabId, url, bookmark)
+    verify(tabId >= 0, url, bookmark)
 
     // TODO: remove sanity check
     for (const bookmarkId in this._recorderByBookmarkId) {
@@ -57,12 +57,13 @@ class BookmarkLibrary {
     console.log('startRecording end (updated recorder)', tabId, bookmark.id, url)
 
     const { path, inLibrary } = await this._getBookmarkPath(bookmark.id)
-    const filename = path.pop()
-    const response = await this._backend.startRecording(
-      recorder.recorderId, path, filename, bookmark.url,
+    await this._backend.startRecording(
+      recorder.recorderId, path, bookmark.url,
       event => this._handleRecordingOutput(tabId, recorder, event))
 
+    const response = await this._backend.getFileSize(path)
     recorder.fileSize = response.fileSize
+
   }
 
   async stopRecording (tabId) {
@@ -259,6 +260,9 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkRequested (tabId, url) {
+    if (tabId < 0)
+      return;
+
     const bookmark = await this.findBookmarkByUrl(url)
     verify(bookmark)
 

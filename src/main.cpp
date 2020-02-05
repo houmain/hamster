@@ -67,7 +67,7 @@ namespace {
   }
 
   void write(bool plain, const std::string& message) {
-  return (plain ? write_plain(message) : write_binary(message));
+    return (plain ? write_plain(message) : write_binary(message));
   }
 } // namespace
 

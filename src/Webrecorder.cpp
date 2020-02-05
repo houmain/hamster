@@ -40,8 +40,12 @@ Webrecorder::Webrecorder(
     const std::vector<std::string>& arguments,
     const std::string& working_directory)
   : m_process(utf8_to_native(arguments), utf8_to_native(working_directory),
-    std::bind(&Webrecorder::handle_output, this, _1, _2)),
-    m_thread(&Webrecorder::thread_func, this) {
+      std::bind(&Webrecorder::handle_output, this, _1, _2)) {
+
+  if (!m_process.get_id())
+    throw std::runtime_error("starting webrecorder process failed");
+
+  m_thread = std::thread(&Webrecorder::thread_func, this);
 
   // wait for first output, so first poll receives it, to optimize latency
   auto lock = std::unique_lock(m_output_mutex);

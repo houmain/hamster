@@ -3,6 +3,7 @@
 #include "gumbo.h"
 #include "libs/webrecorder/src/Archive.h"
 #include "libs/webrecorder/src/HeaderStore.h"
+#include <sstream>
 
 bool for_each_archive_html(const std::filesystem::path& filename,
     std::function<void(ArchiveHtml)> file_callback) {

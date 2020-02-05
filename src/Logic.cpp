@@ -102,7 +102,6 @@ void Logic::undelete_file(Response&, const Request& request) {
 void Logic::start_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   const auto url = json::get_string(request, "url");
-  const auto filename = json::get_string(request, "filename");
   const auto path = to_full_path(json::get_string_list(request, "path"));
   const auto follow_link = json::try_get_string(request, "followLink");
   const auto validation = json::try_get_string(request, "validation");
@@ -111,7 +110,15 @@ void Logic::start_recording(Response&, const Request& request) {
   const auto append_file = json::try_get_bool(request, "appendFile");
   const auto download = json::try_get_bool(request, "download");
 
-  create_directories_handle_symlinks(path);
+  create_directories_handle_symlinks(path.parent_path());
+
+  auto arguments = std::vector<std::string>{
+    webrecorder_path().u8string(),
+    "-f", std::string(follow_link.value_or("N")),
+    "-v", std::string(validation.value_or("N")),
+    "-i", '\"' + std::string(url) + '\"',
+    "-o", '\"' + path.filename().u8string() + '\"'
+  };
 
   auto disable = std::string{ };
   if (!m_settings.open_browser)
@@ -124,15 +131,9 @@ void Logic::start_recording(Response&, const Request& request) {
     disable.push_back('A');
   if (download.has_value() && !download.value())
     disable.push_back('D');
+  if (!disable.empty())
+    arguments.insert(end(arguments), { "-d", disable });
 
-  auto arguments = std::vector<std::string>{
-    webrecorder_path().u8string(),
-    "-d", disable,
-    "-f", std::string(follow_link.value_or("N")),
-    "-v", std::string(validation.value_or("N")),
-    "-i", '\"' + std::string(url) + '\"',
-    "-o", '\"' + std::string(filename) + '\"'
-  };
   if (!m_host_block_list_path.empty())
     arguments.insert(end(arguments), {
       "-b", '\"' + m_host_block_list_path.u8string() + '\"',
@@ -140,7 +141,7 @@ void Logic::start_recording(Response&, const Request& request) {
 
   m_webrecorders.emplace(std::piecewise_construct,
     std::forward_as_tuple(id),
-    std::forward_as_tuple(std::move(arguments), path.u8string()));
+    std::forward_as_tuple(std::move(arguments), path.parent_path().u8string()));
 }
 
 void Logic::stop_recording(Response&, const Request& request) {
@@ -152,15 +153,16 @@ void Logic::stop_recording(Response&, const Request& request) {
 void Logic::get_recording_output(Response& response, const Request& request) {
   const auto id = json::get_int(request, "id");
   if (auto it = m_webrecorders.find(id); it != m_webrecorders.end()) {
+    response.Key("events");
+    response.StartArray();
+    it->second.for_each_output_line([&](const auto& line) { response.String(line); });
+    response.EndArray();
+
     // cleanup stopped recorder
     if (it->second.finished()) {
       m_webrecorders.erase(it);
       return;
     }
-    response.Key("events");
-    response.StartArray();
-    it->second.for_each_output_line([&](const auto& line) { response.String(line); });
-    response.EndArray();
   }
 }
 
@@ -202,9 +204,7 @@ void Logic::set_host_block_list(Response&, const Request& request) {
 }
 
 void Logic::get_file_size(Response& response, const Request& request) {
-  const auto filename = json::get_string(request, "filename");
-  const auto path = to_full_path(json::get_string_list(request, "path")) /
-                    get_legal_filename(std::string(filename));
+  const auto path = to_full_path(json::get_string_list(request, "path"));
   if (std::filesystem::is_regular_file(path)) {
     const auto file_size = std::filesystem::file_size(path);
     response.Key("fileSize");
@@ -221,9 +221,7 @@ Database& Logic::database() {
 }
 
 void Logic::update_search_index(Response&, const Request& request) {
-  const auto filename = json::get_string(request, "filename");
-  const auto path = to_full_path(json::get_string_list(request, "path")) /
-                    get_legal_filename(std::string(filename));
+  const auto path = to_full_path(json::get_string_list(request, "path"));
   database().update_index(path);
 }
 

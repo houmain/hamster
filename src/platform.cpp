@@ -4,9 +4,6 @@
 #include <csignal>
 #include <array>
 
-#if !defined(_WIN32)
-#  include <unistd.h>
-
 namespace {
   std::filesystem::path g_webrecorder_path;
   std::filesystem::path g_default_library_root;
@@ -19,6 +16,9 @@ const std::filesystem::path& webrecorder_path() {
 const std::filesystem::path& default_library_root() {
   return g_default_library_root;
 }
+
+#if !defined(_WIN32)
+#  include <unistd.h>
 
 int main(int argc, const char* argv[], const char* env[]) {
   auto path = std::array<char, 1024>{ };
@@ -62,8 +62,6 @@ std::string wide_to_utf8(std::wstring_view str) {
 }
 
 int wmain(int argc, wchar_t* wargv[]) {
-  auto settings = Settings{ };
-
   auto path = std::array<wchar_t, MAX_PATH>{ };
   GetModuleFileNameW(NULL, path.data(), path.size());
   g_webrecorder_path =

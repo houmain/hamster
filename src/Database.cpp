@@ -7,7 +7,7 @@
 namespace {
   void normalize_space(std::string& text) {
     std::replace_if(begin(text), end(text),
-      [](char c) { return std::isspace(c); }, ' ');
+      [](unsigned char c) { return std::isspace(c); }, ' ');
     text.erase(std::unique(begin(text), end(text),
       [](char a, char b) { return (a == ' ' && a == b); }), end(text));
   }

@@ -23,25 +23,31 @@ class Backend {
     return this._filesystemRoot
   }
 
-  async startRecording (recorderId, path, filename, url, handleOutput) {
+  async startRecording (recorderId, path, url, handleOutput) {
     const request = {
       action: 'startRecording',
       id: recorderId,
-      filename: filename,
       url: url,
       path: path,
       followLink: 'P',
       validation: 'R',
     }
-    const response = await this._nativeClient.sendRequest(request)
+    await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
-    return response
   }
 
   async stopRecording (recorderId) {
     const request = {
       action: 'stopRecording',
       id: recorderId
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
+  async getFileSize (path) {
+    const request = {
+      action: 'getFileSize',
+      path: path
     }
     return this._nativeClient.sendRequest(request)
   }
@@ -84,6 +90,22 @@ class Backend {
     const request = {
       action: 'setHostBlockList',
       list: list
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
+  async updateSearchIndex (path) {
+    const request = {
+      action: 'updateSearchIndex',
+      path: path
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
+  async executeSearch (query) {
+    const request = {
+      action: 'executeSearch',
+      query: query
     }
     return this._nativeClient.sendRequest(request)
   }
