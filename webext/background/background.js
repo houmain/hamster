@@ -94,6 +94,38 @@ async function restoreOptions () {
   await backend.setFilesystemRoot(filesystemRoot)
 }
 
+function createSuggestions (response) {
+  return new Promise(resolve => {
+    let suggestions = [];
+    for (const match of response.matches) {
+      suggestions.push({
+        content: match.url,
+        description: match.snippet,
+      })
+    }
+    return resolve(suggestions);
+  })
+}
+
+function handleOmniBoxInput (text, addSuggestions) {
+  backend.executeSearch(text)
+    .then(createSuggestions).then(addSuggestions)
+}
+
+function handleOmniBoxSelection (url, disposition) {
+  switch (disposition) {
+    case "currentTab":
+      browser.tabs.update({ url });
+      break;
+    case "newForegroundTab":
+      browser.tabs.create({ url });
+      break;
+    case "newBackgroundTab":
+      browser.tabs.create({ url, active: false });
+      break;
+  }
+}
+
 ;(async function () {
   await restoreOptions()
   browser.history.onVisited.addListener(onVisited)
@@ -103,4 +135,6 @@ async function restoreOptions () {
   browser.bookmarks.onMoved.addListener(updatePageAction)
   browser.tabs.onActivated.addListener(updatePageAction)
   browser.pageAction.onClicked.addListener(onPageActionClicked)
+  browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
+  browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
 })()

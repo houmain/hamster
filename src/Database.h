@@ -19,6 +19,7 @@ public:
 
   void update_index(const std::filesystem::path& path);
   void execute_search(std::string_view query,
+    bool highlight, int snippet_size,
     const std::function<void(SearchResult)>& match_callback);
 
 private:

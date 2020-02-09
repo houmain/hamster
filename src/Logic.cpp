@@ -227,9 +227,11 @@ void Logic::update_search_index(Response&, const Request& request) {
 
 void Logic::execute_search(Response& response, const Request& request) {
   const auto query = json::get_string(request, "query");
+  const auto highlight = json::try_get_bool(request, "highlight").value_or(false);
+  const auto snippet_size = json::try_get_int(request, "snippetSize").value_or(16);
   response.Key("matches");
   response.StartArray();
-  database().execute_search(query,
+  database().execute_search(query, highlight, snippet_size,
     [&](SearchResult r) {
       response.StartObject();
       response.String("uid");

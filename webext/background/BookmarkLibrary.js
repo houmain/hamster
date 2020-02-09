@@ -64,6 +64,9 @@ class BookmarkLibrary {
     const response = await this._backend.getFileSize(path)
     recorder.fileSize = response.fileSize
 
+    // automatically update index
+    this._callOnRecordingFinished(bookmark.id,
+      () => this._backend.updateSearchIndex(path))
   }
 
   async stopRecording (tabId) {

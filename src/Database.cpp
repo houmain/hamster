@@ -71,13 +71,20 @@ void Database::update_index(const std::filesystem::path& filename) {
 }
 
 void Database::execute_search(std::string_view query,
+    bool highlight, int snippet_size,
     const std::function<void(SearchResult)>& match_callback) {
-  auto select = m_db->prepare(R"(
-    SELECT uid, url, snippet(texts, 2, '<b>', '</b>', '...', 32)
+  auto format = R"(
+    SELECT uid, url, snippet(texts, 2, %s, %s, '...', %i)
     FROM texts
     WHERE text MATCH ?
     ORDER BY bm25(texts)
-  )");
+  )";
+  auto buffer = std::array<char, 256>();
+  std::snprintf(buffer.data(), buffer.size(), format,
+    highlight ? "'<b>'" : "''",
+    highlight ? "'</b>'" : "''",
+    snippet_size);
+  auto select = m_db->prepare(buffer.data());
   select.bind(1, query);
   auto result = select.query();
   while (result.step()) {
