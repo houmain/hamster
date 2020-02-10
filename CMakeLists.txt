@@ -20,6 +20,7 @@ set(SOURCES
     src/sqlite.cpp
     src/platform.cpp
     libs/TinyProcessLib/process.cpp
+    libs/entities/entities.c
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp
     libs/webrecorder/src/common.cpp

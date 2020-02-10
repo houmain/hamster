@@ -114,33 +114,33 @@ std::string_view Statement::column_type_declaration(int column) const {
 }
 
 void Statement::bind_null(int parameter) {
-  if (sqlite3_bind_null(m_statement, parameter))
+  if (sqlite3_bind_null(m_statement, parameter + 1))
     error(sqlite3_db_handle(m_statement));
 }
 
 void Statement::bind(int parameter, int value) {
-  if (sqlite3_bind_int(m_statement, parameter, value))
+  if (sqlite3_bind_int(m_statement, parameter + 1, value))
     error(sqlite3_db_handle(m_statement));
 }
 
 void Statement::bind(int parameter, int64_t value) {
-  if (sqlite3_bind_int64(m_statement, parameter, value))
+  if (sqlite3_bind_int64(m_statement, parameter + 1, value))
     error(sqlite3_db_handle(m_statement));
 }
 
 void Statement::bind(int parameter, double value) {
-  if (sqlite3_bind_double(m_statement, parameter, value))
+  if (sqlite3_bind_double(m_statement, parameter + 1, value))
     error(sqlite3_db_handle(m_statement));
 }
 
 void Statement::bind(int parameter, std::string_view string) {
-  if (sqlite3_bind_text(m_statement, parameter,
+  if (sqlite3_bind_text(m_statement, parameter + 1,
       string.data(), static_cast<int>(string.size()), SQLITE_TRANSIENT))
     error(sqlite3_db_handle(m_statement));
 }
 
 void Statement::bind(int parameter, nonstd::span<const std::byte> blob) {
-  if (sqlite3_bind_blob(m_statement, parameter,
+  if (sqlite3_bind_blob(m_statement, parameter + 1,
       blob.data(), static_cast<int>(blob.size()), SQLITE_TRANSIENT))
     error(sqlite3_db_handle(m_statement));
 }
