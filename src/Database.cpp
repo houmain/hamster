@@ -38,7 +38,8 @@ Database::Database(const std::filesystem::path& path)
   m_db->execute(R"(
     CREATE VIRTUAL TABLE IF NOT EXISTS texts USING fts5 (
       uid, url, text, text_low,
-      tokenize=porter
+      tokenize = 'unicode61 remove_diacritics 2',
+      prefix = '2 3'
     )
   )");
 }
@@ -84,17 +85,22 @@ void Database::update_index(const std::filesystem::path& filename) {
 }
 
 void Database::execute_search(std::string_view query,
-    bool highlight, int snippet_size,
+    bool highlight, int snippet_size, int max_count,
     const std::function<void(SearchResult)>& match_callback) {
   for (auto [column_index, column_name] : {
       std::pair{ 2, "text" },
       std::pair{ 3, "text_low" },
     }) {
+
+    if (max_count <= 0)
+      return;
+
     const auto format = R"(
       SELECT uid, url, snippet(texts, %i, %s, %s, '...', %i)
       FROM texts
       WHERE %s MATCH ?
       ORDER BY RANK
+      LIMIT %i
     )";
     auto buffer = std::array<char, 256>();
     std::snprintf(buffer.data(), buffer.size(), format,
@@ -102,7 +108,8 @@ void Database::execute_search(std::string_view query,
       highlight ? "'<b>'" : "''",
       highlight ? "'</b>'" : "''",
       snippet_size,
-      column_name);
+      column_name,
+      max_count);
     auto select = m_db->prepare(buffer.data());
     select.bind(0, query);
     auto result = select.query();
@@ -111,6 +118,7 @@ void Database::execute_search(std::string_view query,
       const auto url = result.to_text(1);
       const auto snippet = result.to_text(2);
       match_callback({ uid, url, snippet });
+      --max_count;
     }
   }
 }

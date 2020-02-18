@@ -20,10 +20,16 @@ bool for_each_archive_html(const std::filesystem::path& filename,
   if (!uid)
     return false;
 
+  const auto url = std::string(as_string_view(reader.read("url")));
+  const auto base_hostname = get_hostname(url);
+
   auto header = reader.read("headers");
   auto header_store = HeaderStore();
   header_store.deserialize(as_string_view(header));
   for (const auto& entry : header_store.entries()) {
+    const auto hostname = get_hostname(entry.first);
+    if (hostname != base_hostname)
+      continue;
     const auto& header = entry.second.header;
     if (entry.second.status_code != StatusCode::success_ok)
       continue;
@@ -105,9 +111,9 @@ void for_each_html_text(std::string_view html,
       default:
         if (section == DocumentSection::content)
           if (const auto id = gumbo_get_attribute(&element.attributes, "id"))
-            if (!std::strstr(id->value, "header") ||
-                !std::strstr(id->value, "footer") ||
-                !std::strstr(id->value, "menu"))
+            if (std::strstr(id->value, "header") ||
+                std::strstr(id->value, "footer") ||
+                std::strstr(id->value, "menu"))
               section = DocumentSection::navigation;
         break;
     }

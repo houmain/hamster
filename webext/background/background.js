@@ -108,8 +108,8 @@ function createSuggestions (response) {
 }
 
 function handleOmniBoxInput (text, addSuggestions) {
-  // normalize space and insert * after each word
-  text = text.replace(/\s+/g, ' * ');
+  // replace space with *
+  text = (text + ' ').replace(/\s+/g, '*')
   backend.executeSearch(text)
     .then(createSuggestions).then(addSuggestions)
 }

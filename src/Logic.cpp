@@ -229,9 +229,10 @@ void Logic::execute_search(Response& response, const Request& request) {
   const auto query = json::get_string(request, "query");
   const auto highlight = json::try_get_bool(request, "highlight").value_or(false);
   const auto snippet_size = json::try_get_int(request, "snippetSize").value_or(16);
+  const auto max_count = json::try_get_int(request, "maxCount").value_or(5);
   response.Key("matches");
   response.StartArray();
-  database().execute_search(query, highlight, snippet_size,
+  database().execute_search(query, highlight, snippet_size, max_count,
     [&](SearchResult r) {
       response.StartObject();
       response.String("uid");
