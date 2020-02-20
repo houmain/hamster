@@ -150,15 +150,15 @@ const char *noc_file_dialog_open(int flags,
 
 #include <windows.h>
 #include <commdlg.h>
+#include <shlobj.h>
 
 const char *noc_file_dialog_open(int flags,
                                  const char *filters,
                                  const char *default_path,
                                  const char *default_name)
 {
-    OPENFILENAMEA ofn;       // common dialog box structure
     char szFile[260];       // buffer for file name
-    int ret;
+    int ret = FALSE;
 
     // init default file name
     if (default_name)
@@ -166,22 +166,42 @@ const char *noc_file_dialog_open(int flags,
     else
         szFile[0] = '\0';
 
-    ZeroMemory(&ofn, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.lpstrFile = szFile;
-    ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = filters;
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFileTitle = NULL;
-    ofn.nMaxFileTitle = 0;
-    ofn.lpstrInitialDir = (LPSTR)default_path;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    if (flags & NOC_FILE_DIALOG_DIR) {
+        BROWSEINFOA bi;
+        LPITEMIDLIST pidl;
 
-    if (flags & NOC_FILE_DIALOG_OPEN)
-        ret = GetOpenFileNameA(&ofn);
-    else
-        ret = GetSaveFileNameA(&ofn);
+        ZeroMemory(&bi, sizeof(bi));
+        bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+        bi.lParam = (LPARAM)default_path;
+        pidl = SHBrowseForFolderA(&bi);
 
+        if (pidl != 0) {
+            IMalloc *imalloc;
+            ret = SHGetPathFromIDListA(pidl, szFile);
+            if (SUCCEEDED(SHGetMalloc(&imalloc))) {
+                imalloc->Free(pidl);
+                imalloc->Release ( );
+            }
+        }
+    } else {
+        OPENFILENAMEA ofn;       // common dialog box structure
+
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.lpstrFile = szFile;
+        ofn.nMaxFile = sizeof(szFile);
+        ofn.lpstrFilter = filters;
+        ofn.nFilterIndex = 1;
+        ofn.lpstrFileTitle = NULL;
+        ofn.nMaxFileTitle = 0;
+        ofn.lpstrInitialDir = (LPSTR)default_path;
+        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+        if (flags & NOC_FILE_DIALOG_OPEN)
+            ret = GetOpenFileNameA(&ofn);
+        else
+            ret = GetSaveFileNameA(&ofn);
+    }
     free(g_noc_file_dialog_ret);
     g_noc_file_dialog_ret = ret ? strdup(szFile) : NULL;
     return g_noc_file_dialog_ret;
