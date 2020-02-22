@@ -9,10 +9,8 @@ class BookmarkLibrary {
     this._recorderByBookmarkId = { }
     this._nextRecorderId = 1
     this._libraryBookmarkTitles = { }
-    this._beforeRequestListener = (details => {
-      this._handleBookmarkRequested(details.tabId, details.url)
-      return { cancel: true }
-    })
+    this._recentRecorders = []
+    this._beforeRequestListener = (details) => { return this._handleBeforeRequest(details) }
 
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
@@ -24,6 +22,7 @@ class BookmarkLibrary {
   async setRootId (rootId) {
     verify(rootId)
     this._rootId = rootId
+    this._recentRecorders = await Utils.getSetting('recent_recorders', [])
     return this._updateRequestListener()
   }
 
@@ -88,6 +87,15 @@ class BookmarkLibrary {
     return url
   }
 
+  findRecentRecorder (url) {
+    verify(url)
+    for (const recorder of this._recentRecorders) {
+      if (url.startsWith(recorder.serverUrl)) {
+        return recorder.bookmarkUrl
+      }
+    }
+  }
+
   _getLocalUrl (url, recorder) {
     verify(url, recorder, recorder.serverUrl)
     return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
@@ -106,6 +114,7 @@ class BookmarkLibrary {
 
   async findBookmarkByUrl (url) {
     let result = null
+    url = Utils.getOriginPath(url)
     await this._forEachBookmark(function (bookmark) {
       if (!result &&
           bookmark.url &&
@@ -262,10 +271,17 @@ class BookmarkLibrary {
     }
   }
 
-  async _handleBookmarkRequested (tabId, url) {
+  async _handleBeforeRequest (details) {
+    const tabId = details.tabId
+    const url = details.url
     if (tabId < 0)
-      return;
+      return
 
+    await this._handleBookmarkRequested(tabId, url)
+    return { cancel: true }
+  }
+
+  async _handleBookmarkRequested (tabId, url) {
     const bookmark = await this.findBookmarkByUrl(url)
     verify(bookmark)
 
@@ -299,6 +315,7 @@ class BookmarkLibrary {
 
   async _handleRecordingFinished (tabId, recorder) {
     console.log('recording finished', tabId, recorder.bookmarkId)
+    await this._updateRecentRecorders(recorder.serverUrl, recorder.bookmarkUrl)
     for (const action of recorder.onFinished) {
       await action()
     }
@@ -314,25 +331,29 @@ class BookmarkLibrary {
     }
   }
 
+  async _updateRecentRecorders (serverUrl, bookmarkUrl) {
+    this._recentRecorders.unshift({ serverUrl: serverUrl, bookmarkUrl: bookmarkUrl })
+    while (this._recentRecorders.length > 20) {
+      this._recentRecorders.pop()
+    }
+    return Utils.setSetting('recent_recorders', this._recentRecorders)
+  }
+
   async _updateRequestListener () {
     const bookmarkTitles = { }
     const urlFilters = []
     await this._forEachBookmark(function (bookmark) {
       bookmarkTitles[bookmark.id] = bookmark.title
       if (bookmark.url) {
-        let url = bookmark.url
-        if (url.endsWith('/')) {
-          url += '*'
-        }
-        urlFilters.push(url)
+        urlFilters.push(Utils.getOriginPath(bookmark.url) + '*')
       }
     })
     this._libraryBookmarkTitles = bookmarkTitles
 
-    window.browser.webRequest.onBeforeRequest.removeListener(
+    browser.webRequest.onBeforeRequest.removeListener(
       this._beforeRequestListener)
     if (urlFilters.length > 0) {
-      window.browser.webRequest.onBeforeRequest.addListener(
+      browser.webRequest.onBeforeRequest.addListener(
         this._beforeRequestListener, { urls: urlFilters }, ['blocking'])
     }
   }

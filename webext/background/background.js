@@ -28,7 +28,7 @@ async function updatePageAction () {
   })
 }
 
-async function onPageActionClicked (tab) {
+async function handlePageActionClicked (tab) {
   verify(bookmarkLibrary.rootId)
   const url = bookmarkLibrary.getOriginalUrl(tab.url)
   if (await Utils.findBookmarkByUrl(url)) {
@@ -45,13 +45,12 @@ async function onPageActionClicked (tab) {
   }, 100);
 }
 
-async function onVisited (item) {
+async function handleHistoryChanged (item) {
   const url = bookmarkLibrary.getOriginalUrl(item.url)
   if (url !== item.url) {
     await browser.history.deleteUrl({ url: item.url })
     await browser.history.addUrl({ url: url })
   }
-  return updatePageAction()
 }
 
 async function createDefaultBookmarkRoot () {
@@ -128,15 +127,28 @@ function handleOmniBoxSelection (url, disposition) {
   }
 }
 
+async function handleTabUpdated (tabId, change, tab) {
+  if (change.url) {
+    const original = bookmarkLibrary.findRecentRecorder(change.url)
+    if (original) {
+      return browser.tabs.update(tabId, { url: original })
+    }
+    else {
+      return updatePageAction()
+    }
+  }
+}
+
 ;(async function () {
   await restoreOptions()
-  browser.history.onVisited.addListener(onVisited)
+  browser.history.onVisited.addListener(handleHistoryChanged)
   browser.bookmarks.onCreated.addListener(updatePageAction)
   browser.bookmarks.onChanged.addListener(updatePageAction)
   browser.bookmarks.onRemoved.addListener(updatePageAction)
   browser.bookmarks.onMoved.addListener(updatePageAction)
   browser.tabs.onActivated.addListener(updatePageAction)
-  browser.pageAction.onClicked.addListener(onPageActionClicked)
+  browser.tabs.onUpdated.addListener(handleTabUpdated)
+  browser.pageAction.onClicked.addListener(handlePageActionClicked)
   browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
   browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
 })()

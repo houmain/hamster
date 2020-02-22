@@ -36,7 +36,8 @@ class Utils {
 
   static getOriginPath(url) {
     url = new URL(url)
-    return url.href.substr(0, url.href.length - url.search.length)
+    return url.href.substr(0,
+      url.href.length - url.search.length - url.hash.length)
   }
 
   static async getTabById (tabId) {
@@ -59,7 +60,7 @@ class Utils {
 
   static async getSetting (key, defaultValue) {
     const settings = await browser.storage.local.get(key)
-    if (settings)
+    if (settings && settings[key])
       return settings[key]
     return defaultValue
   }
