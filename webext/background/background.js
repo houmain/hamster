@@ -42,7 +42,7 @@ async function handlePageActionClicked (tab) {
   // TODO: remove delay (BookmarkLibrary._handleBookmarkCreated takes a while)
   setTimeout(() => {
     browser.tabs.reload(tab.id)
-  }, 100);
+  }, 100)
 }
 
 async function handleHistoryChanged (item) {
@@ -95,35 +95,40 @@ async function restoreOptions () {
 
 function createSuggestions (response) {
   return new Promise(resolve => {
-    let suggestions = [];
+    let suggestions = []
     for (const match of response.matches) {
       suggestions.push({
         content: match.url,
         description: match.snippet,
       })
     }
-    return resolve(suggestions);
+    return resolve(suggestions)
   })
 }
 
 function handleOmniBoxInput (text, addSuggestions) {
-  // replace space with *
-  text = (text + ' ').replace(/\s+/g, '*')
+  browser.omnibox.setDefaultSuggestion({
+    description: browser.i18n.getMessage('omnibox_default_search')
+  })
   backend.executeSearch(text)
     .then(createSuggestions).then(addSuggestions)
 }
 
 function handleOmniBoxSelection (url, disposition) {
+  var isHttp = /^https?:/i
+  if (!isHttp.test(url)) {
+    url = browser.extension.getURL('search/search.html') + '?s=' + url
+  }
   switch (disposition) {
     case "currentTab":
-      browser.tabs.update({ url });
-      break;
+      browser.tabs.update({ url })
+      break
     case "newForegroundTab":
-      browser.tabs.create({ url });
-      break;
+      browser.tabs.create({ url })
+      break
     case "newBackgroundTab":
-      browser.tabs.create({ url, active: false });
-      break;
+      browser.tabs.create({ url, active: false })
+      break
   }
 }
 

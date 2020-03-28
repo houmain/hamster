@@ -102,10 +102,18 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
-  async executeSearch (query) {
+  async executeSearch (query, forSearchPage) {
+    // replace space with *
+    query = (query + ' ').replace(/\s+/g, '*')
+
     const request = {
       action: 'executeSearch',
       query: query
+    }
+    if (forSearchPage) {
+      request.highlight = true
+      request.snippetSize = 32
+      request.maxCount = 20
     }
     return this._nativeClient.sendRequest(request)
   }

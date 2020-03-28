@@ -9,6 +9,7 @@ namespace sqlite { class Database; }
 struct SearchResult {
   int64_t uid;
   std::string_view url;
+  std::string_view title;
   std::string_view snippet;
 };
 

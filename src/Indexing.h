@@ -10,7 +10,14 @@ struct ArchiveHtml {
   std::string_view html;
 };
 
+enum class HtmlSection {
+  content,
+  heading,
+  title,
+  navigation,
+};
+
 bool for_each_archive_html(const std::filesystem::path& filename,
   std::function<void(ArchiveHtml)> file_callback);
 void for_each_html_text(std::string_view html,
-  std::function<void(std::string_view, bool)> text_callback);
+  std::function<void(std::string_view, HtmlSection)> text_callback);

@@ -239,6 +239,8 @@ void Logic::execute_search(Response& response, const Request& request) {
       response.Int64(r.uid);
       response.String("url");
       response.String(r.url.data(), static_cast<json::size_t>(r.url.size()));
+      response.String("title");
+      response.String(r.title.data(), static_cast<json::size_t>(r.title.size()));
       response.String("snippet");
       response.String(r.snippet.data(), static_cast<json::size_t>(r.snippet.size()));
       response.EndObject();

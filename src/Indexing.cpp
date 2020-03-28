@@ -53,14 +53,7 @@ bool for_each_archive_html(const std::filesystem::path& filename,
 }
 
 void for_each_html_text(std::string_view html,
-    std::function<void(std::string_view, bool)> text_callback) {
-
-  enum class DocumentSection {
-    content,
-    heading,
-    title,
-    navigation,
-  };
+    std::function<void(std::string_view, HtmlSection)> text_callback) {
 
   const auto output = gumbo_parse_with_options(
     &kGumboDefaultOptions, html.data(), html.size());
@@ -69,11 +62,11 @@ void for_each_html_text(std::string_view html,
     return;
 
   const auto rec = [&](const GumboElement& element, const auto& rec,
-      DocumentSection section, bool in_list) {
+      HtmlSection section, bool in_list) {
 
     switch (element.tag) {
       case GUMBO_TAG_TITLE:
-        section = DocumentSection::title;
+        section = HtmlSection::title;
         break;
 
       case GUMBO_TAG_H1:
@@ -82,15 +75,15 @@ void for_each_html_text(std::string_view html,
       case GUMBO_TAG_H4:
       case GUMBO_TAG_H5:
       case GUMBO_TAG_H6:
-        if (section == DocumentSection::content)
-          section = DocumentSection::heading;
+        if (section == HtmlSection::content)
+          section = HtmlSection::heading;
         break;
 
       case GUMBO_TAG_NAV:
       case GUMBO_TAG_HEADER:
       case GUMBO_TAG_FOOTER:
       case GUMBO_TAG_ASIDE:
-        section = DocumentSection::navigation;
+        section = HtmlSection::navigation;
         break;
 
       case GUMBO_TAG_SCRIPT:
@@ -104,17 +97,17 @@ void for_each_html_text(std::string_view html,
         break;
 
       case GUMBO_TAG_A:
-        if (section == DocumentSection::content && in_list)
-          section = DocumentSection::navigation;
+        if (section == HtmlSection::content && in_list)
+          section = HtmlSection::navigation;
         break;
 
       default:
-        if (section == DocumentSection::content)
+        if (section == HtmlSection::content)
           if (const auto id = gumbo_get_attribute(&element.attributes, "id"))
             if (std::strstr(id->value, "header") ||
                 std::strstr(id->value, "footer") ||
                 std::strstr(id->value, "menu"))
-              section = DocumentSection::navigation;
+              section = HtmlSection::navigation;
         break;
     }
 
@@ -124,18 +117,15 @@ void for_each_html_text(std::string_view html,
         auto text = std::string_view(child.v.text.original_text.data,
                                      child.v.text.original_text.length);
         text = trim(text);
-        if (!text.empty()) {
-          const auto low_priority =
-            (section == DocumentSection::navigation);
-          text_callback(text, low_priority);
-        }
+        if (!text.empty())
+          text_callback(text, section);
       }
       else if (child.type == GUMBO_NODE_ELEMENT) {
         rec(child.v.element, rec, section, in_list);
       }
     }
   };
-  rec(output->root->v.element, rec, DocumentSection::content, false);
+  rec(output->root->v.element, rec, HtmlSection::content, false);
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
 }

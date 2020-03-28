@@ -1,0 +1,48 @@
+
+body {
+  font-family: "DDG_ProximaNova","DDG_ProximaNova_UI_0","DDG_ProximaNova_UI_1","DDG_ProximaNova_UI_2","DDG_ProximaNova_UI_3","DDG_ProximaNova_UI_4","DDG_ProximaNova_UI_5","DDG_ProximaNova_UI_6","Proxima Nova","Helvetica Neue","Helvetica","Segoe UI","Nimbus Sans L","Liberation Sans","Open Sans",FreeSans,Arial,sans-serif;
+  font-size: 90%;
+  line-height: 1.6;
+  margin-top: 50px;
+  margin-left: 50px;
+  margin-bottom: 150px;
+}
+
+div {
+  color: #494949;
+  line-height: 1.45;
+  max-width: 590px;
+  padding: 1px;
+}
+
+div.result {
+  margin-bottom: 30px;
+  border-radius: 4px;
+}
+
+a {
+  text-decoration: none;
+  color: #20692b;
+  max-width: 290px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h2 {
+  padding: 0;
+  margin: 0;
+  font-size: 1.31em;
+  line-height: 1.15;
+  color: #00278e;
+  font-weight: normal;
+}
+
+.nooverflow {
+  width: 100%;
+  display:block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
