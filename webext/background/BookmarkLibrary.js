@@ -114,11 +114,11 @@ class BookmarkLibrary {
 
   async findBookmarkByUrl (url) {
     let result = null
-    url = Utils.getOriginPath(url)
+    url = Utils.getHostnamePathWithoutWWW(url)
     await this._forEachBookmark(function (bookmark) {
       if (!result &&
           bookmark.url &&
-          url.startsWith(Utils.getOriginPath(bookmark.url))) {
+          url.startsWith(Utils.getHostnamePathWithoutWWW(bookmark.url))) {
         result = bookmark
       }
     })
@@ -345,7 +345,10 @@ class BookmarkLibrary {
     await this._forEachBookmark(function (bookmark) {
       bookmarkTitles[bookmark.id] = bookmark.title
       if (bookmark.url) {
-        urlFilters.push(Utils.getOriginPath(bookmark.url) + '*')
+        const hostnamePath = Utils.getHostnamePathWithoutWWW(bookmark.url)
+        if (!Utils.hasSubdomain(hostnamePath))
+          urlFilters.push('*://www.' + hostnamePath + '*')
+        urlFilters.push('*://' + hostnamePath + '*')
       }
     })
     this._libraryBookmarkTitles = bookmarkTitles

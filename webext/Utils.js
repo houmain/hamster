@@ -34,10 +34,14 @@ class Utils {
     return new URL(url).pathname
   }
 
-  static getOriginPath(url) {
+  static getHostnamePathWithoutWWW(url) {
     url = new URL(url)
-    return url.href.substr(0,
-      url.href.length - url.search.length - url.hash.length)
+    return (url.hostname.startsWith('www.') ?
+      url.hostname.substring(4) : url.hostname) + url.pathname
+  }
+
+  static hasSubdomain(hostname) {
+    return !!hostname.match(/[^.]+\.[^\/]+\./)
   }
 
   static async getTabById (tabId) {
