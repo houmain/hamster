@@ -113,8 +113,8 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "ecirc;", "ê" },
 	{ "egrave;", "è" },
 	{ "empty;", "∅" },
-	{ "emsp;", "\xE2\x80\x83" },
-	{ "ensp;", "\xE2\x80\x82" },
+	{ "emsp;", " " }, // \xE2\x80\x83
+	{ "ensp;", " " }, // \xE2\x80\x82
 	{ "epsilon;", "ε" },
 	{ "equiv;", "≡" },
 	{ "eta;", "η" },
@@ -158,7 +158,7 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "lfloor;", "⌊" },
 	{ "lowast;", "∗" },
 	{ "loz;", "◊" },
-	{ "lrm;", "\xE2\x80\x8E" },
+	{ "lrm;", " " }, // \xE2\x80\x8E
 	{ "lsaquo;", "‹" },
 	{ "lsquo;", "‘" },
 	{ "lt;", "<" },
@@ -169,7 +169,7 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "minus;", "−" },
 	{ "mu;", "μ" },
 	{ "nabla;", "∇" },
-	{ "nbsp;", "\xC2\xA0" },
+	{ "nbsp;", " " }, // \xC2\xA0
 	{ "ndash;", "–" },
 	{ "ne;", "≠" },
 	{ "ni;", "∋" },
@@ -218,14 +218,14 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "reg;", "®" },
 	{ "rfloor;", "⌋" },
 	{ "rho;", "ρ" },
-	{ "rlm;", "\xE2\x80\x8F" },
+	{ "rlm;", " " }, // \xE2\x80\x8F
 	{ "rsaquo;", "›" },
 	{ "rsquo;", "’" },
 	{ "sbquo;", "‚" },
 	{ "scaron;", "š" },
 	{ "sdot;", "⋅" },
 	{ "sect;", "§" },
-	{ "shy;", "\xC2\xAD" },
+	{ "shy;", " " }, // \xE2\x80\x8F
 	{ "sigma;", "σ" },
 	{ "sigmaf;", "ς" },
 	{ "sim;", "∼" },
@@ -243,7 +243,7 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "there4;", "∴" },
 	{ "theta;", "θ" },
 	{ "thetasym;", "ϑ" },
-	{ "thinsp;", "\xE2\x80\x89" },
+	{ "thinsp;", " " }, // \xE2\x80\x89
 	{ "thorn;", "þ" },
 	{ "tilde;", "˜" },
 	{ "times;", "×" },
@@ -263,8 +263,8 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "yen;", "¥" },
 	{ "yuml;", "ÿ" },
 	{ "zeta;", "ζ" },
-	{ "zwj;", "\xE2\x80\x8D" },
-	{ "zwnj;", "\xE2\x80\x8C" }
+	{ "zwj;", " " }, // \xE2\x80\x8D
+	{ "zwnj;", " " } // \xE2\x80\x8C
 };
 
 static int cmp(const void *key, const void *value)

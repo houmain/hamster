@@ -7,29 +7,33 @@
 #include <unordered_set>
 
 namespace {
-  void normalize_space(std::string& text) {
-    std::replace_if(begin(text), end(text),
-      [](unsigned char c) { return std::isspace(c); }, ' ');
-    text.erase(std::unique(begin(text), end(text),
-      [](char a, char b) { return (a == ' ' && a == b); }), end(text));
-  }
-
-  std::string concatenate(std::vector<std::string_view> texts) {
+  std::string concatenate(std::vector<std::string_view> texts, std::string_view separator) {
     auto size = size_t{ };
     for (const auto& text : texts)
-      size += text.size() + 1;
+      size += text.size() + separator.size();
     auto total = std::string();
     total.reserve(size);
     for (const auto& text : texts) {
       if (!total.empty() &&
           !text.empty() &&
           !std::ispunct(text.front()))
-        total.push_back(' ');
+        total.insert(end(total), begin(separator), end(separator));
       total.append(text);
     }
-    total.resize(decode_html_entities_utf8(total.data(), nullptr));
-    normalize_space(total);
     return total;
+  }
+
+  std::string decode_html_entities(std::string text) {
+    text.resize(decode_html_entities_utf8(text.data(), nullptr));
+    return text;
+  }
+
+  std::string normalize_space(std::string text) {
+    std::replace_if(begin(text), end(text),
+      [](unsigned char c) { return std::isspace(c); }, ' ');
+    text.erase(std::unique(begin(text), end(text),
+      [](char a, char b) { return (a == ' ' && b == ' '); }), end(text));
+    return text;
   }
 } // namespace
 
@@ -65,7 +69,7 @@ void Database::update_index(const std::filesystem::path& filename) {
         clear.bind(0, html.uid);
         clear.execute();
       }
-      auto title = std::string_view(html.url);
+      auto title = std::string_view();
       auto text = std::vector<std::string_view>();
       auto text_low = std::vector<std::string_view>();
       for_each_html_text(html.html,
@@ -83,15 +87,14 @@ void Database::update_index(const std::filesystem::path& filename) {
               break;
           }
         });
-      if (text.empty() && text_low.empty())
-        return;
-
-      insert.bind(0, html.uid);
-      insert.bind(1, html.url);
-      insert.bind(2, title);
-      insert.bind(3, concatenate(text));
-      insert.bind(4, concatenate(text_low));
-      insert.execute();
+      if (!title.empty() && (!text.empty() || !text_low.empty())) {
+        insert.bind(0, html.uid);
+        insert.bind(1, html.url);
+        insert.bind(2, normalize_space(decode_html_entities(std::string(title))));
+        insert.bind(3, normalize_space(decode_html_entities(concatenate(text, " "))));
+        insert.bind(4, normalize_space(decode_html_entities(concatenate(text_low, " | "))));
+        insert.execute();
+      }
     });
 }
 
@@ -101,7 +104,6 @@ void Database::execute_search(std::string_view query,
 
   auto added = std::unordered_set<std::string_view>();
   for (auto [column_index, column_name] : {
-      std::pair{ 2, "title" },
       std::pair{ 3, "text" },
       std::pair{ 4, "text_low" },
     }) {
@@ -132,7 +134,7 @@ void Database::execute_search(std::string_view query,
       const auto url = result.to_text(1);
       const auto title = result.to_text(2);
       const auto snippet = result.to_text(3);
-      if (!title.empty() && !added.count(url)) {
+      if (!added.count(url)) {
         added.insert(url);
         match_callback({ uid, url, title, snippet });
         --max_count;
