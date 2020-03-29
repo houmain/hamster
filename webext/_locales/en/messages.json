@@ -1,9 +1,12 @@
 {
-  "manifest_extension_description": {
+  "extension_description": {
     "message": "Allows to make web sites offline readable (by bookmarking them)."
   },
-  "manifest_page_action_default_title": {
+  "page_action_title": {
     "message": "Own page"
+  },
+  "page_action_title_owned": {
+    "message": "Owned page details"
   },
   "omnibox_default_search": {
     "message": "Search owned pages"

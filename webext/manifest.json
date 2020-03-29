@@ -3,7 +3,7 @@
   "name": "Pages Owned",
   "author": "Albert Kalchmair",
   "version": "0.4",
-  "description": "__MSG_manifest_extension_description__",
+  "description": "__MSG_extension_description__",
   "homepage_url": "https://github.com/houmaster/pagesowned",
   "default_locale": "en",
   "applications": {
@@ -46,7 +46,7 @@
   },
   "page_action": {
     "default_icon": "icons/Save light.svg",
-    "default_title": "__MSG_manifest_page_action_default_title__",
+    "default_title": "__MSG_page_action_title__",
     "show_matches": ["<all_urls>"],
     "browser_style": true,
     "pinned": true

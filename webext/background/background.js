@@ -16,6 +16,7 @@ async function updatePageAction () {
   const tab = await Utils.getActiveTab()
   const url = bookmarkLibrary.getOriginalUrl(tab.url)
   const isInLibrary = await bookmarkLibrary.findBookmarkByUrl(url)
+
   await browser.pageAction.setPopup({
     tabId: tab.id,
     popup: (isInLibrary ? "popup/popup.html" : null)
@@ -25,6 +26,11 @@ async function updatePageAction () {
     path: (isInLibrary ?
       "icons/Save light highlight.svg" :
       "icons/Save light.svg")
+  })
+  await browser.pageAction.setTitle({
+    tabId: tab.id,
+    title: browser.i18n.getMessage(isInLibrary ?
+      'page_action_title_owned' : 'page_action_title')
   })
 }
 
