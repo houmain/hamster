@@ -31,6 +31,7 @@ class Backend {
       path: path,
       followLink: 'P',
       validation: 'R',
+      allowLossyCompression: true
     }
     await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
@@ -86,10 +87,11 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
-  async setHostBlockList (list) {
+  async setHostBlockList (list, append) {
     const request = {
       action: 'setHostBlockList',
-      list: list
+      list: list,
+      append: append
     }
     return this._nativeClient.sendRequest(request)
   }

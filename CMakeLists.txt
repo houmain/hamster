@@ -23,6 +23,7 @@ set(SOURCES
     libs/entities/entities.c
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp
+    libs/webrecorder/src/LossyCompressor.cpp
     libs/webrecorder/src/common.cpp
     libs/webrecorder/libs/siphash/siphash.c
     libs/webrecorder/libs/utf8/utf8.cpp

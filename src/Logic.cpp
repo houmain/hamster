@@ -109,6 +109,8 @@ void Logic::start_recording(Response&, const Request& request) {
   const auto read_file = json::try_get_bool(request, "readFile");
   const auto append_file = json::try_get_bool(request, "appendFile");
   const auto download = json::try_get_bool(request, "download");
+  const auto allow_lossy_compression =
+    json::try_get_bool(request, "allowLossyCompression");
 
   create_directories_handle_symlinks(path.parent_path());
 
@@ -133,6 +135,12 @@ void Logic::start_recording(Response&, const Request& request) {
     disable.push_back('D');
   if (!disable.empty())
     arguments.insert(end(arguments), { "-d", disable });
+
+  auto enable = std::string{ };
+  if (allow_lossy_compression)
+    enable.push_back('L');
+  if (!enable.empty())
+    arguments.insert(end(arguments), { "-e", enable });
 
   if (!m_host_block_list_path.empty())
     arguments.insert(end(arguments), {
@@ -197,9 +205,11 @@ void Logic::browse_directories(Response& response, const Request& request) {
 
 void Logic::set_host_block_list(Response&, const Request& request) {
   const auto list = json::get_string(request, "list");
+  const auto append = json::try_get_bool(request, "append").value_or(false);
   if (m_host_block_list_path.empty())
     m_host_block_list_path = generate_temporary_filename();
-  auto file = std::ofstream(m_host_block_list_path, std::ios::binary);
+  auto file = std::ofstream(m_host_block_list_path,
+    std::ios::binary | (append ? std::ios::app : std::ios::out));
   file.write(list.data(), static_cast<std::streamsize>(list.size()));
 }
 
