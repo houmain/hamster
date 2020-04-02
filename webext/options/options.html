@@ -20,6 +20,15 @@
       <input type="text" id="filesystem-root" size="40" readonly>
       <button type="button" id="filesystem-root-browse" class="browser-style">Browse</button>
     </div>
+    <div class="browser-style" style="margin-top:16px">
+      <label for="refresh-mode">Default refresh mode:</label><br>
+      <select id="refresh-mode" class="browser-style">
+        <option value="standard">Standard</option>
+        <option value="lazy">Lazy</option>
+        <option value="never">Never</option>
+        <option value="bypass">Bypass</option>
+      </select>
+    </div>
   </form>
 
   <script src="../globals.js"></script>

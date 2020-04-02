@@ -241,7 +241,7 @@ class BookmarkLibrary {
     if (inLibrary) {
       const sourcePath = path.slice()
       sourcePath[sourcePath.length - 1] = bookmarkTitle
-      return this._moveFile(id, sourcePath, path)
+      await this._moveFile(id, sourcePath, path)
     }
   }
 
@@ -267,16 +267,16 @@ class BookmarkLibrary {
     const source = await this._getBookmarkPath(removeInfo.parentId)
     source.path.push(bookmarkTitle)
     if (source.inLibrary) {
-      return this._deleteFile(id, source.path)
+      await this._deleteFile(id, source.path)
     }
   }
 
   async _handleBeforeRequest (details) {
     const tabId = details.tabId
     const url = details.url
-    if (tabId < 0)
+    if (tabId < 0) {
       return
-
+    }
     await this._handleBookmarkRequested(tabId, url)
     return { cancel: true }
   }
@@ -353,10 +353,10 @@ class BookmarkLibrary {
     })
     this._libraryBookmarkTitles = bookmarkTitles
 
-    browser.webRequest.onBeforeRequest.removeListener(
+    await browser.webRequest.onBeforeRequest.removeListener(
       this._beforeRequestListener)
     if (urlFilters.length > 0) {
-      browser.webRequest.onBeforeRequest.addListener(
+      await browser.webRequest.onBeforeRequest.addListener(
         this._beforeRequestListener, { urls: urlFilters }, ['blocking'])
     }
   }

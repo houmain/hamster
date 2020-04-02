@@ -37,7 +37,8 @@ async function updatePageAction () {
 async function handlePageActionClicked (tab) {
   verify(bookmarkLibrary.rootId)
   const url = bookmarkLibrary.getOriginalUrl(tab.url)
-  if (await Utils.findBookmarkByUrl(url)) {
+  const isInLibrary = await bookmarkLibrary.findBookmarkByUrl(url)
+  if (isInLibrary) {
     return
   }
   await browser.bookmarks.create({
