@@ -35,21 +35,7 @@ async function updatePageAction () {
 }
 
 async function handlePageActionClicked (tab) {
-  verify(bookmarkLibrary.rootId)
-  const url = bookmarkLibrary.getOriginalUrl(tab.url)
-  const isInLibrary = await bookmarkLibrary.findBookmarkByUrl(url)
-  if (isInLibrary) {
-    return
-  }
-  await browser.bookmarks.create({
-    parentId: bookmarkLibrary.rootId,
-    title: tab.title,
-    url: url
-  })
-  // TODO: remove delay (BookmarkLibrary._handleBookmarkCreated takes a while)
-  setTimeout(() => {
-    browser.tabs.reload(tab.id)
-  }, 100)
+  await bookmarkLibrary.createBookmarkFromTab(tab)
 }
 
 async function handleHistoryChanged (item) {

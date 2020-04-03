@@ -81,8 +81,7 @@ async function renameBookmark () {
 
 async function removeBookmark () {
   const bookmark = await getRecordingBookmark()
-  browser.bookmarks.remove(bookmark.id)
-
+  bookmarkLibrary.removeBookmark(bookmark.id)
   window.close()
 }
 
