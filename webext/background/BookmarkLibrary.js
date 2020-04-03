@@ -83,7 +83,7 @@ class BookmarkLibrary {
   getOriginalUrl (url, recorder) {
     recorder = recorder || this._findRecorder(url)
     if (recorder) {
-      return Utils.getOrigin(recorder.url) + Utils.getPath(url)
+      return Utils.getOrigin(recorder.url) + Utils.getPathQuery(url)
     }
     return url
   }
@@ -107,7 +107,7 @@ class BookmarkLibrary {
     this._callOnRequestFiltersUpdated(() => browser.tabs.reload(tab.id))
     await browser.bookmarks.create({
       parentId: this._rootId,
-      title: tab.title,
+      title: tab.title.trim(),
       url: url
     })
   }
@@ -124,7 +124,7 @@ class BookmarkLibrary {
 
   _getLocalUrl (url, recorder) {
     verify(url, recorder, recorder.serverUrl)
-    return Utils.getOrigin(recorder.serverUrl) + Utils.getPath(url)
+    return Utils.getOrigin(recorder.serverUrl) + Utils.getPathQuery(url)
   }
 
   getRecordingInfo (tab) {
@@ -378,8 +378,7 @@ class BookmarkLibrary {
       bookmarkTitles[bookmark.id] = bookmark.title
       if (bookmark.url && !bookmark.url.startsWith('http://127.0.0.1')) {
         const hostnamePath = Utils.getHostnamePathWithoutWWW(bookmark.url)
-        if (!Utils.hasSubdomain(hostnamePath))
-          urlFilters.push('*://www.' + hostnamePath + '*')
+        urlFilters.push('*://www.' + hostnamePath + '*')
         urlFilters.push('*://' + hostnamePath + '*')
       }
     })

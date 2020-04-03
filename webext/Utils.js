@@ -29,19 +29,16 @@ class Utils {
     return new URL(url).origin
   }
 
-  static getPath(url) {
+  static getPathQuery(url) {
     verify(url)
-    return new URL(url).pathname
+    url = new URL(url)
+    return url.href.substring(url.origin.length)
   }
 
   static getHostnamePathWithoutWWW(url) {
     url = new URL(url)
     return (url.hostname.startsWith('www.') ?
       url.hostname.substring(4) : url.hostname) + url.pathname
-  }
-
-  static hasSubdomain(hostname) {
-    return !!hostname.match(/[^.]+\.[^\/]+\./)
   }
 
   static async getTabById (tabId) {
