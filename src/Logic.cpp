@@ -50,8 +50,10 @@ Logic::Logic(const Settings& settings)
 }
 
 Logic::~Logic() {
-  if (!m_host_block_list_path.empty())
-    std::filesystem::remove(m_host_block_list_path);
+  if (!m_block_hosts_file.empty())
+    std::filesystem::remove(m_block_hosts_file);
+  if (!m_bypass_hosts_file.empty())
+    std::filesystem::remove(m_bypass_hosts_file);
 }
 
 std::filesystem::path Logic::to_full_path(
@@ -103,48 +105,40 @@ void Logic::start_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   const auto url = json::get_string(request, "url");
   const auto path = to_full_path(json::get_string_list(request, "path"));
-  const auto follow_link = json::try_get_string(request, "followLink");
-  const auto validation = json::try_get_string(request, "validation");
-  const auto write_file = json::try_get_bool(request, "writeFile");
-  const auto read_file = json::try_get_bool(request, "readFile");
-  const auto append_file = json::try_get_bool(request, "appendFile");
-  const auto download = json::try_get_bool(request, "download");
-  const auto allow_lossy_compression =
-    json::try_get_bool(request, "allowLossyCompression");
+  const auto refresh = json::try_get_string(request, "refresh");
+  const auto allow_lossy_compression = json::try_get_bool(request, "allowLossyCompression");
+  const auto deterministic = json::try_get_bool(request, "deterministic");
 
   create_directories_handle_symlinks(path.parent_path());
-
   auto arguments = std::vector<std::string>{
     webrecorder_path().u8string(),
-    "-f", std::string(follow_link.value_or("N")),
-    "-v", std::string(validation.value_or("N")),
-    "-i", '\"' + std::string(url) + '\"',
-    "-o", '\"' + path.filename().u8string() + '\"'
+    "--url", '\"' + std::string(url) + '\"',
+    "--file", '\"' + path.filename().u8string() + '\"',
+    "--no-open-browser",
   };
 
-  auto disable = std::string{ };
-  if (!m_settings.open_browser)
-    disable.push_back('B');
-  if (write_file.has_value() && !write_file.value())
-    disable.push_back('W');
-  if (read_file.has_value() && !read_file.value())
-    disable.push_back('R');
-  if (append_file.has_value() && !append_file.value())
-    disable.push_back('A');
-  if (download.has_value() && !download.value())
-    disable.push_back('D');
-  if (!disable.empty())
-    arguments.insert(end(arguments), { "-d", disable });
+  arguments.push_back("--refresh");
+  if (refresh == "standard")
+    arguments.push_back("when-expired");
+  else if (refresh == "lazy")
+    arguments.push_back("when-expired-async");
+  else if (refresh == "always")
+    arguments.push_back("always");
+  else
+    arguments.push_back("never");
 
-  auto enable = std::string{ };
   if (allow_lossy_compression)
-    enable.push_back('L');
-  if (!enable.empty())
-    arguments.insert(end(arguments), { "-e", enable });
+    arguments.push_back("--allow-lossy-compression");
+  if (deterministic)
+    arguments.push_back("--deterministic-js");
 
-  if (!m_host_block_list_path.empty())
+  if (!m_block_hosts_file.empty())
     arguments.insert(end(arguments), {
-      "-b", '\"' + m_host_block_list_path.u8string() + '\"',
+      "--block-host-file", '\"' + m_block_hosts_file.u8string() + '\"',
+    });
+  if (!m_bypass_hosts_file.empty())
+    arguments.insert(end(arguments), {
+      "--host-bypass-file", '\"' + m_bypass_hosts_file.u8string() + '\"',
     });
 
   m_webrecorders.emplace(std::piecewise_construct,
@@ -203,12 +197,14 @@ void Logic::browse_directories(Response& response, const Request& request) {
   }
 }
 
-void Logic::set_host_block_list(Response&, const Request& request) {
+void Logic::set_hosts_list(Response&, const Request& request) {
   const auto list = json::get_string(request, "list");
   const auto append = json::try_get_bool(request, "append").value_or(false);
-  if (m_host_block_list_path.empty())
-    m_host_block_list_path = generate_temporary_filename();
-  auto file = std::ofstream(m_host_block_list_path,
+  const auto type = json::try_get_string(request, "type").value_or("block");
+  auto& filename = (type == "bypass" ? m_bypass_hosts_file : m_block_hosts_file);
+  if (filename.empty())
+    filename = generate_temporary_filename();
+  auto file = std::ofstream(filename,
     std::ios::binary | (append ? std::ios::app : std::ios::out));
   file.write(list.data(), static_cast<std::streamsize>(list.size()));
 }
@@ -269,7 +265,7 @@ void Logic::handle_request(Response& response, const Request& request) {
     { "getRecordingOutput", &Logic::get_recording_output },
     { "setLibraryRoot", &Logic::set_library_root },
     { "browserDirectories", &Logic::browse_directories },
-    { "setHostBlockList", &Logic::set_host_block_list },
+    { "setHostList", &Logic::set_hosts_list },
     { "getFileSize", &Logic::get_file_size },
     { "updateSearchIndex", &Logic::update_search_index },
     { "executeSearch", &Logic::execute_search },

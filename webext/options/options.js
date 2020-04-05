@@ -21,6 +21,9 @@ async function updateControls () {
 
   const filesystemRoot = document.getElementById('filesystem-root')
   filesystemRoot.value = backend.filesystemRoot
+
+  document.getElementById('default-refresh-mode').value = await Utils.getSetting('default-refresh-mode')
+  document.getElementById('allow-lossy-compression').checked = await Utils.getSetting('allow-lossy-compression')
 }
 
 async function moveBookmarkRoot () {
@@ -36,10 +39,20 @@ async function renameBookmarkRoot () {
 async function browseFilesystemRoot () {
   const result = await backend.browserDirectories(backend.filesystemRoot)
   if (result.path) {
-    await Utils.setSetting('filesystem_root', result.path)
+    await Utils.setSetting('filesystem-root', result.path)
     await restoreOptions()
     return updateControls()
   }
+}
+
+async function updateRefreshMode() {
+  const value = document.getElementById('default-refresh-mode').value
+  return Utils.setSetting('default-refresh-mode', value)
+}
+
+async function updateAllowLossyCompression(e) {
+  const checked = document.getElementById('allow-lossy-compression').checked
+  return Utils.setSetting('allow-lossy-compression', checked)
 }
 
 browser.runtime.getBackgroundPage().then(background => {
@@ -50,6 +63,8 @@ browser.runtime.getBackgroundPage().then(background => {
   document.getElementById('bookmark-root-parent').onchange = moveBookmarkRoot
   document.getElementById('bookmark-root-title').onchange = renameBookmarkRoot
   document.getElementById('filesystem-root-browse').onclick = browseFilesystemRoot
+  document.getElementById('default-refresh-mode').onchange = updateRefreshMode
+  document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
 
   document.addEventListener('DOMContentLoaded', updateControls)
 })

@@ -23,7 +23,7 @@ class BookmarkLibrary {
   async setRootId (rootId) {
     verify(rootId)
     this._rootId = rootId
-    this._recentRecorders = await Utils.getSetting('recent_recorders', [])
+    this._recentRecorders = await Utils.getSetting('recent-recorders', [])
     return this._updateRequestListener()
   }
 
@@ -368,7 +368,7 @@ class BookmarkLibrary {
     while (this._recentRecorders.length > 20) {
       this._recentRecorders.pop()
     }
-    return Utils.setSetting('recent_recorders', this._recentRecorders)
+    return Utils.setSetting('recent-recorders', this._recentRecorders)
   }
 
   async _updateRequestListener () {

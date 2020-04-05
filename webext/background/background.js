@@ -65,7 +65,7 @@ async function createDefaultBookmarkRoot () {
 
 async function initializeBookmarkRoot () {
   try {
-    const rootId = await Utils.getSetting('bookmark_root_id')
+    const rootId = await Utils.getSetting('bookmark-root-id')
     if (rootId) {
       await Utils.getBookmarkById(rootId)
       return rootId
@@ -74,7 +74,7 @@ async function initializeBookmarkRoot () {
   catch (ex) {
   }
   const rootId = await createDefaultBookmarkRoot()
-  await Utils.setSetting('bookmark_root_id', rootId)
+  await Utils.setSetting('bookmark-root-id', rootId)
   return rootId
 }
 
@@ -82,7 +82,7 @@ async function restoreOptions () {
   const rootId = await initializeBookmarkRoot()
   await bookmarkLibrary.setRootId(rootId)
 
-  const filesystemRoot = await Utils.getSetting('filesystem_root')
+  const filesystemRoot = await Utils.getSetting('filesystem-root')
   await backend.setFilesystemRoot(filesystemRoot)
 }
 

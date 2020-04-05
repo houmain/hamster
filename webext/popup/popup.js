@@ -63,13 +63,13 @@ async function moveBookmark () {
   select.blur()
 }
 
-async function updateRefreshMode () {
-  const select = document.getElementById('refresh-mode')
-  const option = select.options[select.selectedIndex]
-  const bookmark = await getRecordingBookmark()
-  // TODO
-  console.log('setting refresh mode of', bookmark.id, 'to', option.value)
-}
+//async function updateRefreshMode () {
+//  const select = document.getElementById('refresh-mode')
+//  const option = select.options[select.selectedIndex]
+//  const bookmark = await getRecordingBookmark()
+//  // TODO
+//  console.log('setting refresh mode of', bookmark.id, 'to', option.value)
+//}
 
 async function renameBookmark () {
   const bookmark = await getRecordingBookmark()
@@ -98,7 +98,7 @@ browser.runtime.getBackgroundPage().then(background => {
   document.getElementById('move-bookmark').onchange = moveBookmark
   document.getElementById('move-bookmark').onfocus = indentOptions
   document.getElementById('move-bookmark').onblur = deindentOptions
-  document.getElementById('refresh-mode').onchange = updateRefreshMode
+  //document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
   document.addEventListener('DOMContentLoaded', updateControls)
 })

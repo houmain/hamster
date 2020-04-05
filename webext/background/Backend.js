@@ -24,14 +24,15 @@ class Backend {
   }
 
   async startRecording (recorderId, path, url, handleOutput) {
+    const refreshMode = await Utils.getSetting('default-refresh-mode')
+    const allowLossyCompression = await Utils.getSetting('allow-lossy-compression')
     const request = {
       action: 'startRecording',
       id: recorderId,
       url: url,
       path: path,
-      followLink: 'P',
-      validation: 'R',
-      allowLossyCompression: true
+      refresh: refreshMode,
+      allowLossyCompression: allowLossyCompression
     }
     await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
@@ -89,7 +90,7 @@ class Backend {
 
   async setHostBlockList (list, append) {
     const request = {
-      action: 'setHostBlockList',
+      action: 'setHostsList',
       list: list,
       append: append
     }

@@ -28,7 +28,7 @@ private:
   void get_recording_output(Response& response, const Request& request);
   void set_library_root(Response& response, const Request& request);
   void browse_directories(Response& response, const Request& request);
-  void set_host_block_list(Response&, const Request& request);
+  void set_hosts_list(Response&, const Request& request);
   void get_file_size(Response& response, const Request& request);
   Database& database();
   void update_search_index(Response&, const Request& request);
@@ -36,7 +36,8 @@ private:
 
   const Settings& m_settings;
   std::unique_ptr<Database> m_database;
-  std::filesystem::path m_host_block_list_path;
+  std::filesystem::path m_block_hosts_file;
+  std::filesystem::path m_bypass_hosts_file;
   std::filesystem::path m_library_root;
   std::map<int, Webrecorder> m_webrecorders;
 };
