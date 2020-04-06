@@ -8,29 +8,25 @@
 <body>
   <form>
     <div class="browser-style" style="margin-top:16px">
-      <label for="bookmark-root-parent">Library root location:</label><br>
+      <label id="bookmark-root-parent-label"></label><br>
       <select id="bookmark-root-parent" class="browser-style"></select>
     </div>
     <div class="browser-style" style="margin-top:8px">
-      <label for="bookmark-root-title">Library root name:</label><br>
+      <label id="bookmark-root-title-label"></label><br>
       <input type="text" id="bookmark-root-title">
     </div>
     <div class="browser-style" style="margin-top:16px">
-      <label for="filesystem-root">Library root in filesystem:</label><br>
+      <label id="filesystem-root-label"></label><br>
       <input type="text" id="filesystem-root" size="40" readonly>
-      <button type="button" id="filesystem-root-browse" class="browser-style">Browse</button>
+      <button type="button" id="filesystem-root-browse" class="browser-style"></button>
     </div>
     <div class="browser-style" style="margin-top:16px">
-      <label for="default-refresh-mode">Default validation mode:</label><br>
-      <select id="default-refresh-mode" class="browser-style">
-        <option value="standard">Standard</option>
-        <option value="lazy">Lazy</option>
-        <option value="never">Never</option>
-      </select>
+      <label id="default-refresh-mode-label"></label><br>
+      <select id="default-refresh-mode" class="browser-style"></select>
     </div>
     <div class="browser-style" style="margin-top:16px">
       <input type="checkbox" id="allow-lossy-compression"></input>
-      <label for="allow-lossy-compression">Allow lossy compression</label>
+      <label id="allow-lossy-compression-label"></label>
     </div>
   </form>
 

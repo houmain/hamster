@@ -1,0 +1,50 @@
+{
+  "extension_description": {
+    "message": ""
+  },
+  "page_action_title": {
+    "message": "Lesezeichen für diese Seite setzen"
+  },
+  "page_action_title_cached": {
+    "message": "Dieses Lesezeichen bearbeiten"
+  },
+  "omnibox_default_search": {
+    "message": "Lesezeichen durchsuchen"
+  },
+  "rename_bookmark": {
+    "message": "Lesezeichen umbenennen"
+  },
+  "move_bookmark": {
+    "message": "Lesezeichen verschieben"
+  },
+  "remove_bookmark": {
+    "message": "Lesezeichen entfernen"
+  },
+  "bookmark_root_parent": {
+    "message": "Bibliothek Ort"
+  },
+  "bookmark_root_title": {
+    "message": "Bibliothek Name"
+  },
+  "filesystem_root": {
+    "message": "Speicherort im Dateisystem"
+  },
+  "filesystem_root_browse": {
+    "message": "Durchsuchen"
+  },
+  "default_refresh_mode": {
+    "message": "Aktualisierungsmodus"
+  },
+  "refresh_mode_standard": {
+    "message": "Normal"
+  },
+  "refresh_mode_lazy": {
+    "message": "Im Hintergrund"
+  },
+  "refresh_mode_never": {
+    "message": "Nie"
+  },
+  "allow_lossy_compression": {
+    "message": "Verlustbehaftete Kompression erlauben"
+  }
+}

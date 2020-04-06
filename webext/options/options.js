@@ -3,6 +3,20 @@ let backend = undefined
 let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
+function localizeControls () {
+  Utils.localize('bookmark-root-parent-label', 'innerText', 'bookmark_root_parent')
+  Utils.localize('bookmark-root-title-label', 'innerText', 'bookmark_root_title')
+  Utils.localize('filesystem-root-label', 'innerText', 'filesystem_root')
+  Utils.localize('filesystem-root-browse', 'innerText', 'filesystem_root_browse')
+  Utils.localize('default-refresh-mode-label', 'innerText', 'default_refresh_mode')
+  Utils.localize('allow-lossy-compression-label', 'innerText', 'allow_lossy_compression')
+
+  let refreshModes = []
+  for (let mode of ['standard', 'lazy', 'never'])
+    refreshModes.push({ value: mode, title: browser.i18n.getMessage('refresh_mode_' + mode) })
+  Utils.updateSelectOptions('default-refresh-mode', refreshModes)
+}
+
 async function updateControls () {
   const options = []
   for (const folder of await Utils.getBookmarkBaseFolders()) {
@@ -55,7 +69,8 @@ async function updateAllowLossyCompression(e) {
   return Utils.setSetting('allow-lossy-compression', checked)
 }
 
-browser.runtime.getBackgroundPage().then(background => {
+async function initialize() {
+  let background = await browser.runtime.getBackgroundPage()
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
   restoreOptions = background.restoreOptions
@@ -66,5 +81,9 @@ browser.runtime.getBackgroundPage().then(background => {
   document.getElementById('default-refresh-mode').onchange = updateRefreshMode
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
 
-  document.addEventListener('DOMContentLoaded', updateControls)
-})
+  await restoreOptions()
+  localizeControls()
+  updateControls()
+}
+
+document.addEventListener('DOMContentLoaded', initialize)

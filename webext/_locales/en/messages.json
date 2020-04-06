@@ -5,10 +5,46 @@
   "page_action_title": {
     "message": "Own page"
   },
-  "page_action_title_owned": {
+  "page_action_title_cached": {
     "message": "Owned page details"
   },
   "omnibox_default_search": {
     "message": "Search owned pages"
+  },
+  "rename_bookmark": {
+    "message": "Rename bookark"
+  },
+  "move_bookmark": {
+    "message": "Move bookmark"
+  },
+  "remove_bookmark": {
+    "message": "Remove"
+  },
+  "bookmark_root_parent": {
+    "message": "Library root location"
+  },
+  "bookmark_root_title": {
+    "message": "Library root name"
+  },
+  "filesystem_root": {
+    "message": "Library root in filesystem"
+  },
+  "filesystem_root_browse": {
+    "message": "Browse"
+  },
+  "default_refresh_mode": {
+    "message": "Default validation mode"
+  },
+  "refresh_mode_standard": {
+    "message": "Standard"
+  },
+  "refresh_mode_lazy": {
+    "message": "Lazy"
+  },
+  "refresh_mode_never": {
+    "message": "Never"
+  },
+  "allow_lossy_compression": {
+    "message": "Allow lossy compression"
   }
 }

@@ -30,7 +30,7 @@ async function updatePageAction () {
   await browser.pageAction.setTitle({
     tabId: tab.id,
     title: browser.i18n.getMessage(isInLibrary ?
-      'page_action_title_owned' : 'page_action_title')
+      'page_action_title_cached' : 'page_action_title')
   })
 }
 

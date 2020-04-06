@@ -18,13 +18,13 @@
     textarea { width:246px; resize:vertical; }
   </style>
 <body>
-  <div title="Title" class="select-with-icon">
+  <div id="bookmark-title-div" class="select-with-icon">
     <img src="/icons/Edit.svg" style='vertical-align: top; margin-top:4px'>
     <textarea id="bookmark-title" class="browser-style" rows=3>
     </textarea>
   </div>
 
-  <div title="Move to folder" class="select-with-icon">
+  <div id="move-bookmark-div" class="select-with-icon">
     <img src="/icons/Save.svg">
     <select id="move-bookmark" class="browser-style"></select>
   </div>
@@ -43,7 +43,7 @@
   <div class="panel-section-list">
     <div class="panel-list-item">
       <div class="icon"><img src="/icons/Delete.svg"></div>
-      <div class="text" id="remove-bookmark">Remove</div>
+      <div class="text" id="remove-bookmark"></div>
       <div class="text-shortcut"></div>
     </div>
 

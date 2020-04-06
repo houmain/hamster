@@ -83,4 +83,8 @@ class Utils {
       select.appendChild(option)
     }
   }
+
+  static localize(id, attribute, message) {
+    document.getElementById(id)[attribute] = browser.i18n.getMessage(message)
+  }
 }

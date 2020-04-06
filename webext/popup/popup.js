@@ -31,6 +31,12 @@ function humanFileSize(bytes) {
   }
 }
 
+function localizeControls () {
+  Utils.localize('bookmark-title-div', 'title', 'rename_bookmark')
+  Utils.localize('move-bookmark-div', 'title', 'move_bookmark')
+  Utils.localize('remove-bookmark', 'innerText', 'remove_bookmark')
+}
+
 async function updateControls () {
   const bookmark = await getRecordingBookmark()
   document.getElementById('bookmark-title').value = bookmark.title
@@ -85,7 +91,8 @@ async function removeBookmark () {
   window.close()
 }
 
-browser.runtime.getBackgroundPage().then(background => {
+async function initialize () {
+  let background = await browser.runtime.getBackgroundPage()
   bookmarkLibrary = background.getBookmarkLibrary()
 
   document.getElementById('bookmark-title').onchange = renameBookmark
@@ -100,5 +107,9 @@ browser.runtime.getBackgroundPage().then(background => {
   document.getElementById('move-bookmark').onblur = deindentOptions
   //document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
-  document.addEventListener('DOMContentLoaded', updateControls)
-})
+
+  localizeControls()
+  updateControls()
+}
+
+document.addEventListener('DOMContentLoaded', initialize)
