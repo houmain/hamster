@@ -5,6 +5,7 @@
 #include <array>
 
 namespace {
+  const auto default_library_root_name = "BookmarkHamster";
   std::filesystem::path g_webrecorder_path;
   std::filesystem::path g_default_library_root;
 } // namespace
@@ -28,7 +29,7 @@ int main(int argc, const char* argv[], const char* env[]) {
 
   for (auto it = env; *it; ++it)
     if (!std::strncmp(*it, "HOME=", 5)) {
-      g_default_library_root = std::filesystem::u8path(*it + 5) / "PagesOwned";
+      g_default_library_root = std::filesystem::u8path(*it + 5) / default_library_root_name;
       break;
     }
 
@@ -68,7 +69,7 @@ int wmain(int argc, wchar_t* wargv[]) {
     std::filesystem::path(path.data()).replace_filename("webrecorder.exe");
 
   SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path.data());
-  g_default_library_root = std::filesystem::path(path.data()) / "PagesOwned";
+  g_default_library_root = std::filesystem::path(path.data()) / default_library_root_name;
 
   (void)_setmode(fileno(stdout), _O_BINARY);
   (void)_setmode(fileno(stdin), _O_BINARY);

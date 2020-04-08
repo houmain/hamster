@@ -1,5 +1,7 @@
 'use strict'
 
+const NATIVE_CLIENT_ID = 'hamster'
+
 const nativeClient = new NativeClient(NATIVE_CLIENT_ID)
 const backend = new Backend(nativeClient)
 const bookmarkLibrary = new BookmarkLibrary(getBackend())
@@ -47,7 +49,7 @@ async function handleHistoryChanged (item) {
 }
 
 async function createDefaultBookmarkRoot () {
-  const title = DEFAULT_LIBRARY_TITLE
+  const title = browser.i18n.getMessage('default_bookmark_root_title')
   const bases = await Utils.getBookmarkBaseFolders()
   for (const base of bases) {
     const children = await browser.bookmarks.getChildren(base.id)

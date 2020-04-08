@@ -1,7 +1,7 @@
-Pages Owned
-===========
+Bookmark Hamster
+================
 
-A <a href="https://www.mozilla.org">Firefox</a> addon which allows to make web sites offline readable (by bookmarking them).
+A <a href="https://www.mozilla.org">Firefox</a> addon which allows hoarding web sites by bookmarking them.
 
 License
 -------

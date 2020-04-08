@@ -32,7 +32,7 @@ void print_help_message(const char* argv0) {
     "";
 
   printf(
-    "pagesowned %s (c) 2020 by Albert Kalchmair\n"
+    "hamster %s (c) 2020 by Albert Kalchmair\n"
     "\n"
     "Usage: %s [-options]\n"
     "  -p          run plain stdio JSON command interface.\n"

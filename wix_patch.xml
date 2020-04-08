@@ -1,9 +1,9 @@
 <CPackWiXPatch>
-  <CPackWiXFragment Id="CM_CP_pagesowned.exe">
+  <CPackWiXFragment Id="CM_CP_hamster.exe">
     <RegistryKey Root="HKLM"
-        Key="Software\Mozilla\NativeMessagingHosts\pagesowned"
+        Key="Software\Mozilla\NativeMessagingHosts\hamster"
         Action="createAndRemoveOnUninstall">
-      <RegistryValue Type="string" Value="[INSTALL_ROOT]pagesowned.json"/>
+      <RegistryValue Type="string" Value="[INSTALL_ROOT]hamster.json"/>
     </RegistryKey>
   </CPackWiXFragment>
 </CPackWiXPatch>

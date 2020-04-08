@@ -56,7 +56,8 @@ async function updateControls () {
 
   const info = await getRecordingInfo()
   const status = document.getElementById('bookmark-status')
-  status.innerText = 'Filesize: ' + humanFileSize(info.fileSize ? info.fileSize : 0)
+  status.innerText = browser.i18n.getMessage('memory_consumption') +
+    ': ' + humanFileSize(info.fileSize ? info.fileSize : 0)
 }
 
 async function moveBookmark () {

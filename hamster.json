@@ -1,0 +1,7 @@
+{
+  "name": "hamster",
+  "description": "hamster native messaging",
+  "path": "hamster.exe",
+  "type": "stdio",
+  "allowed_extensions": [ "hamster@localhost" ]
+}

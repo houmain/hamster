@@ -1,15 +1,18 @@
 {
   "extension_description": {
-    "message": ""
+    "message": "Erlaubt Webseiten durch Erstellen von Lesezeichen zu hamstern."
+  },
+  "default_bookmark_root_title": {
+    "message": "Bookmark Hamster"
   },
   "page_action_title": {
-    "message": "Lesezeichen für diese Seite setzen"
+    "message": "Webseite hamstern"
   },
   "page_action_title_cached": {
-    "message": "Dieses Lesezeichen bearbeiten"
+    "message": "Details zu gehamsterter Webseite"
   },
   "omnibox_default_search": {
-    "message": "Lesezeichen durchsuchen"
+    "message": "Gehamsterte Webseiten durchsuchen"
   },
   "rename_bookmark": {
     "message": "Lesezeichen umbenennen"
@@ -18,7 +21,10 @@
     "message": "Lesezeichen verschieben"
   },
   "remove_bookmark": {
-    "message": "Lesezeichen entfernen"
+    "message": "Entfernen"
+  },
+  "memory_consumption": {
+    "message": "Speicherbedarf"
   },
   "bookmark_root_parent": {
     "message": "Bibliothek Ort"

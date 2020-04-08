@@ -1,15 +1,18 @@
 {
   "extension_description": {
-    "message": "Allows to make web sites offline readable (by bookmarking them)."
+    "message": "Allows to hoard web pages by bookmarking them."
+  },
+  "default_bookmark_root_title": {
+    "message": "Bookmark Hamster"
   },
   "page_action_title": {
-    "message": "Own page"
+    "message": "Hoard page"
   },
   "page_action_title_cached": {
-    "message": "Owned page details"
+    "message": "Hoarded page details"
   },
   "omnibox_default_search": {
-    "message": "Search owned pages"
+    "message": "Search hoarded pages"
   },
   "rename_bookmark": {
     "message": "Rename bookark"
@@ -19,6 +22,9 @@
   },
   "remove_bookmark": {
     "message": "Remove"
+  },
+  "memory_consumption": {
+    "message": "Memory consumption"
   },
   "bookmark_root_parent": {
     "message": "Library root location"
@@ -39,7 +45,7 @@
     "message": "Standard"
   },
   "refresh_mode_lazy": {
-    "message": "Lazy"
+    "message": "In background"
   },
   "refresh_mode_never": {
     "message": "Never"

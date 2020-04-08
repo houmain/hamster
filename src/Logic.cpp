@@ -10,11 +10,11 @@
 
 namespace {
   const auto trash_directory_name = ".trash";
-  const auto index_database_filename = ".pagesowned.sqlite";
+  const auto index_database_filename = ".hamster.sqlite";
 
   std::filesystem::path generate_temporary_filename() {
     auto rand = std::random_device();
-    auto filename = std::string("pagesowned_");
+    auto filename = std::string("hamster_");
     for (auto i = 0; i < 10; i++)
       filename.push_back('0' + rand() % 10);
     filename += ".tmp";

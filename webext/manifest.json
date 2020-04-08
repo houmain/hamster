@@ -1,14 +1,14 @@
 {
   "manifest_version": 2,
-  "name": "Pages Owned",
+  "name": "Bookmark Hamster",
   "author": "Albert Kalchmair",
   "version": "0.4",
   "description": "__MSG_extension_description__",
-  "homepage_url": "https://github.com/houmaster/pagesowned",
+  "homepage_url": "https://github.com/houmaster/hamster",
   "default_locale": "en",
   "applications": {
     "gecko": {
-      "id": "pagesowned@localhost",
+      "id": "hamster@localhost",
       "strict_min_version": "64.0"
     }
   },
@@ -36,7 +36,6 @@
   },
   "background": {
     "scripts": [
-      "globals.js",
       "Utils.js",
       "background/NativeClient.js",
       "background/Backend.js",
