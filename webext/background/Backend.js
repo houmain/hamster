@@ -32,7 +32,8 @@ class Backend {
       url: url,
       path: path,
       refresh: refreshMode,
-      allowLossyCompression: allowLossyCompression
+      allowLossyCompression: allowLossyCompression,
+      deterministic: true,
     }
     await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)

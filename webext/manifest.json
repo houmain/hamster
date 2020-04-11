@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Bookmark Hamster",
   "author": "Albert Kalchmair",
-  "version": "0.4",
+  "version": "0.5",
   "description": "__MSG_extension_description__",
   "homepage_url": "https://github.com/houmaster/hamster",
   "default_locale": "en",
@@ -54,5 +54,5 @@
     "page": "options/options.html",
     "browser_style": true
   },
-  "omnibox": { "keyword" : "po" }
+  "omnibox": { "keyword" : "h" }
 }

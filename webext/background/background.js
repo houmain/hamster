@@ -86,6 +86,9 @@ async function restoreOptions () {
 
   const filesystemRoot = await Utils.getSetting('filesystem-root')
   await backend.setFilesystemRoot(filesystemRoot)
+
+  await Utils.setDefaultSetting('default-refresh-mode', 'standard')
+  await Utils.setDefaultSetting('allow-lossy-compression', true)
 }
 
 function createSuggestions (response) {

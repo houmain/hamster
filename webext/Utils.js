@@ -59,11 +59,17 @@ class Utils {
     return browser.storage.local.set(settings)
   }
 
+  static async setDefaultSetting (key, defultValue) {
+    const settings = await browser.storage.local.get(key)
+    if (!settings || typeof(settings[key]) === 'undefined')
+      return this.setSetting(key, defaultValue)
+  }
+
   static async getSetting (key, defaultValue) {
     const settings = await browser.storage.local.get(key)
-    if (settings && settings[key])
-      return settings[key]
-    return defaultValue
+    if (!settings || typeof(settings[key]) === 'undefined')
+      return defaultValue
+    return settings[key]
   }
 
   static updateSelectOptions (id, options) {

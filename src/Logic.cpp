@@ -114,6 +114,7 @@ void Logic::start_recording(Response&, const Request& request) {
     webrecorder_path().u8string(),
     "--url", '\"' + std::string(url) + '\"',
     "--file", '\"' + path.filename().u8string() + '\"',
+    "--follow-link", "same-path",
     "--no-open-browser",
   };
 
