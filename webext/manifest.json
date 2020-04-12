@@ -36,6 +36,7 @@
   },
   "background": {
     "scripts": [
+      "browser-polyfill.js",
       "Utils.js",
       "background/NativeClient.js",
       "background/Backend.js",
@@ -48,11 +49,13 @@
     "default_title": "__MSG_page_action_title__",
     "show_matches": ["<all_urls>"],
     "browser_style": true,
+    "chrome_style": true,
     "pinned": true
   },
   "options_ui": {
     "page": "options/options.html",
-    "browser_style": true
+    "browser_style": true,
+    "chrome_style": true
   },
   "omnibox": { "keyword" : "h" }
 }
