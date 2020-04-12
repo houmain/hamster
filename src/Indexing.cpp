@@ -6,18 +6,46 @@
 #include <cstring>
 #include <sstream>
 
-bool for_each_archive_html(const std::filesystem::path& filename,
-    std::function<void(ArchiveHtml)> file_callback) {
-
+int64_t get_archive_uid(const std::filesystem::path& filename) {
   auto reader = ArchiveReader();
   if (!reader.open(filename))
-    return false;
+    return 0;
 
   auto uid = int64_t{ };
   auto uid_string = reader.read("uid");
   auto ss = std::istringstream(std::string(as_string_view(uid_string)));
   ss >> std::hex >> uid;
-  if (!uid)
+  return uid;
+}
+
+bool for_each_archive_file(const std::filesystem::path& filename,
+    std::function<void(ArchiveFile)> file_callback) {
+
+  auto reader = ArchiveReader();
+  if (!reader.open(filename))
+    return false;
+
+  auto header = reader.read("headers");
+  auto header_store = HeaderStore();
+  header_store.deserialize(as_string_view(header));
+  for (const auto& entry : header_store.entries()) {
+    const auto info = reader.get_file_info(to_local_filename(entry.first));
+    if (info.has_value())
+      file_callback(ArchiveFile{
+        entry.first,
+        info->compressed_size,
+        info->uncompressed_size,
+        info->modification_time
+      });
+  }
+  return true;
+}
+
+bool for_each_archive_html(const std::filesystem::path& filename,
+    std::function<void(ArchiveHtml)> file_callback) {
+
+  auto reader = ArchiveReader();
+  if (!reader.open(filename))
     return false;
 
   const auto url = std::string(as_string_view(reader.read("url")));
@@ -42,7 +70,6 @@ bool for_each_archive_html(const std::filesystem::path& filename,
         auto data = reader.read(to_local_filename(entry.first));
         if (!data.empty())
           file_callback({
-            uid,
             entry.first,
             convert_charset(data, charset, "UTF-8")
           });

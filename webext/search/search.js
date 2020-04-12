@@ -19,7 +19,7 @@ async function executeSearch () {
       }
     }
     else {
-      html = 'No results'
+      html = browser.i18n.getMessage('search_no_results')
     }
     const results = document.getElementById('results')
     results.innerHTML = html

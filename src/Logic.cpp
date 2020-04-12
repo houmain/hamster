@@ -3,6 +3,7 @@
 #include "Database.h"
 #include "common.h"
 #include "platform.h"
+#include "Indexing.h"
 #include <random>
 #include <fstream>
 #define NOC_FILE_DIALOG_IMPLEMENTATION
@@ -219,6 +220,27 @@ void Logic::get_file_size(Response& response, const Request& request) {
   }
 }
 
+void Logic::get_file_listing(Response& response, const Request& request) {
+  const auto path = to_full_path(json::get_string_list(request, "path"));
+  if (std::filesystem::is_regular_file(path)) {
+    response.Key("files");
+    response.StartArray();
+    for_each_archive_file(path, [&](const ArchiveFile& file) {
+        response.StartObject();
+        response.String("url");
+        response.String(file.url.data(), static_cast<json::size_t>(file.url.size()));
+        response.String("compressedSize");
+        response.Uint64(file.compressed_size);
+        response.String("uncompressedSize");
+        response.Uint64(file.uncompressed_size);
+        response.String("modificationTime");
+        response.Int64(file.modification_time);
+        response.EndObject();
+    });
+    response.EndArray();
+  }
+}
+
 Database& Logic::database() {
   if (m_library_root.empty())
     throw std::runtime_error("library root not set");
@@ -268,6 +290,7 @@ void Logic::handle_request(Response& response, const Request& request) {
     { "browserDirectories", &Logic::browse_directories },
     { "setHostList", &Logic::set_hosts_list },
     { "getFileSize", &Logic::get_file_size },
+    { "getFileListing", &Logic::get_file_listing },
     { "updateSearchIndex", &Logic::update_search_index },
     { "executeSearch", &Logic::execute_search },
   };

@@ -62,11 +62,13 @@ void Database::update_index(const std::filesystem::path& filename) {
       (?, ?, ?, ?, ?)
   )");
 
+  const auto uid = get_archive_uid(filename);
+
   auto deleted = false;
   for_each_archive_html(filename,
     [&](ArchiveHtml html) {
       if (!std::exchange(deleted, true)) {
-        clear.bind(0, html.uid);
+        clear.bind(0, uid);
         clear.execute();
       }
       auto title = std::string_view();
@@ -88,7 +90,7 @@ void Database::update_index(const std::filesystem::path& filename) {
           }
         });
       if (!title.empty() && (!text.empty() || !text_low.empty())) {
-        insert.bind(0, html.uid);
+        insert.bind(0, uid);
         insert.bind(1, html.url);
         insert.bind(2, normalize_space(decode_html_entities(std::string(title))));
         insert.bind(3, normalize_space(decode_html_entities(concatenate(text, " "))));

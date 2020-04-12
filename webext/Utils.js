@@ -59,7 +59,7 @@ class Utils {
     return browser.storage.local.set(settings)
   }
 
-  static async setDefaultSetting (key, defultValue) {
+  static async setDefaultSetting (key, defaultValue) {
     const settings = await browser.storage.local.get(key)
     if (!settings || typeof(settings[key]) === 'undefined')
       return this.setSetting(key, defaultValue)

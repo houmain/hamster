@@ -52,5 +52,8 @@
   },
   "allow_lossy_compression": {
     "message": "Allow lossy compression"
+  },
+  "search_no_results": {
+    "message": "No results"
   }
 }

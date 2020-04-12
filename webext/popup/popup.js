@@ -92,6 +92,17 @@ async function removeBookmark () {
   window.close()
 }
 
+async function openListing() {
+  const title = document.getElementById('bookmark-title').value
+  return browser.windows.create({
+    type: "detached_panel",
+    url: "listing/listing.html",
+    width: 600,
+    height: 400,
+    titlePreface: title
+  })
+}
+
 async function initialize () {
   let background = await browser.runtime.getBackgroundPage()
   bookmarkLibrary = background.getBookmarkLibrary()
@@ -108,6 +119,7 @@ async function initialize () {
   document.getElementById('move-bookmark').onblur = deindentOptions
   //document.getElementById('refresh-mode').onchange = updateRefreshMode
   document.getElementById('remove-bookmark').onclick = removeBookmark
+  document.getElementById('bookmark-status').onclick = openListing
 
   localizeControls()
   updateControls()

@@ -1,22 +1,11 @@
 <!DOCTYPE html>
-
 <html>
-  <head>
-    <meta charset="utf-8">
-  </head>
 
-  <style>
-    body { width:300px; margin-top:16px; margin-left:-2px }
-    #move-bookmark{ width:246px }
-    img { width:16px; height:16px }
-    .panel-list-item img { margin-top:4px }
-    .select-with-icon img { margin-left:-4px; margin-bottom:-4px; margin-right:4px }
-    .icon { margin-right:8px }
-    .select-with-icon { margin-left:20px }
-    .panel-section-list { margin-top:-2px }
-    .panel-section-separator { margin-top:11px; margin-bottom:3px }
-    textarea { width:246px; resize:vertical; }
-  </style>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+
 <body>
   <div id="bookmark-title-div" class="select-with-icon">
     <img src="/icons/Edit.svg" style='vertical-align: top; margin-top:4px'>
@@ -36,7 +25,8 @@
       <option value="standard">Standard</option>
       <option value="lazy">Lazy</option>
       <option value="never">Never</option>
-      <option value="bypass">Bypass</option>
+      <option value="bypass">Bypass</option
+      <option value="bypass">Offline</option
     </select>
   </div>
 -->
@@ -44,14 +34,14 @@
     <div class="panel-list-item">
       <div class="icon"><img src="/icons/Delete.svg"></div>
       <div class="text" id="remove-bookmark"></div>
-      <div class="text-shortcut"></div>
     </div>
 
-    <div class="panel-section-separator"></div>
-    <div class="panel-list-item disabled" id="bookmark-status"></div>
+    <div class="panel-list-item">
+      <div class="icon"><img src="/icons/Info.svg"></div>
+      <div class="text" id="bookmark-status"></div>
+    </div>
   </div>
 
-  <script src="../globals.js"></script>
   <script src="../Utils.js"></script>
   <script src="popup.js"></script>
 </body>

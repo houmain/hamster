@@ -30,6 +30,7 @@ private:
   void browse_directories(Response& response, const Request& request);
   void set_hosts_list(Response&, const Request& request);
   void get_file_size(Response& response, const Request& request);
+  void get_file_listing(Response& response, const Request& request);
   Database& database();
   void update_search_index(Response&, const Request& request);
   void execute_search(Response& response, const Request& request);
