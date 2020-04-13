@@ -26,8 +26,8 @@
   "refresh_mode_standard": {
     "message": "Standard"
   },
-  "refresh_mode_lazy": {
-    "message": "In background"
+  "refresh_mode_async": {
+    "message": "Asynchronous"
   },
   "refresh_mode_never": {
     "message": "Never"

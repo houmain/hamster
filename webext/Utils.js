@@ -1,7 +1,11 @@
 'use strict'
 
+function DEBUG () {
+  console.log('DEBUG: ', ...arguments)
+}
+
 function verify () {
-  for (var i = 0; i < arguments.length; i++) {
+  for (let i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
       console.trace()
       throw "verification failed"
@@ -11,7 +15,7 @@ function verify () {
 
 class Utils {
   static async getBookmarkBaseFolders () {
-    for (let bookmarkId in [
+    for (const bookmarkId of [
         'root________', // Firefox
         '0',            // Chromium
         ]) {
@@ -26,11 +30,6 @@ class Utils {
   static async getBookmarkById (bookmarkId) {
     verify(bookmarkId)
     return (await browser.bookmarks.get(bookmarkId))[0]
-  }
-
-  static async findBookmarkByUrl (url) {
-    verify(url)
-    return (await browser.bookmarks.search(url))[0]
   }
 
   static getOrigin(url) {
@@ -50,6 +49,12 @@ class Utils {
       url.hostname.substring(4) : url.hostname) + url.pathname
   }
 
+  static getUrlMatchPattern (url, urlFilters) {
+    const hostnamePath = this.getHostnamePathWithoutWWW(url)
+    urlFilters.push('*://www.' + hostnamePath + '*')
+    urlFilters.push('*://' + hostnamePath + '*')
+  }
+
   static async getTabById (tabId) {
     verify(tabId)
     return browser.tabs.get(tabId)
@@ -62,8 +67,47 @@ class Utils {
     }))[0]
   }
 
+  static async findTabsMatchingUrl (url) {
+    const urlFilters = []
+    this.getUrlMatchPattern(url, urlFilters)
+    const tabs = await browser.tabs.query({ url: urlFilters })
+    // also filter by port, which is ignored in query
+    const origin = this.getOrigin(url)
+    if (origin.startsWith('http://127.0.0.1')) {
+      return tabs.filter(tab => { return tab.url.startsWith(origin) });
+    }
+    return tabs
+  }
+
+  static async tryReloadTab (tabId) {
+    try {
+      //DEBUG('reloading tab', (await browser.tabs.get(tabId)).url)
+      await browser.tabs.reload(tabId)
+    } catch {
+      // tab already closed
+    }
+  }
+
+  static async tryUpdateTabUrl (tabId, url) {
+    try {
+      //DEBUG('updating tab url', (await browser.tabs.get(tabId)).url, 'to', url)
+      await browser.tabs.update(tabId, { url: url })
+    } catch {
+      // tab already closed
+    }
+  }
+
+  static async tryUpdateBookmarkUrl (bookmarkId, url) {
+    try {
+      //DEBUG('updating bookmark url', (await Utils.getBookmarkById(bookmarkId)).url, 'to', url)
+      return await browser.bookmarks.update(bookmarkId, { url: url })
+    } catch {
+      // bookmark deleted
+    }
+  }
+
   static async setSetting (key, value) {
-    let settings = { }
+    const settings = { }
     settings[key] = value
     return browser.storage.local.set(settings)
   }
@@ -99,7 +143,7 @@ class Utils {
     }
   }
 
-  static localize(id, attribute, message) {
+  static localize (id, attribute, message) {
     document.getElementById(id)[attribute] = browser.i18n.getMessage(message)
   }
 }

@@ -122,7 +122,7 @@ void Logic::start_recording(Response&, const Request& request) {
   arguments.push_back("--refresh");
   if (refresh == "standard")
     arguments.push_back("when-expired");
-  else if (refresh == "lazy")
+  else if (refresh == "async")
     arguments.push_back("when-expired-async");
   else if (refresh == "always")
     arguments.push_back("always");

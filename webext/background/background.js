@@ -67,7 +67,7 @@ async function restoreOptions () {
 
 function createSuggestions (response) {
   return new Promise(resolve => {
-    let suggestions = []
+    const suggestions = []
     for (const match of response.matches) {
       suggestions.push({
         content: match.url,
@@ -87,7 +87,7 @@ function handleOmniBoxInput (text, addSuggestions) {
 }
 
 function handleOmniBoxSelection (url, disposition) {
-  var isHttp = /^https?:/i
+  const isHttp = /^https?:/i
   if (!isHttp.test(url)) {
     url = browser.extension.getURL('search/search.html') + '?s=' + url
   }
@@ -104,19 +104,9 @@ function handleOmniBoxSelection (url, disposition) {
   }
 }
 
-async function handleTabUpdated (tabId, change, tab) {
-  if (change.url) {
-    const original = bookmarkLibrary.findRecentRecorder(change.url)
-    if (original) {
-      return browser.tabs.update(tabId, { url: original })
-    }
-  }
-}
-
 ;(async function () {
   await restoreOptions()
   browser.history.onVisited.addListener(handleHistoryChanged)
-  browser.tabs.onUpdated.addListener(handleTabUpdated)
   browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
   browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
 })()

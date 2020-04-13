@@ -11,8 +11,8 @@ function localizeControls () {
   Utils.localize('default-refresh-mode-label', 'innerText', 'default_refresh_mode')
   Utils.localize('allow-lossy-compression-label', 'innerText', 'allow_lossy_compression')
 
-  let refreshModes = []
-  for (let mode of ['standard', 'lazy', 'never'])
+  const refreshModes = []
+  for (const mode of ['standard', 'async', 'never'])
     refreshModes.push({ value: mode, title: browser.i18n.getMessage('refresh_mode_' + mode) })
   Utils.updateSelectOptions('default-refresh-mode', refreshModes)
 }
@@ -70,7 +70,7 @@ async function updateAllowLossyCompression(e) {
 }
 
 async function initialize() {
-  let background = await browser.runtime.getBackgroundPage()
+  const background = await browser.runtime.getBackgroundPage()
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
   restoreOptions = background.restoreOptions
