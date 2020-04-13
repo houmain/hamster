@@ -11,11 +11,15 @@ function verify () {
 
 class Utils {
   static async getBookmarkBaseFolders () {
-    try {
-      return await browser.bookmarks.getChildren('root________')
-    }
-    catch (e) {
-      return await browser.bookmarks.getChildren('0')
+    for (let bookmarkId in [
+        'root________', // Firefox
+        '0',            // Chromium
+        ]) {
+      try {
+        return await browser.bookmarks.getChildren(bookmarkId)
+      }
+      catch (e) {
+      }
     }
   }
 

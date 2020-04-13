@@ -14,32 +14,6 @@ function getBookmarkLibrary () {
   return bookmarkLibrary
 }
 
-async function updatePageAction () {
-  const tab = await Utils.getActiveTab()
-  const url = bookmarkLibrary.getOriginalUrl(tab.url)
-  const isInLibrary = await bookmarkLibrary.findBookmarkByUrl(url)
-
-  await browser.pageAction.setPopup({
-    tabId: tab.id,
-    popup: (isInLibrary ? "popup/popup.html" : null)
-  })
-  await browser.pageAction.setIcon({
-    tabId: tab.id,
-    path: (isInLibrary ?
-      "icons/Save light highlight.svg" :
-      "icons/Save light.svg")
-  })
-  await browser.pageAction.setTitle({
-    tabId: tab.id,
-    title: browser.i18n.getMessage(isInLibrary ?
-      'page_action_title_cached' : 'page_action_title')
-  })
-}
-
-async function handlePageActionClicked (tab) {
-  await bookmarkLibrary.createBookmarkFromTab(tab)
-}
-
 async function handleHistoryChanged (item) {
   const url = bookmarkLibrary.getOriginalUrl(item.url)
   if (url !== item.url) {
@@ -136,22 +110,13 @@ async function handleTabUpdated (tabId, change, tab) {
     if (original) {
       return browser.tabs.update(tabId, { url: original })
     }
-    else {
-      return updatePageAction()
-    }
   }
 }
 
 ;(async function () {
   await restoreOptions()
   browser.history.onVisited.addListener(handleHistoryChanged)
-  browser.bookmarks.onCreated.addListener(updatePageAction)
-  browser.bookmarks.onChanged.addListener(updatePageAction)
-  browser.bookmarks.onRemoved.addListener(updatePageAction)
-  browser.bookmarks.onMoved.addListener(updatePageAction)
-  browser.tabs.onActivated.addListener(updatePageAction)
   browser.tabs.onUpdated.addListener(handleTabUpdated)
-  browser.pageAction.onClicked.addListener(handlePageActionClicked)
   browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
   browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
 })()

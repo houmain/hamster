@@ -44,14 +44,6 @@
       "background/background.js"
     ]
   },
-  "page_action": {
-    "default_icon": "icons/Save light.svg",
-    "default_title": "__MSG_page_action_title__",
-    "show_matches": ["<all_urls>"],
-    "browser_style": true,
-    "chrome_style": true,
-    "pinned": true
-  },
   "options_ui": {
     "page": "options/options.html",
     "browser_style": true,

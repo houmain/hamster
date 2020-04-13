@@ -5,26 +5,8 @@
   "default_bookmark_root_title": {
     "message": "Bookmark Hamster"
   },
-  "page_action_title": {
-    "message": "Hoard page"
-  },
-  "page_action_title_cached": {
-    "message": "Hoarded page details"
-  },
   "omnibox_default_search": {
     "message": "Search hoarded pages"
-  },
-  "rename_bookmark": {
-    "message": "Rename bookark"
-  },
-  "move_bookmark": {
-    "message": "Move bookmark"
-  },
-  "remove_bookmark": {
-    "message": "Remove"
-  },
-  "memory_consumption": {
-    "message": "Memory consumption"
   },
   "bookmark_root_parent": {
     "message": "Library root location"

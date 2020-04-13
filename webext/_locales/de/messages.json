@@ -5,26 +5,8 @@
   "default_bookmark_root_title": {
     "message": "Bookmark Hamster"
   },
-  "page_action_title": {
-    "message": "Webseite hamstern"
-  },
-  "page_action_title_cached": {
-    "message": "Details zu gehamsterter Webseite"
-  },
   "omnibox_default_search": {
     "message": "Gehamsterte Webseiten durchsuchen"
-  },
-  "rename_bookmark": {
-    "message": "Lesezeichen umbenennen"
-  },
-  "move_bookmark": {
-    "message": "Lesezeichen verschieben"
-  },
-  "remove_bookmark": {
-    "message": "Entfernen"
-  },
-  "memory_consumption": {
-    "message": "Speicherbedarf"
   },
   "bookmark_root_parent": {
     "message": "Bibliothek Ort"
