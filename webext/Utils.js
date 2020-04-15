@@ -14,6 +14,18 @@ function verify () {
 }
 
 class Utils {
+  static isHttpUrl (url) {
+    return (url &&
+      (url.startsWith('http://') ||
+       url.startsWith('https://')))
+  }
+
+  static isLocalUrl (url) {
+    return (url &&
+      (url.startsWith('http://127.0.0.1') ||
+       url.startsWith('https://127.0.0.1')))
+  }
+
   static async getBookmarkBaseFolders () {
     for (const bookmarkId of [
         'root________', // Firefox
@@ -58,6 +70,7 @@ class Utils {
   }
 
   static getUrlMatchPattern (url, urlFilters) {
+    verify(this.isHttpUrl(url))
     const hostnamePath = this.getHostnamePathWithoutWWW(url)
     urlFilters.push('*://www.' + hostnamePath + '*')
     urlFilters.push('*://' + hostnamePath + '*')
@@ -82,7 +95,7 @@ class Utils {
     const tabs = await browser.tabs.query({ url: urlFilters })
     // also filter by port, which is ignored in query
     const origin = this.getOrigin(url)
-    if (origin.startsWith('http://127.0.0.1')) {
+    if (this.isLocalUrl(origin)) {
       return tabs.filter(tab => { return tab.url.startsWith(origin) });
     }
     return tabs

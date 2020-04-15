@@ -99,8 +99,7 @@ class BookmarkLibrary {
   }
 
   async _startRecording (bookmarkId, url, tabId) {
-    verify(bookmarkId, url)
-    verify(!url.startsWith('http://127.0.0.1'))
+    verify(bookmarkId, url, !Utils.isLocalUrl(url))
 
     let recorder = this._recorderByBookmarkId[bookmarkId]
     if (recorder) {
@@ -379,7 +378,8 @@ class BookmarkLibrary {
         return { cancel: true }
       }
       //DEBUG('redirecting request to', recorder.localUrl)
-      return { redirectUrl: this._getLocalUrl(url, recorder) }
+      const localUrl = this._getLocalUrl(url, recorder)
+      return { redirectUrl: localUrl }
     }
 
     //DEBUG('cancelled request to', url)
@@ -408,7 +408,7 @@ class BookmarkLibrary {
     const urlFilters = []
     for (const bookmark of await this._getBookmarks()) {
       bookmarkTitles[bookmark.id] = bookmark.title
-      if (bookmark.url && !bookmark.url.startsWith('http://127.0.0.1')) {
+      if (Utils.isHttpUrl(bookmark.url) && !Utils.isLocalUrl(bookmark.url)) {
         Utils.getUrlMatchPattern(bookmark.url, urlFilters)
       }
     }
