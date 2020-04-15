@@ -31,6 +31,7 @@ class BookmarkLibrary {
   }
 
   getOriginalUrl (url) {
+    verify(url)
     const recorder = this._findRecentRecorder(url)
     if (recorder) {
       return Utils.getOrigin(recorder.bookmarkUrl) + Utils.getPathQuery(url)
@@ -256,8 +257,11 @@ class BookmarkLibrary {
   }
 
   async _reloadTabs (bookmarkId) {
-    const recorder = this._recorderByBookmarkId[bookmarkId]
     const bookmark = await Utils.getBookmarkById(bookmarkId)
+    if (!bookmark.url) {
+      return
+    }
+    const recorder = this._recorderByBookmarkId[bookmarkId]
     const url = (recorder ? recorder.bookmarkUrl : bookmark.url)
     for (const tab of await Utils.findTabsMatchingUrl(url)) {
        await Utils.tryReloadTab(tab.id)
@@ -275,6 +279,9 @@ class BookmarkLibrary {
 
   async _recorderHasTab (bookmarkId, closingTabId) {
     const recorder = this._recorderByBookmarkId[bookmarkId]
+    if (!recorder.localUrl) {
+      return true
+    }
     for (const tab of await Utils.findTabsMatchingUrl(recorder.localUrl)) {
       if (tab.id !== closingTabId) {
         return true
@@ -296,10 +303,12 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkCreated (bookmarkId, createInfo) {
-    // translate to original url when bookmarking a local url
-    const url = this.getOriginalUrl(createInfo.url)
-    if (url !== createInfo.url) {
-      await Utils.tryUpdateBookmarkUrl(bookmarkId, url)
+    if (createInfo.url) {
+      // translate to original url when bookmarking a local url
+      const url = this.getOriginalUrl(createInfo.url)
+      if (url !== createInfo.url) {
+        await Utils.tryUpdateBookmarkUrl(bookmarkId, url)
+      }
     }
     await this._updateBeforeRequestListener()
     const { path, inLibrary } = await this._getBookmarkPath(bookmarkId)
@@ -310,12 +319,9 @@ class BookmarkLibrary {
   }
 
   async _handleBookmarkChanged (bookmarkId, changeInfo) {
-    if (changeInfo.url) {
-      await this._updateBeforeRequestListener()
-    }
+    const bookmarkTitle = this._libraryBookmarkTitles[bookmarkId]
+    await this._updateBeforeRequestListener()
     if (changeInfo.title) {
-      const bookmarkTitle = this._libraryBookmarkTitles[bookmarkId]
-      verify(bookmarkTitle)
       const { path, inLibrary } = await this._getBookmarkPath(bookmarkId)
       if (inLibrary) {
         const sourcePath = path.slice()

@@ -44,12 +44,14 @@ class Utils {
   }
 
   static getHostPathWithoutWWW(url) {
+    verify(url)
     url = new URL(url)
     return (url.host.startsWith('www.') ?
       url.host.substring(4) : url.host) + url.pathname
   }
 
   static getHostnamePathWithoutWWW(url) {
+    verify(url)
     url = new URL(url)
     return (url.hostname.startsWith('www.') ?
       url.hostname.substring(4) : url.hostname) + url.pathname
@@ -74,6 +76,7 @@ class Utils {
   }
 
   static async findTabsMatchingUrl (url) {
+    verify(url)
     const urlFilters = []
     this.getUrlMatchPattern(url, urlFilters)
     const tabs = await browser.tabs.query({ url: urlFilters })
