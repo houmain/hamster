@@ -43,6 +43,12 @@ class Utils {
     return url.href.substring(url.origin.length)
   }
 
+  static getHostPathWithoutWWW(url) {
+    url = new URL(url)
+    return (url.host.startsWith('www.') ?
+      url.host.substring(4) : url.host) + url.pathname
+  }
+
   static getHostnamePathWithoutWWW(url) {
     url = new URL(url)
     return (url.hostname.startsWith('www.') ?

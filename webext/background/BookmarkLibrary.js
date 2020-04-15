@@ -159,12 +159,12 @@ class BookmarkLibrary {
     this._recentRecorders = await Utils.getSetting('recent-recorders', [])
 
     // undo patching bookmark url (just in case browser crashed)
-    //for (const recorder of this._recentRecorders) {
-    //  const bookmark = await this._findBookmarkByUrl(recorder.localUrl)
-    //  if (bookmark && bookmark.url.startsWith(recorder.localUrl)) {
-    //    Utils.tryUpdateBookmarkUrl(bookmark.id, recorder.bookmarkUrl)
-    //  }
-    //}
+    for (const recorder of this._recentRecorders) {
+      const bookmark = await this._findBookmarkByUrl(recorder.localUrl)
+      if (bookmark && bookmark.url.startsWith(recorder.localUrl)) {
+        Utils.tryUpdateBookmarkUrl(bookmark.id, recorder.bookmarkUrl)
+      }
+    }
   }
 
   async _updateRecentRecorders (localUrl, bookmarkUrl) {
@@ -382,16 +382,16 @@ class BookmarkLibrary {
   }
 
   async _findBookmarkByUrl (url) {
-    url = Utils.getHostnamePathWithoutWWW(url)
+    url = Utils.getHostPathWithoutWWW(url)
     for (const bookmarkId in this._recorderByBookmarkId) {
       const bookmark = this._recorderByBookmarkId[bookmarkId]
-      if (url.startsWith(Utils.getHostnamePathWithoutWWW(bookmark.bookmarkUrl))) {
+      if (url.startsWith(Utils.getHostPathWithoutWWW(bookmark.bookmarkUrl))) {
         return Utils.getBookmarkById(bookmarkId)
       }
     }
     for (const bookmark of await this._getBookmarks()) {
       if (bookmark.url &&
-          url.startsWith(Utils.getHostnamePathWithoutWWW(bookmark.url))) {
+          url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url))) {
         return bookmark
       }
     }
