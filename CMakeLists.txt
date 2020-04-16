@@ -52,13 +52,13 @@ else()
         libs/sqlite/sqlite3.c
     )
     set(INCLUDES ${INCLUDES}
-      libs/sqlite
-      libs/webrecorder/libs/gumbo/include
-      libs/webrecorder/libs/zlib/include
+        libs/sqlite
+        libs/webrecorder/libs/gumbo/include
+        libs/webrecorder/libs/zlib/include
     )
     link_directories(
-      libs/webrecorder/libs/gumbo/lib64
-      libs/webrecorder/libs/zlib/lib64
+        libs/webrecorder/libs/gumbo/win64
+        libs/webrecorder/libs/zlib/win64
     )
 endif()
 
@@ -93,8 +93,9 @@ else()
     install(TARGETS hamster DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
     install(FILES hamster.json DESTINATION .)
-    install(FILES libs/webrecorder/libs/gumbo/bin64/gumbo.dll DESTINATION .)
-    install(FILES libs/webrecorder/libs/zlib/bin64/zlib.dll DESTINATION .)
+    install(FILES libs/webrecorder/libs/gumbo/win64/gumbo.dll DESTINATION .)
+    install(FILES libs/webrecorder/libs/zlib/win64/zlib.dll DESTINATION .)
+    install(FILES libs/webrecorder/libs/freeimage/win64/FreeImage.dll DESTINATION .)
 
     set(CPACK_GENERATOR WIX)
     set(CPACK_WIX_UPGRADE_GUID "FE3DD160-C524-49F0-B740-E84A37C13E26")
