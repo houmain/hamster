@@ -149,7 +149,7 @@ class Utils {
 
   static updateSelectOptions (id, options) {
     const select = document.getElementById(id)
-    select.innerHTML = ''
+    select.textContent = ''
     for (const opt of options) {
       const option = document.createElement('option')
       option.setAttribute('value', opt.value)

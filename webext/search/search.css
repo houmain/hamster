@@ -41,7 +41,7 @@ h2 {
 
 .nooverflow {
   width: 100%;
-  display:block;
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

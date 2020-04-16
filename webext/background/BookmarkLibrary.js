@@ -150,6 +150,7 @@ class BookmarkLibrary {
     await Utils.tryUpdateBookmarkUrl(recorder.bookmarkId, recorder.localUrl)
     await this._updateBeforeRequestListener()
     if (recorder.initialTabId) {
+      localUrl = this._getLocalUrl(recorder.url, recorder)
       await Utils.tryUpdateTabUrl(recorder.initialTabId, localUrl)
     }
     await this._reloadTabs(recorder.bookmarkId)

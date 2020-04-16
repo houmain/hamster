@@ -4,12 +4,12 @@ let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
 function localizeControls () {
-  Utils.localize('bookmark-root-parent-label', 'innerText', 'bookmark_root_parent')
-  Utils.localize('bookmark-root-title-label', 'innerText', 'bookmark_root_title')
-  Utils.localize('filesystem-root-label', 'innerText', 'filesystem_root')
-  Utils.localize('filesystem-root-browse', 'innerText', 'filesystem_root_browse')
-  Utils.localize('default-refresh-mode-label', 'innerText', 'default_refresh_mode')
-  Utils.localize('allow-lossy-compression-label', 'innerText', 'allow_lossy_compression')
+  Utils.localize('bookmark-root-parent-label', 'textContent', 'bookmark_root_parent')
+  Utils.localize('bookmark-root-title-label', 'textContent', 'bookmark_root_title')
+  Utils.localize('filesystem-root-label', 'textContent', 'filesystem_root')
+  Utils.localize('filesystem-root-browse', 'textContent', 'filesystem_root_browse')
+  Utils.localize('default-refresh-mode-label', 'textContent', 'default_refresh_mode')
+  Utils.localize('allow-lossy-compression-label', 'textContent', 'allow_lossy_compression')
 
   const refreshModes = []
   for (const mode of ['standard', 'async', 'never'])
