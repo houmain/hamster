@@ -1,0 +1,50 @@
+
+html,
+body {
+  background: transparent;
+  box-sizing: border-box;
+  color: #222426;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  font: caption;
+  margin: 0;
+  padding: 0;
+  -moz-user-select: none;
+  margin-bottom: 50px;
+}
+
+h2 {
+  margin-left: 20px;
+  margin-top: 30px;
+}
+
+.vtree li.vtree-leaf {
+	min-height: 20px !important;
+	line-height: 20px !important;
+}
+
+.vtree > li.vtree-leaf > a.vtree-leaf-label {
+  font-weight: bold;
+	line-height: 24px !important;
+}
+
+.vtree-leaf-label {
+  max-width: calc(600px - 3*18px - 30px) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info {
+  font-weight: normal;
+  position: absolute;
+  left: calc(600px - 3*18px);
+  top: 0px;
+  cursor: default;
+}
+
+.info0 { left: calc(600px - 0*18px) }
+.info1 { left: calc(600px - 1*18px) }
+.info2 { left: calc(600px - 2*18px) }
+.info3 { left: calc(600px - 3*18px) }

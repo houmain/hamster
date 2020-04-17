@@ -1,9 +1,10 @@
+'use strict'
 
 let backend = undefined
 let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
-function localizeControls () {
+async function localizeControls () {
   Utils.localize('bookmark-root-parent-label', 'textContent', 'bookmark_root_parent')
   Utils.localize('bookmark-root-title-label', 'textContent', 'bookmark_root_title')
   Utils.localize('filesystem-root-label', 'textContent', 'filesystem_root')
@@ -11,13 +12,6 @@ function localizeControls () {
   Utils.localize('default-refresh-mode-label', 'textContent', 'default_refresh_mode')
   Utils.localize('allow-lossy-compression-label', 'textContent', 'allow_lossy_compression')
 
-  const refreshModes = []
-  for (const mode of ['standard', 'async', 'never'])
-    refreshModes.push({ value: mode, title: browser.i18n.getMessage('refresh_mode_' + mode) })
-  Utils.updateSelectOptions('default-refresh-mode', refreshModes)
-}
-
-async function updateControls () {
   const options = []
   for (const folder of await Utils.getBookmarkBaseFolders()) {
     options.push({
@@ -27,6 +21,14 @@ async function updateControls () {
   }
   Utils.updateSelectOptions('bookmark-root-parent', options)
 
+  const refreshModes = []
+  for (const mode of ['standard', 'async', 'never']) {
+    refreshModes.push({ value: mode, title: browser.i18n.getMessage('refresh_mode_' + mode) })
+  }
+  Utils.updateSelectOptions('default-refresh-mode', refreshModes)
+}
+
+async function updateControls () {
   const root = await Utils.getBookmarkById(bookmarkLibrary.rootId)
   const rootParent = document.getElementById('bookmark-root-parent')
   rootParent.value = root.parentId
@@ -81,8 +83,9 @@ async function initialize() {
   document.getElementById('default-refresh-mode').onchange = updateRefreshMode
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
 
-  await restoreOptions()
   localizeControls()
+  updateControls()
+  restoreOptions()
   updateControls()
 }
 

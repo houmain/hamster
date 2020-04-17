@@ -168,4 +168,13 @@ class Utils {
   static localize (id, attribute, message) {
     document.getElementById(id)[attribute] = browser.i18n.getMessage(message)
   }
+
+  static getReadableFileSize (bytes) {
+    const units = ['bytes', 'KiB','MiB','GiB']
+    for (let u = 0;; ++u, bytes /= 1024) {
+      if (bytes < 1024 || u == units.length - 1) {
+        return bytes.toFixed(1) + ' ' + units[u]
+      }
+    }
+  }
 }

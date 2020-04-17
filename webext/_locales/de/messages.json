@@ -37,5 +37,14 @@
   },
   "search_no_results": {
     "message": "Keine Ergebnisse"
+  },
+  "menu_root": {
+    "message": "Bookmark Hamster"
+  },
+  "menu_file_listing": {
+    "message": "Dateien auflisten"
+  },
+  "menu_options": {
+    "message": "Einstellungen"
   }
 }

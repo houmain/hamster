@@ -39,6 +39,29 @@ class BookmarkLibrary {
     return url
   }
 
+  async getBookmarkPath (bookmarkId) {
+    const bookmark = await Utils.getBookmarkById(bookmarkId)
+    if (bookmark.id === this._rootId) {
+      return { path: [], inLibrary: true }
+    }
+    if (!bookmark.parentId) {
+      return { path: [bookmark.title], inLibrary: false }
+    }
+    const result = await this.getBookmarkPath(bookmark.parentId)
+    result.path.push(bookmark.title)
+    return result
+  }
+
+  addRecordingEventHandler (bookmarkId, handler) {
+    const recorder = this._recorderByBookmarkId[bookmarkId]
+    if (recorder) {
+      for (let event of recorder.events) {
+        handler(event)
+      }
+      recorder.onEvent.push(handler)
+    }
+  }
+
   _getLocalUrl (url, recorder) {
     verify(url, recorder, recorder.localUrl)
     return Utils.getOrigin(recorder.localUrl) + Utils.getPathQuery(url)
@@ -63,22 +86,9 @@ class BookmarkLibrary {
     return bookmarks
   }
 
-  async _getBookmarkPath (bookmarkId) {
-    const bookmark = await Utils.getBookmarkById(bookmarkId)
-    if (bookmark.id === this._rootId) {
-      return { path: [], inLibrary: true }
-    }
-    if (!bookmark.parentId) {
-      return { path: [bookmark.title], inLibrary: false }
-    }
-    const result = await this._getBookmarkPath(bookmark.parentId)
-    result.path.push(bookmark.title)
-    return result
-  }
-
   async _tryGetBookmarkPath (bookmarkId) {
     try {
-      return await this._getBookmarkPath(bookmarkId)
+      return await this.getBookmarkPath(bookmarkId)
     } catch {
       // bookmark removed
       return { path: [], inLibrary: false }
@@ -123,11 +133,13 @@ class BookmarkLibrary {
       localUrl: null,
       initialTabId: tabId,
       finishing: false,
-      onFinished: []
+      events: [],
+      onFinished: [],
+      onEvent: []
     }
     this._recorderByBookmarkId[bookmark.id] = recorder
 
-    const { path, inLibrary } = await this._getBookmarkPath(bookmark.id)
+    const { path, inLibrary } = await this.getBookmarkPath(bookmark.id)
     await this._backend.startRecording(
       recorder.recorderId, path, bookmark.url,
       event => this._handleRecordingOutput(recorder, event))
@@ -139,7 +151,10 @@ class BookmarkLibrary {
     } else if (event.startsWith('ACCEPT ')) {
       await this._handleRecordingStarted(recorder, event.substring(7))
     } else {
-      //console.log(event)
+      recorder.events.push(event)
+      for (let handler of recorder.onEvent) {
+        await handler(event)
+      }
     }
   }
 
@@ -311,7 +326,7 @@ class BookmarkLibrary {
       }
     }
     await this._updateBeforeRequestListener()
-    const { path, inLibrary } = await this._getBookmarkPath(bookmarkId)
+    const { path, inLibrary } = await this.getBookmarkPath(bookmarkId)
     if (inLibrary) {
       await this._undeleteFile(bookmarkId)
     }
@@ -322,7 +337,7 @@ class BookmarkLibrary {
     const bookmarkTitle = this._libraryBookmarkTitles[bookmarkId]
     await this._updateBeforeRequestListener()
     if (changeInfo.title) {
-      const { path, inLibrary } = await this._getBookmarkPath(bookmarkId)
+      const { path, inLibrary } = await this.getBookmarkPath(bookmarkId)
       if (inLibrary) {
         const sourcePath = path.slice()
         sourcePath[sourcePath.length - 1] = bookmarkTitle
@@ -334,8 +349,8 @@ class BookmarkLibrary {
   async _handleBookmarkMoved (bookmarkId, moveInfo) {
     const bookmarkTitle = this._libraryBookmarkTitles[bookmarkId]
     await this._updateBeforeRequestListener()
-    const source = await this._getBookmarkPath(moveInfo.oldParentId)
-    const target = await this._getBookmarkPath(moveInfo.parentId)
+    const source = await this.getBookmarkPath(moveInfo.oldParentId)
+    const target = await this.getBookmarkPath(moveInfo.parentId)
     if (source.inLibrary) {
       source.path.push(bookmarkTitle)
       target.path.push(bookmarkTitle)
@@ -353,7 +368,7 @@ class BookmarkLibrary {
     const bookmarkTitle = this._libraryBookmarkTitles[bookmarkId]
     await this._updateBeforeRequestListener()
     await this._stopRecording(bookmarkId)
-    const source = await this._getBookmarkPath(removeInfo.parentId)
+    const source = await this.getBookmarkPath(removeInfo.parentId)
     source.path.push(bookmarkTitle)
     if (source.inLibrary) {
       await this._deleteFile(bookmarkId, source.path)

@@ -122,6 +122,14 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
+  async getFileListing (path) {
+    const request = {
+      action: 'getFileListing',
+      path: path
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
   async _pollRecordingOutput (recorderId, handleOutput) {
     const request = {
       action: 'getRecordingOutput',

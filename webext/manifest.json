@@ -20,6 +20,7 @@
     "history",
     "webRequest",
     "webRequestBlocking",
+    "menus",
     "<all_urls>"
   ],
   "icons": {
