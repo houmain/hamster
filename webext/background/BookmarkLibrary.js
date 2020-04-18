@@ -159,6 +159,7 @@ class BookmarkLibrary {
   }
 
   async _handleRecordingStarted (recorder, localUrl) {
+    localUrl = localUrl.replace('127.0.0.1', '[::1]')
     recorder.localUrl = localUrl
     //DEBUG('recording started', recorder.url, 'at', recorder.localUrl)
     await this._updateRecentRecorders(recorder.localUrl, recorder.bookmarkUrl)

@@ -22,8 +22,8 @@ class Utils {
 
   static isLocalUrl (url) {
     return (url &&
-      (url.startsWith('http://127.0.0.1') ||
-       url.startsWith('https://127.0.0.1')))
+      (url.startsWith('http://[::1]') ||
+       url.startsWith('https://[::1]')))
   }
 
   static async getBookmarkBaseFolders () {
