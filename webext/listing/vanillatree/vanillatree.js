@@ -135,10 +135,15 @@
 				className: 'vtree-toggle'
 			}) );
 
-			leaf.appendChild( create( 'a', {
+			var attributes = {
 				className: 'vtree-leaf-label',
+				target: '_blank',
 				innerHTML: options.label
-			}) );
+			}
+			if (options.href) {
+				attributes.href = options.href
+			}
+			leaf.appendChild( create( 'a', attributes ) );
 
 			parentList.appendChild( leaf );
 

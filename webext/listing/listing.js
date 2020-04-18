@@ -6,7 +6,8 @@ let filesTree = undefined
 let addedUrls = { }
 
 function initializeTree () {
-  filesTree = new VanillaTree(document.getElementById('files'), {
+  const files = document.getElementById('files')
+  filesTree = new VanillaTree(files, {
     placeholder: 'No leaf is added yet',
     contextmenu: [{
       label: 'Label 1',
@@ -20,6 +21,13 @@ function initializeTree () {
       }
     }]
   })
+
+  files.addEventListener('click', (event) => {
+    const id = event.target.parentNode.getAttribute('data-vtree-id')
+    if (id) {
+      filesTree.toggle(id)
+    }
+  });
 }
 
 function splitParentBasePath (url) {
@@ -49,10 +57,16 @@ function splitParentBasePath (url) {
   }
 }
 
-function addTreeNode (url, info) {
+function addTreeNode (url, isLeaf, size, status) {
   if (addedUrls[url]) {
-    if (info) {
-      filesTree.getLeaf(url).querySelector(".info").textContent = info
+    if (size || status) {
+      const node = filesTree.getLeaf(url)
+      if (size) {
+        node.querySelector(".size").textContent = Utils.getReadableFileSize(size)
+      }
+      if (status) {
+        node.querySelector(".status").textContent += status + ', '
+      }
     }
     return
   }
@@ -64,15 +78,17 @@ function addTreeNode (url, info) {
   }
 
   filesTree.add({
-    label: base + '<div class="info info' + level + '">' + (info || '') + '</div>',
+    label: base + '<div class="info info' + level + '"><span class="size">' +
+      (size ? Utils.getReadableFileSize(size) : '') + '</span><span class="status"></span></span>',
     id: url,
     parent: parent,
+    href: (isLeaf ? url : undefined),
     opened: true
   })
 }
 
 function handleRecordingEvent (event) {
-  const { type, status, url } = function () {
+  const { type, status, size, url } = function () {
     function next() {
       const space = event.indexOf(' ')
       const value = (space >= 0 ? event.substring(0, space) : event)
@@ -81,15 +97,18 @@ function handleRecordingEvent (event) {
     }
     const type = next()
     if (type === 'DOWNLOAD_FINISHED') {
-      return { type: type, status: next(), url: next() }
+      return { type: type, status: next(), size: next(), url: next() }
     }
-    return { type: type, status: 0, url: next() }
+    return { type: type, status: undefined, size: undefined, url: next() }
   }()
 
+  if (type === 'FINISHED') {
+    return
+  }
   if (url.match(/\//g).length == 2) {
     url += '/'
   }
-  addTreeNode(url, type)
+  addTreeNode(url, true, size, type)
 }
 
 async function requestListing () {
@@ -109,7 +128,7 @@ async function requestListing () {
 
   if (response.files) {
     for (let file of response.files) {
-      addTreeNode(file.url, Utils.getReadableFileSize(file.compressedSize))
+      addTreeNode(file.url, true, file.compressedSize)
     }
   }
 

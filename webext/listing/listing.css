@@ -14,19 +14,25 @@ body {
   margin-bottom: 50px;
 }
 
+a {
+  text-decoration: none;
+  color: #222426;
+}
+
 h2 {
+  margin: 0px;
   margin-left: 20px;
   margin-top: 30px;
 }
 
 .vtree li.vtree-leaf {
-	min-height: 20px !important;
-	line-height: 20px !important;
+  min-height: 20px !important;
+  line-height: 20px !important;
 }
 
 .vtree > li.vtree-leaf > a.vtree-leaf-label {
   font-weight: bold;
-	line-height: 24px !important;
+  line-height: 24px !important;
 }
 
 .vtree-leaf-label {
@@ -42,6 +48,11 @@ h2 {
   left: calc(600px - 3*18px);
   top: 0px;
   cursor: default;
+}
+
+.status {
+  margin-left: 20px;
+  font-size: 70%;
 }
 
 .info0 { left: calc(600px - 0*18px) }
