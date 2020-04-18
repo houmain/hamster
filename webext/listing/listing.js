@@ -8,18 +8,6 @@ let addedUrls = { }
 function initializeTree () {
   const files = document.getElementById('files')
   filesTree = new VanillaTree(files, {
-    placeholder: 'No leaf is added yet',
-    contextmenu: [{
-      label: 'Label 1',
-      action(id) {
-        // someAction
-      }
-    },{
-      label: 'Label 2',
-      action(id) {
-        // someAction
-      }
-    }]
   })
 
   files.addEventListener('click', (event) => {
@@ -33,7 +21,7 @@ function initializeTree () {
 function splitParentBasePath (url) {
   const maxLevel = 3
   const u = new URL(url)
-  if (u.pathname == '/' && !url.endsWith('/')) {
+  if (u.pathname === '/' && !url.endsWith('/') && u.search == 0 && u.hash.length == 0) {
     return {
       parent: undefined,
       base: url,
@@ -89,24 +77,14 @@ function addTreeNode (url, isLeaf, size, status) {
 
 function handleRecordingEvent (event) {
   const { type, status, size, url } = function () {
-    function next() {
-      const space = event.indexOf(' ')
-      const value = (space >= 0 ? event.substring(0, space) : event)
-      event = event.substring(value.length + 1)
-      return value
+    const p = event.split(' ')
+    if (p[0] === 'DOWNLOAD_FINISHED') {
+      return { type: p[0], status: p[1], size: p[2], url: p[3] }
     }
-    const type = next()
-    if (type === 'DOWNLOAD_FINISHED') {
-      return { type: type, status: next(), size: next(), url: next() }
-    }
-    return { type: type, status: undefined, size: undefined, url: next() }
+    return { type: p[0], url: p[1] }
   }()
-
   if (type === 'FINISHED') {
     return
-  }
-  if (url.match(/\//g).length == 2) {
-    url += '/'
   }
   addTreeNode(url, true, size, type)
 }

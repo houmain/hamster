@@ -26,6 +26,10 @@ class Utils {
        url.startsWith('https://[::1]')))
   }
 
+  static timeout (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
   static async getBookmarkBaseFolders () {
     for (const bookmarkId of [
         'root________', // Firefox
@@ -171,9 +175,9 @@ class Utils {
 
   static getReadableFileSize (bytes) {
     const units = ['bytes', 'KiB','MiB','GiB']
-    for (let u = 0;; ++u, bytes /= 1024) {
-      if (bytes < 1024 || u == units.length - 1) {
-        return bytes.toFixed(1) + ' ' + units[u]
+    for (let u = 0, count = bytes * 1.0; ; ++u, count /= 1024) {
+      if (count < 1024 || u == units.length - 1) {
+        return count.toFixed(u == 0 ? 0 : 1) + ' ' + units[u]
       }
     }
   }

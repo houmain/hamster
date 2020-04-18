@@ -119,12 +119,7 @@ async function handleOptionsMenuClicked () {
   browser.runtime.openOptionsPage()
 }
 
-;(async function () {
-  await restoreOptions()
-  browser.history.onVisited.addListener(handleHistoryChanged)
-  browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
-  browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
-
+function createMenus () {
   browser.menus.create({
     id: MENU_ROOT_ID,
     contexts: [ "bookmark" ],
@@ -164,4 +159,18 @@ async function handleOptionsMenuClicked () {
       browser.menus.refresh()
     }
   })
+}
+
+;(async function () {
+  await restoreOptions()
+  browser.history.onVisited.addListener(handleHistoryChanged)
+  browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
+  browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
+
+  // TODO: bookmark context menus are only supported by Firefox
+  try {
+    createMenus()
+  }
+  catch {
+  }
 })()

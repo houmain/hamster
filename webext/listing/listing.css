@@ -51,7 +51,8 @@ h2 {
 }
 
 .status {
-  margin-left: 20px;
+  position: absolute;
+  left:100px;
   font-size: 70%;
 }
 

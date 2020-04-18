@@ -9,7 +9,7 @@ class BookmarkLibrary {
     this._recentRecorders = []
     this._nextRecorderId = 1
     this._libraryBookmarkTitles = { }
-    this._beforeRequestListener = (details) => this._handleBookmarkRequested(details)
+    this._beforeRequestListener = async (details) => await this._handleBookmarkRequested(details)
 
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
@@ -152,8 +152,15 @@ class BookmarkLibrary {
       await this._handleRecordingStarted(recorder, event.substring(7))
     } else {
       recorder.events.push(event)
-      for (let handler of recorder.onEvent) {
-        await handler(event)
+      for (let i = 0; i < recorder.onEvent.length; ) {
+        try {
+          const handler = recorder.onEvent[i]
+          await handler(event)
+          ++i
+        }
+        catch {
+          recorder.onEvent.splice(i, 1)
+        }
       }
     }
   }
