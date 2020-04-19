@@ -41,6 +41,7 @@
       "Utils.js",
       "background/NativeClient.js",
       "background/Backend.js",
+      "background/injectScript.js",
       "background/BookmarkLibrary.js",
       "background/background.js"
     ]

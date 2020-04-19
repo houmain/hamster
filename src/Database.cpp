@@ -30,7 +30,7 @@ namespace {
 
   std::string normalize_space(std::string text) {
     std::replace_if(begin(text), end(text),
-      [](unsigned char c) { return is_space(c); }, ' ');
+      [](char c) { return is_space(c); }, ' ');
     text.erase(std::unique(begin(text), end(text),
       [](char a, char b) { return (a == ' ' && b == ' '); }), end(text));
     return text;

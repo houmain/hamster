@@ -130,6 +130,14 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
+  async injectScript (script) {
+    const request = {
+      action: 'injectScript',
+      script: script
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
   async _pollRecordingOutput (recorderId, handleOutput) {
     const request = {
       action: 'getRecordingOutput',

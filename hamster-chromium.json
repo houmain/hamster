@@ -3,5 +3,5 @@
   "description": "Bookmark Hamster",
   "path": "hamster.exe",
   "type": "stdio",
-  "allowed_extensions": [ "hamster@localhost" ]
+  "allowed_origins": [ "chrome-extension://mnhebdedhmlncpcnkacooafcgafkigda/" ]
 }

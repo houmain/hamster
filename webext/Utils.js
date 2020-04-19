@@ -22,11 +22,11 @@ class Utils {
 
   static isLocalUrl (url) {
     return (url &&
-      (url.startsWith('http://[::1]') ||
-       url.startsWith('https://[::1]')))
+      (url.startsWith('http://127.0.0.1:') ||
+       url.startsWith('https://127.0.0.1:')))
   }
 
-  static timeout (ms) {
+  static sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
@@ -49,25 +49,25 @@ class Utils {
   }
 
   static getOrigin(url) {
-    verify(url)
+    verify(this.isHttpUrl(url))
     return new URL(url).origin
   }
 
   static getPathQuery(url) {
-    verify(url)
+    verify(this.isHttpUrl(url))
     url = new URL(url)
     return url.href.substring(url.origin.length)
   }
 
   static getHostPathWithoutWWW(url) {
-    verify(url)
+    verify(this.isHttpUrl(url))
     url = new URL(url)
     return (url.host.startsWith('www.') ?
       url.host.substring(4) : url.host) + url.pathname
   }
 
   static getHostnamePathWithoutWWW(url) {
-    verify(url)
+    verify(this.isHttpUrl(url))
     url = new URL(url)
     return (url.hostname.startsWith('www.') ?
       url.hostname.substring(4) : url.hostname) + url.pathname

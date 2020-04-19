@@ -12,7 +12,7 @@ function initializeTree () {
 
   files.addEventListener('click', (event) => {
     const id = event.target.parentNode.getAttribute('data-vtree-id')
-    if (id) {
+    if (id && event.target.tagName === 'A') {
       filesTree.toggle(id)
     }
   });
