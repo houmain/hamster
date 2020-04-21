@@ -1,6 +1,6 @@
-'use strict'
 
 function injectScript(document) {
+  'use strict'
 
   function onCookieSet (cookie) {
     const xhr = new XMLHttpRequest()
@@ -52,12 +52,12 @@ function injectScript(document) {
     // for the first second keep returning a constant time
     const startTime = dateNow() + 1000
 
-    Date = function () { return new date(Date.now()) }
+    Date = function (time) { return new date(time || Date.now()) }
     Date.prototype = date.prototype
     Date.UTC = date.UTC
     Date.parse = date.parse
     Date.now = function () {
-      return __webrecorder_response_time + Math.max(0, dateNow() - startTime)
+      return __webrecorder_response_time * 1000 + Math.max(0, dateNow() - startTime)
     }
   }
 
