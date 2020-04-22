@@ -1,3 +1,5 @@
 /_*
 /src/_*
 /addon/node_modules/*
+/webext/node_modules/*
+/webext/web-ext-artifacts/*

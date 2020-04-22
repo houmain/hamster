@@ -137,7 +137,6 @@
 
 			var attributes = {
 				className: 'vtree-leaf-label',
-				target: '_blank',
 				innerHTML: options.label
 			}
 			if (options.href) {

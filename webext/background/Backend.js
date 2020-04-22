@@ -146,7 +146,12 @@ class Backend {
     const response = await this._nativeClient.sendRequest(request)
     if (response.events) {
       for (const event of response.events) {
-        await handleOutput(event)
+        try {
+          await handleOutput(event)
+        }
+        catch (e) {
+          console.error('unhandled exception in output handling:', e.message)
+        }
       }
       setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 500)
     } else {
