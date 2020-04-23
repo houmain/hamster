@@ -340,8 +340,8 @@ class BookmarkLibrary {
     const { path, inLibrary } = await this.getBookmarkPath(bookmarkId)
     if (inLibrary) {
       await this._undeleteFile(bookmarkId)
+      return this._reloadTabs(bookmarkId)
     }
-    return this._reloadTabs(bookmarkId)
   }
 
   async _handleBookmarkChanged (bookmarkId, changeInfo) {
@@ -371,8 +371,10 @@ class BookmarkLibrary {
       await this._stopRecording(bookmarkId)
       return this._deleteFile(bookmarkId, source.path)
     }
-    await this._reloadTabs(bookmarkId)
-    return this._undeleteFile(bookmarkId)
+    if (target.inLibrary) {
+      await this._reloadTabs(bookmarkId)
+      return this._undeleteFile(bookmarkId)
+    }
   }
 
   async _handleBookmarkRemoved (bookmarkId, removeInfo) {
@@ -432,7 +434,7 @@ class BookmarkLibrary {
         }
       }
 
-      if (bookmark && !recorder) {
+      if (bookmark && !recorder && !Utils.isLocalUrl(url)) {
         // start recording
         recorder = await this._startRecordingInTab(bookmark.id, originalUrl, tabId)
         while (!recorder.localUrl) {

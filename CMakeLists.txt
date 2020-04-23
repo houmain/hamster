@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(hamster)
+project(hamster
+    VERSION 0.8
+)
 
 option(BUILD_WEBRECORDER "Build webrecorder")
 if(BUILD_WEBRECORDER)
