@@ -2,6 +2,21 @@
 function injectScript(document) {
   'use strict'
 
+  function patchPostMessage (window) {
+    const postMessage = window.postMessage
+    window.postMessage = function () {
+      arguments[1] = '*'
+      return postMessage.apply(this, arguments)
+    }
+  }
+
+  function patchWindow(window) {
+    for (let i = 0; i < window.frames.length; ++i) {
+      patchWindow(window.frames[i])
+    }
+    patchPostMessage(window)
+  }
+
   function onCookieSet (cookie) {
     const xhr = new XMLHttpRequest()
     xhr.open('POST', '/__webrecorder_setcookie')
@@ -74,6 +89,7 @@ function injectScript(document) {
     }
   }
 
+  patchWindow(window)
   patchSetCookie()
   patchDateNow()
   patchMathRandom()
