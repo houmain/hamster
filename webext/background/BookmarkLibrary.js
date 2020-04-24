@@ -10,6 +10,7 @@ class BookmarkLibrary {
     this._recentRecorders = []
     this._nextRecorderId = 1
     this._libraryBookmarkTitles = { }
+    this._bypassHosts = { }
 
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
@@ -26,27 +27,40 @@ class BookmarkLibrary {
 
   async setRootId (rootId) {
     verify(rootId)
-    this._rootId = rootId
-    await this._restoreRecentRecorders()
-    return this._updateLibraryBookmarkList()
+    if (this._rootId != rootId) {
+      this._rootId = rootId
+      await this._restoreRecentRecorders()
+      return this._updateLibraryBookmarkList()
+    }
   }
 
   get rootId () {
     return this._rootId
   }
 
+  setBypassHosts (hostList) {
+    const hosts = { }
+    hostList
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && line.indexOf(';') !== 0)
+      .forEach(host => hosts[host] = true)
+    this._bypassHosts = hosts
+  }
+
   getOriginalUrl (url) {
-    verify(url)
-    // try to unpatch
-    const pathQuery = Utils.getPathQuery(url)
-    if (Utils.isHttpUrl(pathQuery.substring(1))) {
-      return pathQuery.substring(1)
-    }
-    // try to translate from local url to original url
-    if (Utils.isLocalUrl(url)) {
-      const recentRecorder = this._findRecentRecorder(url)
-      if (recentRecorder) {
-        return recentRecorder.origin + pathQuery
+    if (Utils.isHttpUrl(url)) {
+      // try to unpatch
+      const pathQuery = Utils.getPathQuery(url)
+      if (Utils.isHttpUrl(pathQuery.substring(1))) {
+        return pathQuery.substring(1)
+      }
+      // try to translate from local url to original url
+      if (Utils.isLocalUrl(url)) {
+        const recentRecorder = this._findRecentRecorder(url)
+        if (recentRecorder) {
+          return recentRecorder.origin + pathQuery
+        }
       }
     }
     return url
@@ -72,6 +86,23 @@ class BookmarkLibrary {
         handler(event)
       }
       recorder.onEvent.push(handler)
+    }
+  }
+
+  async findBookmarkByUrl (url) {
+    url = Utils.getHostPathWithoutWWW(url)
+    for (const bookmarkId in this._recorderByBookmarkId) {
+      const recorder = this._recorderByBookmarkId[bookmarkId]
+      if (!recorder.finishing &&
+          url.startsWith(Utils.getHostPathWithoutWWW(recorder.bookmarkUrl))) {
+        return Utils.getBookmarkById(bookmarkId)
+      }
+    }
+    for (const bookmark of await this._getBookmarks()) {
+      if (bookmark.url &&
+          url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url))) {
+        return bookmark
+      }
     }
   }
 
@@ -218,7 +249,7 @@ class BookmarkLibrary {
   }
 
   async _updateRecentRecorders (recorder) {
-    //DEBUG('updating recent recorders', recorder.localOrigin, origin)
+    //DEBUG('updating recent recorders', recorder.localUrl.origin, recorder.url.origin)
     this._recentRecorders.unshift({
       localOrigin: recorder.localUrl.origin,
       bookmarkUrl: recorder.bookmarkUrl,
@@ -313,7 +344,7 @@ class BookmarkLibrary {
       () => this._backend.undeleteFile(undeleteId))
   }
 
-  async _findTabsByBookmarkUrl (bookmarkId) {
+  async _findTabsByBookmarkId (bookmarkId) {
     const recorder = this._recorderByBookmarkId[bookmarkId]
     const bookmark = await Utils.getBookmarkById(bookmarkId)
     const url = (recorder ? recorder.bookmarkUrl : bookmark.url)
@@ -321,7 +352,7 @@ class BookmarkLibrary {
   }
 
   async _reloadTabs (bookmarkId, excludeTabId) {
-    for (let tab of await this._findTabsByBookmarkUrl(bookmarkId)) {
+    for (let tab of await this._findTabsByBookmarkId(bookmarkId)) {
       if (tab.id !== excludeTabId) {
         Utils.tryReloadTab(tab.id)
       }
@@ -410,7 +441,7 @@ class BookmarkLibrary {
   }
 
   async _handleBeforeRequest (details) {
-    const { url, tabId, type } = details
+    const { url, documentUrl, tabId, type } = details
     if (tabId < 0) {
       return
     }
@@ -418,7 +449,7 @@ class BookmarkLibrary {
     let recorder = this._recorderByTabId[tabId]
     if (type === 'main_frame') {
       const originalUrl = this.getOriginalUrl(url)
-      const bookmark = await this._findBookmarkByUrl(originalUrl)
+      const bookmark = await this.findBookmarkByUrl(originalUrl)
 
       if (Utils.isLocalUrl(url) && !bookmark && originalUrl !== url) {
         // restore original url of local url not belonging to a bookmark
@@ -434,7 +465,7 @@ class BookmarkLibrary {
         }
       }
 
-      if (bookmark && !recorder && !Utils.isLocalUrl(url)) {
+      if (bookmark && !recorder && !Utils.isLocalUrl(originalUrl)) {
         // start recording
         recorder = await this._startRecordingInTab(bookmark.id, originalUrl, tabId)
         while (!recorder.localUrl) {
@@ -451,34 +482,22 @@ class BookmarkLibrary {
       }
       //DEBUG('passing request to', url)
     }
-    else {
+    else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
       // redirect resources to recorder
-      if (!Utils.isLocalUrl(url) && recorder) {
-        if (recorder.finishing) {
-          //DEBUG('cancelling resource request', url)
-          return { cancel: true }
-        }
-        const patchedUrl = this._patchUrl(url, recorder)
-        //DEBUG('redirecting resource request', url, 'to', patchedUrl)
-        return { redirectUrl: patchedUrl }
-      }
-    }
-  }
 
-  async _findBookmarkByUrl (url) {
-    url = Utils.getHostPathWithoutWWW(url)
-    for (const bookmarkId in this._recorderByBookmarkId) {
-      const recorder = this._recorderByBookmarkId[bookmarkId]
-      if (!recorder.finishing &&
-          url.startsWith(Utils.getHostPathWithoutWWW(recorder.bookmarkUrl))) {
-        return Utils.getBookmarkById(bookmarkId)
+      const host = new URL(url).host
+      if (this._bypassHosts[host]) {
+        //DEBUG('bypassed', url)
+        return
       }
-    }
-    for (const bookmark of await this._getBookmarks()) {
-      if (bookmark.url &&
-          url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url))) {
-        return bookmark
+
+      if (recorder.finishing) {
+        //DEBUG('cancelling resource request', url)
+        return { cancel: true }
       }
+      const patchedUrl = this._patchUrl(url, recorder)
+      //DEBUG('redirecting resource request', url, 'to', patchedUrl)
+      return { redirectUrl: patchedUrl }
     }
   }
 }

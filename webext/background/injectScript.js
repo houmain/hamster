@@ -27,7 +27,7 @@ function injectScript(document) {
   function patchSetCookie () {
     Object.defineProperty(document, 'cookie', {
       get: function () {
-        return __webrecorder_cookies
+        return __webrecorder.cookies
       },
       set: function (cookie) {
         const map = { }
@@ -41,7 +41,7 @@ function injectScript(document) {
             delete map[key]
           }
         }
-        for (const c of __webrecorder_cookies.split(';')) {
+        for (const c of __webrecorder.cookies.split(';')) {
           set(c)
         }
         for (const c of decodeURIComponent(cookie).split(';')) {
@@ -52,8 +52,8 @@ function injectScript(document) {
         Object.keys(map).forEach(
           function (key, index) { array.push(key + '=' + map[key]) })
         const cookies = array.join('; ')
-        if (__webrecorder_cookies !== cookies) {
-          __webrecorder_cookies = cookies
+        if (__webrecorder.cookies !== cookies) {
+          __webrecorder.cookies = cookies
           onCookieSet(cookie)
         }
       }
@@ -72,7 +72,7 @@ function injectScript(document) {
     Date.UTC = date.UTC
     Date.parse = date.parse
     Date.now = function () {
-      return __webrecorder_response_time * 1000 + Math.max(0, dateNow() - startTime)
+      return __webrecorder.response_time * 1000 + Math.max(0, dateNow() - startTime)
     }
   }
 
@@ -94,3 +94,4 @@ function injectScript(document) {
   patchDateNow()
   patchMathRandom()
 }
+

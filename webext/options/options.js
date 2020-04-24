@@ -10,6 +10,7 @@ async function localizeControls () {
   Utils.localize('filesystem-root-label', 'textContent', 'filesystem_root')
   Utils.localize('filesystem-root-browse', 'textContent', 'filesystem_root_browse')
   Utils.localize('default-refresh-mode-label', 'textContent', 'default_refresh_mode')
+  Utils.localize('bypass-hosts-label', 'textContent', 'bypass_hosts')
   Utils.localize('allow-lossy-compression-label', 'textContent', 'allow_lossy_compression')
 
   const options = []
@@ -40,6 +41,7 @@ async function updateControls () {
 
   document.getElementById('default-refresh-mode').value = await Utils.getSetting('default-refresh-mode')
   document.getElementById('allow-lossy-compression').checked = await Utils.getSetting('allow-lossy-compression')
+  document.getElementById('bypass-hosts').textContent = await Utils.getSetting('bypass-hosts')
 }
 
 async function moveBookmarkRoot () {
@@ -71,6 +73,12 @@ async function updateAllowLossyCompression(e) {
   return Utils.setSetting('allow-lossy-compression', checked)
 }
 
+async function updateBypassUrls(e) {
+  const text = document.getElementById('bypass-hosts').value
+  console.log(text)
+  return Utils.setSetting('bypass-hosts', text)
+}
+
 async function initialize() {
   const background = await browser.runtime.getBackgroundPage()
   backend = background.getBackend()
@@ -82,11 +90,11 @@ async function initialize() {
   document.getElementById('filesystem-root-browse').onclick = browseFilesystemRoot
   document.getElementById('default-refresh-mode').onchange = updateRefreshMode
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
+  document.getElementById('bypass-hosts').onchange = updateBypassUrls
 
   localizeControls()
-  updateControls()
-  restoreOptions()
-  updateControls()
+  await restoreOptions()
+  await updateControls()
 }
 
 document.addEventListener('DOMContentLoaded', initialize)

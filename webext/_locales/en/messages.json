@@ -32,6 +32,9 @@
   "refresh_mode_never": {
     "message": "Never"
   },
+  "bypass_hosts": {
+    "message": "Omit embedded resources from hosts"
+  },
   "allow_lossy_compression": {
     "message": "Allow lossy compression"
   },

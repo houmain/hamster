@@ -32,6 +32,9 @@
   "refresh_mode_never": {
     "message": "Nie"
   },
+  "bypass_hosts": {
+    "message": "Eingebundene Daten von Hosts nicht speichern"
+  },
   "allow_lossy_compression": {
     "message": "Verlustbehaftete Kompression erlauben"
   },

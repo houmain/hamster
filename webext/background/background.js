@@ -61,14 +61,19 @@ async function initializeBookmarkRoot () {
 }
 
 async function restoreOptions () {
+  await Utils.setDefaultSetting('default-refresh-mode', 'standard')
+  await Utils.setDefaultSetting('allow-lossy-compression', true)
+  await Utils.setDefaultSetting('bypass-hosts',
+    'www.youtube.com\nwww.vimeo.com')
+
   const rootId = await initializeBookmarkRoot()
   await bookmarkLibrary.setRootId(rootId)
 
   const filesystemRoot = await Utils.getSetting('filesystem-root')
   await backend.setFilesystemRoot(filesystemRoot)
 
-  await Utils.setDefaultSetting('default-refresh-mode', 'standard')
-  await Utils.setDefaultSetting('allow-lossy-compression', true)
+  const hostList = await Utils.getSetting('bypass-hosts', '')
+  await bookmarkLibrary.setBypassHosts(hostList)
 }
 
 function createSuggestions (response) {
@@ -111,8 +116,17 @@ function handleOmniBoxSelection (url, disposition) {
 }
 
 async function handleFileListingMenuClicked (info) {
-  const url = browser.runtime.getURL('listing/listing.html') + '?id=' + info.bookmarkId
-  browser.tabs.create({ url })
+  let bookmarkId = info.bookmarkId
+  if (Utils.isHttpUrl(info.pageUrl)) {
+    const bookmark = await bookmarkLibrary.findBookmarkByUrl(info.pageUrl)
+    if (bookmark) {
+      bookmarkId = bookmark.id
+    }
+  }
+  if (bookmarkId) {
+    const url = browser.runtime.getURL('listing/listing.html?id=' + bookmarkId)
+    browser.tabs.create({ url })
+  }
 }
 
 async function handleOptionsMenuClicked () {
@@ -122,14 +136,14 @@ async function handleOptionsMenuClicked () {
 function createMenus () {
   browser.menus.create({
     id: MENU_ROOT_ID,
-    contexts: [ "bookmark" ],
+    contexts: [ "bookmark", "tab" ],
     title: browser.i18n.getMessage("menu_root")
   })
 
   browser.menus.create({
     id: MENU_FILE_LISTING_ID,
     parentId: MENU_ROOT_ID,
-    contexts: [ "bookmark" ],
+    contexts: [ "bookmark", "tab" ],
     title: browser.i18n.getMessage("menu_file_listing"),
     onclick: handleFileListingMenuClicked
   })
@@ -138,26 +152,41 @@ function createMenus () {
     id: MENU_OPTIONS_SEPARATOR_ID,
     parentId: MENU_ROOT_ID,
     type: "separator",
-    contexts: [ "bookmark" ],
+    contexts: [ "bookmark", "tab" ],
   })
 
   browser.menus.create({
     id: MENU_OPTIONS_ID,
     parentId: MENU_ROOT_ID,
-    contexts: [ "bookmark" ],
+    contexts: [ "bookmark", "tab" ],
     title: browser.i18n.getMessage("menu_options"),
     onclick: handleOptionsMenuClicked
   })
 
   browser.menus.onShown.addListener(async (info) => {
+    let bookmarkId = null
     if (info.contexts.includes("bookmark")) {
-      const isFolder = ((await Utils.getBookmarkById(info.bookmarkId)).type === "folder")
-      const { inLibrary } = await bookmarkLibrary.getBookmarkPath(info.bookmarkId)
+      bookmarkId = info.bookmarkId
+    }
+    if (info.contexts.includes("tab")) {
+      if (Utils.isHttpUrl(info.pageUrl)) {
+        const bookmark = await bookmarkLibrary.findBookmarkByUrl(info.pageUrl)
+        if (bookmark) {
+          bookmarkId = bookmark.id
+        }
+      }
+    }
+    if (bookmarkId) {
+      const isFolder = ((await Utils.getBookmarkById(bookmarkId)).type === "folder")
+      const { inLibrary } = await bookmarkLibrary.getBookmarkPath(bookmarkId)
       browser.menus.update(MENU_ROOT_ID, { visible: inLibrary })
       browser.menus.update(MENU_FILE_LISTING_ID, { visible: !isFolder })
       browser.menus.update(MENU_OPTIONS_SEPARATOR_ID, { visible: !isFolder })
-      browser.menus.refresh()
     }
+    else {
+      browser.menus.update(MENU_ROOT_ID, { visible: false })
+    }
+    browser.menus.refresh()
   })
 }
 
