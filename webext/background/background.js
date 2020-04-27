@@ -63,8 +63,11 @@ async function initializeBookmarkRoot () {
 async function restoreOptions () {
   await Utils.setDefaultSetting('default-refresh-mode', 'standard')
   await Utils.setDefaultSetting('allow-lossy-compression', true)
-  await Utils.setDefaultSetting('bypass-hosts',
-    'www.youtube.com\nwww.vimeo.com')
+  await Utils.setDefaultSetting('bypass-hosts', `
+www.youtube.com
+www.vimeo.com
+digiteka.net
+`)
 
   const rootId = await initializeBookmarkRoot()
   await bookmarkLibrary.setRootId(rootId)

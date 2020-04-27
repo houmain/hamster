@@ -99,7 +99,7 @@ class BookmarkLibrary {
       }
     }
     for (const bookmark of await this._getBookmarks()) {
-      if (bookmark.url &&
+      if (Utils.isHttpUrl(bookmark.url) &&
           url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url))) {
         return bookmark
       }
@@ -443,6 +443,7 @@ class BookmarkLibrary {
   async _handleBeforeRequest (details) {
     const { url, documentUrl, tabId, type } = details
     if (tabId < 0) {
+      //DEBUG('ignoring request not in a tab', url)
       return
     }
 

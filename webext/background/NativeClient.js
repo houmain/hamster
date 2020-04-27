@@ -52,7 +52,7 @@ class NativeClient {
   }
 
   _handleDisconnect (_port) {
-    this._disconnect(_port.error || browser.runtime.lastError)
+    this._disconnect(_port.error || browser.runtime.lastError.message)
   }
 
   _send (message) {
