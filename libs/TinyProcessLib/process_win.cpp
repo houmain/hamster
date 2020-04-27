@@ -2,7 +2,7 @@
 // clang-format off
 #include <windows.h>
 // clang-format on
-#include <TlHelp32.h>
+#include <tlhelp32.h>
 #include <cstring>
 #include <stdexcept>
 

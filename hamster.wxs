@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+
+  <Product
+    Id="*"
+    Name="Bookmark Hamster"
+    Language="1033"
+    Version="$(var.VERSION)"
+    Manufacturer="https://github.com/houmaster/hamster"
+    UpgradeCode="ED04838D-35E4-4B52-A173-63519391CA7E"
+  >
+    <Package
+      Description="Bookmark Hamster Installer"
+      Manufacturer="https://github.com/houmaster/hamster"
+      InstallerVersion="200"
+      Compressed="yes"
+      InstallScope="perUser"
+    />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" Title="Bookmark Hamster" Level="1">
+      <ComponentGroupRef Id="Complete" />
+      <ComponentGroupRef Id="Extra" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="LocalAppDataFolder">
+        <Directory Id="INSTALLFOLDER" Name="Bookmark Hamster" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Extra" Directory="INSTALLFOLDER">
+      <Component Id="ProductComponent" Guid="1B9BC777-FE0D-4E0B-A485-162144DDBEA9">
+
+        <RegistryKey Root="HKCU" Key="Software\Mozilla\NativeMessagingHosts\hamster">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]hamster.json" KeyPath="yes"/>
+        </RegistryKey>
+
+        <CreateFolder />
+        <RemoveFolder Id="RemoveAppRootDirectory" On="uninstall" />
+
+        <File Id="LICENSE" Source="LICENSE"/>
+
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>
+

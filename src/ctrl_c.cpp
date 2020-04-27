@@ -1,8 +1,6 @@
 
 #define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-
+#include <windows.h>
 #include <cstdlib>
 
 static BOOL signal_handler(DWORD) {
@@ -11,7 +9,7 @@ static BOOL signal_handler(DWORD) {
 }
 
 int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR commandline, int) {
-  int pid = std::atoi(commandline);
+  auto pid = static_cast<DWORD>(std::atoi(commandline));
   if (!pid)
     return 1;
 

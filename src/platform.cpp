@@ -44,12 +44,14 @@ int main(int argc, const char* argv[], const char* env[]) {
 }
 
 #else // _WIN32
-#  define WIN32_LEAN_AND_MEAN
-#  define NOMINMAX
-#  include <Windows.h>
-#  include <Shlobj.h>
-#  include <io.h>
-#  include <fcntl.h>
+# define WIN32_LEAN_AND_MEAN
+# if !defined(NOMINMAX)
+#   define NOMINMAX
+# endif
+# include <windows.h>
+# include <shlobj.h>
+# include <io.h>
+# include <fcntl.h>
 
 std::string wide_to_utf8(std::wstring_view str) {
   auto result = std::string();

@@ -21,6 +21,20 @@ set(SOURCES
     src/Settings.cpp
     src/sqlite.cpp
     src/platform.cpp
+)
+file(GLOB_RECURSE HEADERS include *.h)
+
+set(INCLUDES libs/webrecorder)
+
+if(NOT MSVC)
+    set_source_files_properties(${SOURCES}
+       PROPERTIES COMPILE_FLAGS  "-Wall -Wextra -Wsign-conversion -Wconversion")
+else()
+    add_compile_options(/GR- /W1)
+    set(MSVC_SHARED_RUNTIME OFF)
+endif()
+
+set(SOURCES ${SOURCES}
     libs/TinyProcessLib/process.cpp
     libs/entities/entities.c
     libs/webrecorder/src/Archive.cpp
@@ -34,19 +48,14 @@ set(SOURCES
     libs/webrecorder/libs/minizip/unzip.c
     libs/webrecorder/libs/minizip/ioapi.c
 )
-file(GLOB_RECURSE HEADERS include *.h)
 
-set(INCLUDES libs/webrecorder)
-
-if(NOT MSVC)
-    add_compile_options(-Wall -Wextra -Wsign-conversion)
+if(NOT WIN32)
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_unix.cpp
     )
     link_libraries(stdc++fs sqlite3)
 else()
-    add_compile_options(/GR- /W1 -D_WIN32_WINNT=0x0501 -DSQLITE_ENABLE_FTS5)
-    set(MSVC_SHARED_RUNTIME OFF)
+    add_compile_definitions(_WIN32_WINNT=0x0501 SQLITE_ENABLE_FTS5)
 
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_win.cpp
@@ -55,16 +64,11 @@ else()
     )
     set(INCLUDES ${INCLUDES}
         libs/sqlite
-        libs/webrecorder/libs/gumbo/include
-        libs/webrecorder/libs/zlib/include
-    )
-    link_directories(
-        libs/webrecorder/libs/gumbo/win64
-        libs/webrecorder/libs/zlib/win64
     )
 endif()
 
 add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
+
 link_libraries(gumbo z)
 
 find_package(Threads REQUIRED)
@@ -81,9 +85,15 @@ else()
     link_libraries(${GTK3_LIBRARIES})
 endif()
 
-include_directories(. ${INCLUDES})
+include_directories(.)
+include_directories(SYSTEM ${INCLUDES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
+
 add_executable(hamster ${SOURCES} ${HEADERS})
+
+if(WIN32 AND NOT MSVC)
+    target_link_options(hamster PRIVATE -municode)
+endif()
 
 if(WIN32)
     add_executable(ctrl_c WIN32 src/ctrl_c.cpp)
@@ -95,17 +105,4 @@ else()
     install(TARGETS hamster DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
     install(FILES hamster.json DESTINATION .)
-    install(FILES libs/webrecorder/libs/gumbo/win64/gumbo.dll DESTINATION .)
-    install(FILES libs/webrecorder/libs/zlib/win64/zlib.dll DESTINATION .)
-    install(FILES libs/webrecorder/libs/freeimage/win64/FreeImage.dll DESTINATION .)
-
-    set(CPACK_GENERATOR WIX)
-    set(CPACK_WIX_UPGRADE_GUID "FE3DD160-C524-49F0-B740-E84A37C13E26")
-    set(CPACK_PACKAGE_NAME "Bookmark Hamster")
-    set(CPACK_PACKAGE_VENDOR "Albert Kalchmair")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Bookmark Hamster")
-    configure_file(LICENSE license.txt COPYONLY)
-    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
-    set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/wix_patch.xml")
-    include(CPack)
 endif()
