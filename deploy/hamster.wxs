@@ -45,8 +45,8 @@
         <CreateFolder />
         <RemoveFolder Id="RemoveAppRootDirectory" On="uninstall" />
 
-        <File Id="LICENSE" Source="LICENSE"/>
-
+        <File Id="LICENSE" Source="../LICENSE"/>
+        <File Id="hamster.json" Source="hamster-windows.json" Name="hamster.json"/>
       </Component>
     </ComponentGroup>
   </Fragment>
