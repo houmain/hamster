@@ -63,8 +63,8 @@ async function initializeBookmarkRoot () {
 async function restoreOptions () {
   await Utils.setDefaultSetting('default-refresh-mode', 'standard')
   await Utils.setDefaultSetting('allow-lossy-compression', true)
-  await Utils.setDefaultSetting('bypass-hosts', `
-www.youtube.com
+  await Utils.setDefaultSetting('bypass-hosts',
+`www.youtube.com
 www.vimeo.com
 digiteka.net
 `)

@@ -75,7 +75,6 @@ async function updateAllowLossyCompression(e) {
 
 async function updateBypassUrls(e) {
   const text = document.getElementById('bypass-hosts').value
-  console.log(text)
   return Utils.setSetting('bypass-hosts', text)
 }
 
