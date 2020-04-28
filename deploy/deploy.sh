@@ -49,9 +49,27 @@ fi
 NATIVE_VERSION=$(echo $WEBEXT_VERSION | sed "s/\.[^.]*//")
 if [ "${WEBEXT_VERSION}" == "${NATIVE_VERSION}.0" ]; then
 
+  BUILD_DIR=$(realpath _build_arch)
+  PACKAGE_PATH="$BUILD_DIR/bookmark-hamster-${NATIVE_VERSION}-1-x86_64.pkg.tar.xz"
+  if [ ! -f "$PACKAGE_PATH" ]; then
+    echo "Building Arch Linux version"
+    mkdir -p "$BUILD_DIR"
+    pushd "$BUILD_DIR"
+
+    cp "$DEPLOY_DIR/"{PKGBUILD,hamster-*.json} "$BUILD_DIR"
+    cp "$DEPLOY_DIR/PKGBUILD" "$BUILD_DIR"
+    sed -i "s/^\(\s*pkgver=\s*\).*/\1$NATIVE_VERSION/" PKGBUILD
+    makepkg
+
+    # attach package to GitHub release
+    export GITHUB_USER GITHUB_PASSWORD && \
+    hub release edit -m "" -a "$PACKAGE_PATH" "$WEBEXT_VERSION"
+    popd
+  fi
+
   BUILD_DIR=$(realpath _build_mingw)
-  BOOKMARK_HAMSTER_MSI="$BUILD_DIR/bookmark_hamster_native-${NATIVE_VERSION}.msi"
-  if [ ! -f "$BOOKMARK_HAMSTER_MSI" ]; then
+  PACKAGE_PATH="$BUILD_DIR/bookmark_hamster_win64-${NATIVE_VERSION}.msi"
+  if [ ! -f "$PACKAGE_PATH" ]; then
     echo "Building Windows version"
     mkdir -p "$BUILD_DIR"
     pushd "$BUILD_DIR"
@@ -65,11 +83,11 @@ if [ "${WEBEXT_VERSION}" == "${NATIVE_VERSION}.0" ]; then
     peldd -a -t --ignore-errors dist/*.exe | xargs -r cp -t dist &> /dev/null || true
     /usr/x86_64-w64-mingw32/bin/strip --strip-all dist/*.exe
     find dist | wixl-heat -p dist/ --var var.SourceDir --directory-ref=INSTALLFOLDER --component-group Complete > hamster-files.wxs
-    wixl -a x64 -D VERSION="${NATIVE_VERSION}" -D SourceDir=dist -o "$BOOKMARK_HAMSTER_MSI" "$DEPLOY_DIR/hamster.wxs" hamster-files.wxs
+    wixl -a x64 -D VERSION="${NATIVE_VERSION}" -D SourceDir=dist -o "$PACKAGE_PATH" "$DEPLOY_DIR/hamster.wxs" hamster-files.wxs
 
     # attach .msi to GitHub release
     export GITHUB_USER GITHUB_PASSWORD && \
-    hub release edit -m "" -a "$BOOKMARK_HAMSTER_MSI" "$WEBEXT_VERSION"
+    hub release edit -m "" -a "$PACKAGE_PATH" "$WEBEXT_VERSION"
     popd
   fi
 fi

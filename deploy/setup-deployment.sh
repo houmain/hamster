@@ -18,6 +18,9 @@ pacman -S --noconfirm --needed npm
 npm install --global web-ext
 pacman -S --noconfirm --needed hub
 
+# install make dependencies for Linux build
+pacman -S --noconfirm --needed asio gumbo-parser gtk3
+
 # install make dependencies for Windows build
 pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake
 aur-cache -i mingw-w64-gumbo-parser

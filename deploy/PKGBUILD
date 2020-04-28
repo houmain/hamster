@@ -1,0 +1,25 @@
+
+pkgname=bookmark-hamster
+pkgver=0.0
+pkgrel=1
+pkgdesc='A firefox addon which allows to make web sites offline readable (by bookmarking them).'
+arch=('x86_64')
+url="https://github.com/houmaster/${_pkgname}"
+license=('GPL3')
+depends=('gumbo-parser' 'zlib')
+makedepends=('cmake' 'asio')
+
+build() {
+  cd ..
+  cmake .. -DBUILD_WEBRECORDER=true -DCMAKE_INSTALL_PREFIX=/usr
+  make
+}
+
+package() {
+  cd ..
+  make DESTDIR="$pkgdir" install
+
+  mv "$pkgdir/usr/bin/hamster" "$pkgdir/usr/bin/bookmark-hamster"
+  install -D "hamster-mozilla.json" -T "$pkgdir/usr/lib/mozilla/native-messaging-hosts/hamster.json"
+  install -D "hamster-chromium.json" -T "$pkgdir/etc/chromium/native-messaging-hosts/hamster.json"
+}
