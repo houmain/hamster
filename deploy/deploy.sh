@@ -24,10 +24,16 @@ cd ..
 git submodule update --init --recursive
 git pull --recurse-submodules
 
+function attach_release() {
+  export GITHUB_USER GITHUB_PASSWORD &&
+    (hub release create -m "Version $1" "$1" 2> /dev/null || true) &&
+    (hub release edit -m "" -a "$2" "$1")
+}
+
 # tags should be major.minor.build (e.g. 1.12.15)
 WEBEXT_VERSION=$(git describe --tags | sed "s/-.*//")
 
-BOOKMARK_HAMSTER_XPI="webext/web-ext-artifacts/bookmark_hamster-${WEBEXT_VERSION}-an+fx.xpi"
+BOOKMARK_HAMSTER_XPI=$(realpath "webext/web-ext-artifacts/bookmark_hamster-${WEBEXT_VERSION}-an+fx.xpi")
 if [ ! -f "$BOOKMARK_HAMSTER_XPI" ]; then
   echo "Building browser extension"
   pushd webext
@@ -40,8 +46,7 @@ if [ ! -f "$BOOKMARK_HAMSTER_XPI" ]; then
   web-ext sign --channel unlisted --api-key ${MOZILLA_API_KEY} --api-secret ${MOZILLA_API_SECRET}
 
   # attach .xpi to GitHub release
-  export GITHUB_USER GITHUB_PASSWORD && \
-  hub release create -m "Version $WEBEXT_VERSION" -a "$BOOKMARK_HAMSTER_XPI" "$WEBEXT_VERSION"
+  attach_release "$WEBEXT_VERSION" "$BOOKMARK_HAMSTER_XPI"
   popd
 fi
 
@@ -63,8 +68,7 @@ if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
     makepkg
 
     # attach package to GitHub release
-    export GITHUB_USER GITHUB_PASSWORD && \
-    hub release edit -m "" -a "$PACKAGE_PATH" "$NATIVE_VERSION_TAG"
+    attach_release "$NATIVE_VERSION_TAG" "$PACKAGE_PATH"
     popd
   fi
 
@@ -87,8 +91,7 @@ if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
     wixl -a x64 -D VERSION="${NATIVE_VERSION}" -D SourceDir=dist -o "$PACKAGE_PATH" "$DEPLOY_DIR/hamster.wxs" hamster-files.wxs
 
     # attach .msi to GitHub release
-    export GITHUB_USER GITHUB_PASSWORD && \
-    hub release edit -m "" -a "$PACKAGE_PATH" "$NATIVE_VERSION_TAG"
+    attach_release "$NATIVE_VERSION_TAG" "$PACKAGE_PATH"
     popd
   fi
 fi

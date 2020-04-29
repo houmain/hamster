@@ -11,6 +11,7 @@ makedepends=('cmake' 'asio')
 
 build() {
   cd ..
+  [ -f CMakeCache.txt ] && rm CMakeCache.txt
   cmake .. -DBUILD_WEBRECORDER=true -DCMAKE_INSTALL_PREFIX=/usr
   make
 }
