@@ -49,5 +49,23 @@
   },
   "menu_options": {
     "message": "Options"
+  },
+  "notification_no_backend_title": {
+    "message": "Bookmark Hamster"
+  },
+  "notification_unsupported_system": {
+    "message": "Your operating system is unfortunately not supported yet."
+  },
+  "notification_no_backend": {
+    "message": "The application which allows this extension\nto access a folder on your hard disk needs to be installed."
+  },
+  "notification_wrong_backend_version": {
+    "message": "The application which allows this extension\nto access a folder on your hard disk needs to be updated."
+  },
+  "download_instructions_windows": {
+    "message": "The installation does not require special permissions. The installer can be downloaded from:"
+  },
+  "download_instructions_linux": {
+    "message": "A generic installer or a package for your GNU/Linux distribution can be downloaded from:"
   }
 }

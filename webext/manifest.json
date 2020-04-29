@@ -21,6 +21,7 @@
     "webRequest",
     "webRequestBlocking",
     "menus",
+    "notifications",
     "<all_urls>"
   ],
   "icons": {

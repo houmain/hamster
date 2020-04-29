@@ -20,9 +20,6 @@ class BookmarkLibrary {
     browser.webRequest.onBeforeRequest.addListener(
       async (details) => await this._handleBeforeRequest(details),
       { urls: [ 'http://*/*', 'https://*/*' ] }, [ 'blocking' ])
-
-
-    backend.injectScript(`(${injectScript})(document)`)
   }
 
   async setRootId (rootId) {
@@ -30,6 +27,7 @@ class BookmarkLibrary {
     if (this._rootId != rootId) {
       this._rootId = rootId
       await this._restoreRecentRecorders()
+      await backend.injectScript(`(${injectScript})(document)`)
       return this._updateLibraryBookmarkList()
     }
   }

@@ -1,2 +1,37 @@
 
-form { margin-left: 4px; }
+body {
+  font-size: 120%;
+  margin-bottom: 20px;
+}
+
+fieldset {
+  border: 0px;
+  margin:0px;
+  padding:0px;
+}
+
+label {
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+#allow-lossy-compression {
+  margin-top: 0px;
+}
+
+fieldset:disabled {
+  color: #CCC;
+}
+
+fieldset:disabled #allow-lossy-compression {
+  background-color: #EEE;
+  border-color: #CCC;
+}
+
+#notification-panel {
+  visibility: collapse;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #CCC;
+  background-color: rgb(255, 255, 180);
+}

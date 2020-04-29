@@ -5,6 +5,11 @@ const MENU_ROOT_ID = 'menu-root'
 const MENU_FILE_LISTING_ID = 'menu-file-listing'
 const MENU_OPTIONS_SEPARATOR_ID = 'menu-options-separator'
 const MENU_OPTIONS_ID = 'menu-options'
+const DEFAULT_BYPASS_HOSTS_LIST =
+`www.youtube.com
+www.vimeo.com
+digiteka.net
+`
 
 const nativeClient = new NativeClient(NATIVE_CLIENT_ID)
 const backend = new Backend(nativeClient)
@@ -63,20 +68,18 @@ async function initializeBookmarkRoot () {
 async function restoreOptions () {
   await Utils.setDefaultSetting('default-refresh-mode', 'standard')
   await Utils.setDefaultSetting('allow-lossy-compression', true)
-  await Utils.setDefaultSetting('bypass-hosts',
-`www.youtube.com
-www.vimeo.com
-digiteka.net
-`)
-
-  const rootId = await initializeBookmarkRoot()
-  await bookmarkLibrary.setRootId(rootId)
-
-  const filesystemRoot = await Utils.getSetting('filesystem-root')
-  await backend.setFilesystemRoot(filesystemRoot)
+  await Utils.setDefaultSetting('bypass-hosts', DEFAULT_BYPASS_HOSTS_LIST)
 
   const hostList = await Utils.getSetting('bypass-hosts', '')
   await bookmarkLibrary.setBypassHosts(hostList)
+
+  if (await backend.checkVersion()) {
+    const filesystemRoot = await Utils.getSetting('filesystem-root')
+    await backend.setFilesystemRoot(filesystemRoot)
+
+    const rootId = await initializeBookmarkRoot()
+    await bookmarkLibrary.setRootId(rootId)
+  }
 }
 
 function createSuggestions (response) {
@@ -165,6 +168,7 @@ function createMenus () {
     title: browser.i18n.getMessage("menu_options"),
     onclick: handleOptionsMenuClicked
   })
+  browser.menus.refresh()
 
   browser.menus.onShown.addListener(async (info) => {
     let bookmarkId = null
@@ -194,12 +198,22 @@ function createMenus () {
 }
 
 ;(async function () {
-  await backend.checkSupport()
-  await backend.checkVersion()
-  await restoreOptions()
   browser.history.onVisited.addListener(handleHistoryChanged)
   browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)
   browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
+  browser.notifications.onClicked.addListener(handleOptionsMenuClicked)
+
+  const errorMessage = (await backend.getVersion()).errorMessage
+  if (errorMessage) {
+    browser.notifications.create({
+      "type": "basic",
+      "iconUrl": browser.extension.getURL("icons/icon.svg"),
+      "title": browser.i18n.getMessage("notification_no_backend_title"),
+      "message": browser.i18n.getMessage(errorMessage)
+    })
+  }
+
+  await restoreOptions()
 
   // TODO: bookmark context menus are only supported by Firefox
   try {

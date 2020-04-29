@@ -7,11 +7,6 @@ class NativeClient {
     this._nextRequestId = 1
     this._responseHandlers = []
     this._libraryBookmarkTitles = {}
-    this._connectionHandlers = []
-  }
-
-  addConnectionHandler (callback)  {
-    this._connectionHandlers.push(callback)
   }
 
   sendRequest (request) {
@@ -26,9 +21,6 @@ class NativeClient {
     this._port = browser.runtime.connectNative(this._nativeClientId)
     this._port.onMessage.addListener(response => this._handleResponse(response))
     this._port.onDisconnect.addListener(_port => this._handleDisconnect(_port))
-    for (const callback of this._connectionHandlers) {
-      callback()
-    }
   }
 
   _disconnect (error) {
@@ -37,7 +29,11 @@ class NativeClient {
       this._port.disconnect()
     }
     this._port = null
+    const responseHandlers = this._responseHandlers
     this._responseHandlers = []
+    for (const requestId in responseHandlers) {
+      responseHandlers[requestId].reject(error)
+    }
   }
 
   _handleResponse (response) {

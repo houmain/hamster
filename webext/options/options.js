@@ -4,6 +4,14 @@ let backend = undefined
 let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
+function getDownloadLink (version) {
+  const base = 'https://github.com/houmaster/hamster/releases/'
+  if (version.os === 'windows') {
+    return base + `download/${version.requiredVersion}.0/bookmark_hamster_win64-${version.requiredVersion}.msi`
+  }
+  return base + `tag/${version.requiredVersion}.0`
+}
+
 async function localizeControls () {
   Utils.localize('bookmark-root-parent-label', 'textContent', 'bookmark_root_parent')
   Utils.localize('bookmark-root-title-label', 'textContent', 'bookmark_root_title')
@@ -30,18 +38,35 @@ async function localizeControls () {
 }
 
 async function updateControls () {
-  const root = await Utils.getBookmarkById(bookmarkLibrary.rootId)
-  const rootParent = document.getElementById('bookmark-root-parent')
-  rootParent.value = root.parentId
-  const rootTitle = document.getElementById('bookmark-root-title')
-  rootTitle.value = root.title
-
-  const filesystemRoot = document.getElementById('filesystem-root')
-  filesystemRoot.value = backend.filesystemRoot
-
   document.getElementById('default-refresh-mode').value = await Utils.getSetting('default-refresh-mode')
   document.getElementById('allow-lossy-compression').checked = await Utils.getSetting('allow-lossy-compression')
   document.getElementById('bypass-hosts').textContent = await Utils.getSetting('bypass-hosts')
+
+  const version = await backend.getVersion()
+  document.getElementById('controls').disabled = (!version.valid)
+  document.getElementById('notification-panel').style.visibility = (version.valid ? 'collapse' : 'visible')
+  if (version.valid) {
+    const root = await Utils.getBookmarkById(bookmarkLibrary.rootId)
+    const rootParent = document.getElementById('bookmark-root-parent')
+    rootParent.value = root.parentId
+    const rootTitle = document.getElementById('bookmark-root-title')
+    rootTitle.value = root.title
+
+    const filesystemRoot = document.getElementById('filesystem-root')
+    filesystemRoot.value = backend.filesystemRoot
+  }
+  else {
+    Utils.localize('notification-message', 'textContent', version.errorMessage)
+    if (version.supported) {
+      Utils.localize('download-instructions', 'textContent', 'download_instructions_' + version.os)
+    }
+    else {
+      document.getElementById('download-instructions').textContent =
+        `os='${version.os}' arch='${version.arch}'`
+    }
+    const link = document.getElementById('download-link')
+    link.textContent = link.href = getDownloadLink(version)
+  }
 }
 
 async function moveBookmarkRoot () {

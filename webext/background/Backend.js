@@ -5,37 +5,55 @@ class Backend {
   constructor (nativeClient) {
     this._filesystemRoot = undefined
     this._nativeClient = nativeClient
-    this._nativeClient.addConnectionHandler(() => this.setFilesystemRoot())
   }
 
-  async checkSupport () {
-    const platformInfo = await browser.runtime.getPlatformInfo()
-    return (['linux', 'windows'].indexOf(platformInfo.os) >= 0 &&
-            platformInfo.arch === 'x86-64')
+  async getRequiredVersion () {
+    const minorVersionRegex = /\d+\.\d+/;
+    const manifest = await browser.runtime.getManifest()
+    return minorVersionRegex.exec(manifest.version)[0]
   }
 
-  async checkVersion () {
+  async getCurrentVersion () {
     try {
-      const minorVersionRegex = /\d+\.\d+/;
-
-      const manifest = await browser.runtime.getManifest()
-      const required = minorVersionRegex.exec(manifest.version)[0]
-      if (required === '0.0') {
-        return true
-      }
-
       const request = {
         action: 'getStatus',
       }
       const response = await this._nativeClient.sendRequest(request)
       if (response && response.status && response.status.version) {
-        const current = minorVersionRegex.exec(response.status.version)[0]
-        return (required === current)
+        const minorVersionRegex = /\d+\.\d+/;
+        return minorVersionRegex.exec(response.status.version)[0]
       }
     }
     catch {
     }
-    return false
+  }
+
+  async getVersion () {
+    const platformInfo = await browser.runtime.getPlatformInfo()
+    const supported = (['linux', 'windows'].indexOf(platformInfo.os) >= 0 &&
+            platformInfo.arch === 'x86-64')
+    const requiredVersion = await this.getRequiredVersion()
+    const currentVersion = await this.getCurrentVersion()
+    const result = {
+      valid: true,
+      os: platformInfo.os,
+      arch: platformInfo.arch,
+      supported,
+      requiredVersion,
+      currentVersion
+    }
+    if (!supported || requiredVersion !== currentVersion) {
+      result.valid = false
+      result.errorMessage =
+        (!supported ? "notification_unsupported_system" :
+          !currentVersion ? "notification_no_backend" :
+          "notification_wrong_backend_version")
+    }
+    return result
+  }
+
+  async checkVersion () {
+    return (await this.getVersion()).valid
   }
 
   async setFilesystemRoot (filesystemRoot) {
