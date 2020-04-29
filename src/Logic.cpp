@@ -64,6 +64,14 @@ std::filesystem::path Logic::to_full_path(
   return m_library_root / path.lexically_normal();
 }
 
+void Logic::get_status(Response& response, const Request&) {
+  response.Key("status");
+  response.StartObject();
+  response.String("version");
+  response.String(m_settings.version);
+  response.EndObject();
+}
+
 void Logic::move_file(Response&, const Request& request) {
   const auto from_path = to_full_path(json::get_string_list(request, "from"));
   const auto to_path = to_full_path(json::get_string_list(request, "to"));
@@ -276,6 +284,7 @@ void Logic::execute_search(Response& response, const Request& request) {
 void Logic::handle_request(Response& response, const Request& request) {
   using Handler = void(Logic::*)(Response&, const Request&);
   static const auto s_action_handlers = std::map<std::string_view, Handler> {
+    { "getStatus", &Logic::get_status },
     { "moveFile", &Logic::move_file },
     { "deleteFile", &Logic::delete_file },
     { "undeleteFile", &Logic::undelete_file },

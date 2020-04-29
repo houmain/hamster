@@ -8,6 +8,36 @@ class Backend {
     this._nativeClient.addConnectionHandler(() => this.setFilesystemRoot())
   }
 
+  async checkSupport () {
+    const platformInfo = await browser.runtime.getPlatformInfo()
+    return (['linux', 'windows'].indexOf(platformInfo.os) >= 0 &&
+            platformInfo.arch === 'x86-64')
+  }
+
+  async checkVersion () {
+    try {
+      const minorVersionRegex = /\d+\.\d+/;
+
+      const manifest = await browser.runtime.getManifest()
+      const required = minorVersionRegex.exec(manifest.version)[0]
+      if (required === '0.0') {
+        return true
+      }
+
+      const request = {
+        action: 'getStatus',
+      }
+      const response = await this._nativeClient.sendRequest(request)
+      if (response && response.status && response.status.version) {
+        const current = minorVersionRegex.exec(response.status.version)[0]
+        return (required === current)
+      }
+    }
+    catch {
+    }
+    return false
+  }
+
   async setFilesystemRoot (filesystemRoot) {
     const request = {
       action: 'setLibraryRoot',

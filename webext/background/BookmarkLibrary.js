@@ -420,24 +420,26 @@ class BookmarkLibrary {
   }
 
   _patchUrl (url, recorder) {
-     verify(recorder, recorder.localUrl)
-     if (!Utils.isHttpUrl(url) || Utils.isLocalUrl(url)) {
-       return url;
-     }
+    verify(recorder, recorder.localUrl)
+    if (!Utils.isHttpUrl(url) || Utils.isLocalUrl(url)) {
+      return url;
+    }
 
     // replace [http://]127.0.0.1[:port] in the middle
-    url = url.split(encodeURIComponent(recorder.localUrl.origin)).join(
-      encodeURIComponent(recorder.url.origin))
-    url = url.split(encodeURIComponent(recorder.localUrl.host)).join(
-      encodeURIComponent(recorder.url.host))
-    url = url.split(encodeURIComponent(recorder.localUrl.hostname)).join(
-      encodeURIComponent(recorder.url.hostname))
+    if (url.indexOf(encodeURIComponent(recorder.localUrl.hostname) >= 0)) {
+      url = url.split(encodeURIComponent(recorder.localUrl.origin)).join(
+        encodeURIComponent(recorder.url.origin))
+      url = url.split(encodeURIComponent(recorder.localUrl.host)).join(
+        encodeURIComponent(recorder.url.host))
+      url = url.split(encodeURIComponent(recorder.localUrl.hostname)).join(
+        encodeURIComponent(recorder.url.hostname))
+    }
 
-     // convert to local url
-     if (Utils.getOrigin(url) == recorder.url.origin) {
-       return recorder.localUrl.origin + Utils.getPathQuery(url)
-     }
-     return recorder.localUrl.origin + '/' + url
+    // convert to local url
+    if (Utils.getOrigin(url) == recorder.url.origin) {
+      return recorder.localUrl.origin + Utils.getPathQuery(url)
+    }
+    return recorder.localUrl.origin + '/' + url
   }
 
   async _handleBeforeRequest (details) {

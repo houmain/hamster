@@ -194,6 +194,8 @@ function createMenus () {
 }
 
 ;(async function () {
+  await backend.checkSupport()
+  await backend.checkVersion()
   await restoreOptions()
   browser.history.onVisited.addListener(handleHistoryChanged)
   browser.omnibox.onInputChanged.addListener(handleOmniBoxInput)

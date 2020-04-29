@@ -20,6 +20,7 @@ public:
 
 private:
   std::filesystem::path to_full_path(const std::vector<std::string_view>& strings) const;
+  void get_status(Response& response, const Request&);
   void move_file(Response&, const Request& request);
   void delete_file(Response&, const Request& request);
   void undelete_file(Response&, const Request& request);

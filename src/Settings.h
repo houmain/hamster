@@ -1,8 +1,9 @@
 #pragma once
 
-#include <filesystem>
+#include <string>
 
 struct Settings {
+  std::string version;
   bool plain_stdio_interface{ };
 };
 

@@ -47,7 +47,8 @@ fi
 
 # only update native builds for build number 0
 NATIVE_VERSION=$(echo $WEBEXT_VERSION | sed "s/\.[^.]*//")
-if [ "${WEBEXT_VERSION}" == "${NATIVE_VERSION}.0" ]; then
+NATIVE_VERSION_TAG="${NATIVE_VERSION}.0"
+if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
 
   BUILD_DIR=$(realpath _build_arch)
   PACKAGE_PATH="$BUILD_DIR/bookmark-hamster-${NATIVE_VERSION}-1-x86_64.pkg.tar.xz"
@@ -63,7 +64,7 @@ if [ "${WEBEXT_VERSION}" == "${NATIVE_VERSION}.0" ]; then
 
     # attach package to GitHub release
     export GITHUB_USER GITHUB_PASSWORD && \
-    hub release edit -m "" -a "$PACKAGE_PATH" "$WEBEXT_VERSION"
+    hub release edit -m "" -a "$PACKAGE_PATH" "$NATIVE_VERSION_TAG"
     popd
   fi
 
@@ -87,7 +88,7 @@ if [ "${WEBEXT_VERSION}" == "${NATIVE_VERSION}.0" ]; then
 
     # attach .msi to GitHub release
     export GITHUB_USER GITHUB_PASSWORD && \
-    hub release edit -m "" -a "$PACKAGE_PATH" "$WEBEXT_VERSION"
+    hub release edit -m "" -a "$PACKAGE_PATH" "$NATIVE_VERSION_TAG"
     popd
   fi
 fi
