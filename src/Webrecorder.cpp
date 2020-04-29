@@ -73,7 +73,7 @@ void Webrecorder::stop() {
 }
 
 void Webrecorder::for_each_output_line(
-    const std::function<void(std::string)>& callback) {
+    const std::function<void(std::string_view)>& callback) {
 
   auto lock = std::lock_guard(m_output_mutex);
   const auto begin = m_output_buffer.begin();
@@ -83,7 +83,10 @@ void Webrecorder::for_each_output_line(
     const auto it = std::find(line_begin, end, '\n');
     if (it == end)
       break;
-    callback(std::string(line_begin, it));
+    callback({
+      &*line_begin,
+      static_cast<std::string_view::size_type>(std::distance(line_begin, it))
+    });
     line_begin = it + 1;
   }
   m_output_buffer.erase(begin, line_begin);

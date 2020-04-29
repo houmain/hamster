@@ -17,7 +17,7 @@ namespace {
     auto rand = std::random_device();
     auto filename = std::string("hamster_");
     for (auto i = 0; i < 10; i++)
-      filename.push_back('0' + rand() % 10);
+      filename.push_back(static_cast<char>('0' + rand() % 10));
     filename += ".tmp";
     return std::filesystem::temp_directory_path() / filename;
   }
@@ -104,7 +104,7 @@ void Logic::start_recording(Response&, const Request& request) {
   const auto url = json::get_string(request, "url");
   const auto path = to_full_path(json::get_string_list(request, "path"));
   const auto refresh = json::try_get_string(request, "refresh");
-  const auto allow_lossy_compression = json::try_get_bool(request, "allowLossyCompression");
+  const auto allow_lossy_compression = json::try_get_bool(request, "allowLossyCompression").value_or(false);
 
   create_directories_handle_symlinks(path.parent_path());
   auto arguments = std::vector<std::string>{
@@ -147,7 +147,9 @@ void Logic::get_recording_output(Response& response, const Request& request) {
   if (auto it = m_webrecorders.find(id); it != m_webrecorders.end()) {
     response.Key("events");
     response.StartArray();
-    it->second.for_each_output_line([&](const auto& line) { response.String(line); });
+    it->second.for_each_output_line([&](const auto& line) {
+      response.String(line.data(), static_cast<json::size_t>(line.size()));
+    });
     response.EndArray();
 
     // cleanup stopped recorder

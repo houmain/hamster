@@ -153,7 +153,7 @@ class Backend {
           console.error('unhandled exception in output handling:', e.message)
         }
       }
-      setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 500)
+      setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 250)
     } else {
       await handleOutput()
     }

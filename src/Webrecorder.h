@@ -14,7 +14,7 @@ public:
 
   void stop();
   bool finished() const;
-  void for_each_output_line(const std::function<void(std::string)>& callback);
+  void for_each_output_line(const std::function<void(std::string_view)>& callback);
 
 private:
   void thread_func() noexcept;

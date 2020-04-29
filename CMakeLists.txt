@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(hamster
-    VERSION 0.8
-)
+project(hamster)
 
 option(BUILD_WEBRECORDER "Build webrecorder")
 if(BUILD_WEBRECORDER)
@@ -28,7 +26,7 @@ set(INCLUDES libs/webrecorder)
 
 if(NOT MSVC)
     set_source_files_properties(${SOURCES}
-       PROPERTIES COMPILE_FLAGS  "-Wall -Wextra -Wsign-conversion -Wconversion")
+        PROPERTIES COMPILE_FLAGS  "-Wall -Wextra -Wsign-conversion -Wconversion")
 else()
     add_compile_options(/GR- /W1)
     set(MSVC_SHARED_RUNTIME OFF)
@@ -39,7 +37,6 @@ set(SOURCES ${SOURCES}
     libs/entities/entities.c
     libs/webrecorder/src/Archive.cpp
     libs/webrecorder/src/HeaderStore.cpp
-    libs/webrecorder/src/LossyCompressor.cpp
     libs/webrecorder/src/common.cpp
     libs/webrecorder/libs/siphash/siphash.c
     libs/webrecorder/libs/utf8/utf8.cpp

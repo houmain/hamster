@@ -8,9 +8,6 @@ bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
     if (argument == "-p") {
       settings.plain_stdio_interface = true;
     }
-    else if (argument == "-b") {
-      settings.open_browser = true;
-    }
     else if (argument == "-h" || argument == "--help") {
       return false;
     }
@@ -36,7 +33,6 @@ void print_help_message(const char* argv0) {
     "\n"
     "Usage: %s [-options]\n"
     "  -p          run plain stdio JSON command interface.\n"
-    "  -b          enable opening of browser"
     "  -h, --help  print this help.\n"
     "\n"
     "All Rights Reserved.\n"
