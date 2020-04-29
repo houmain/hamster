@@ -6,7 +6,7 @@ let restoreOptions = undefined
 
 function getDownloadLink (version) {
   const base = 'https://github.com/houmaster/hamster/releases/'
-  if (version.os === 'windows') {
+  if (version.os === 'win') {
     return base + `download/${version.requiredVersion}.0/bookmark_hamster_win64-${version.requiredVersion}.msi`
   }
   return base + `tag/${version.requiredVersion}.0`
