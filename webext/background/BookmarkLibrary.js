@@ -18,7 +18,7 @@ class BookmarkLibrary {
     browser.bookmarks.onMoved.addListener((id, info) => this._handleBookmarkMoved(id, info))
     browser.tabs.onRemoved.addListener((id) => this._stopRecordingInTab(id))
     browser.webRequest.onBeforeRequest.addListener(
-      async (details) => await this._handleBeforeRequest(details),
+      async (details) => this._handleBeforeRequest(details),
       { urls: [ 'http://*/*', 'https://*/*' ] }, [ 'blocking' ])
   }
 
