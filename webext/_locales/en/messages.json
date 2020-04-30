@@ -57,12 +57,12 @@
     "message": "Your operating system is unfortunately not supported yet."
   },
   "notification_no_backend": {
-    "message": "The application which allows this extension\nto access a folder on your hard disk needs to be installed."
+    "message": "The application which allows this extension to access a folder on your hard disk needs to be installed."
   },
   "notification_wrong_backend_version": {
-    "message": "The application which allows this extension\nto access a folder on your hard disk needs to be updated."
+    "message": "The application which allows this extension to access a folder on your hard disk needs to be updated."
   },
-  "download_instructions_windows": {
+  "download_instructions_win": {
     "message": "The installation does not require special permissions. The installer can be downloaded from:"
   },
   "download_instructions_linux": {

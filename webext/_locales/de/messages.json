@@ -57,12 +57,12 @@
     "message": "Ihr Bertriebssystem wird leider noch nicht unterstützt."
   },
   "notification_no_backend": {
-    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen\nOrdner ihrer Festplatte erlaubt, muss installiert werden."
+    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen Ordner ihrer Festplatte erlaubt, muss installiert werden."
   },
   "notification_wrong_backend_version": {
-    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen\nOrdner ihrer Festplatte erlaubt, muss aktualisiert werden."
+    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen Ordner ihrer Festplatte erlaubt, muss aktualisiert werden."
   },
-  "download_instructions_windows": {
+  "download_instructions_win": {
     "message": "Für die Installation werden keine Administrator-Rechte benötigt. Das Installationsprogramm kann hier heruntergeladen werden:"
   },
   "download_instructions_linux": {
