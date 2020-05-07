@@ -2,6 +2,7 @@
 body {
   font-size: 120%;
   margin-bottom: 20px;
+  overflow: hidden;
 }
 
 fieldset {
@@ -35,4 +36,25 @@ fieldset:disabled #allow-lossy-compression {
   padding: 8px;
   border: 1px solid #CCC;
   background-color: rgb(255, 255, 180);
+  color: #000;
+}
+
+textarea {
+  resize: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  body, fieldset * {
+    background-color: #202023;
+    color: #FFF;
+  }
+
+  fieldset:disabled * {
+    color: #999;
+  }
+
+  fieldset:disabled #allow-lossy-compression {
+    background-color: #202023;
+    border-color: #333;
+  }
 }

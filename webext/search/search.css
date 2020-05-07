@@ -46,3 +46,14 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+@media (prefers-color-scheme: dark) {
+  * {
+    background-color: #2D2D2D;
+    color: #FFF;
+  }
+
+  div { color: #DDD }
+  h2 { color: #45A1FF }
+  a { color: rgb(62, 212, 62) }
+}
