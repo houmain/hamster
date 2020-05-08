@@ -51,7 +51,7 @@ if [ ! -f "$BOOKMARK_HAMSTER_XPI" ]; then
 fi
 
 # only update native builds for build number 0
-NATIVE_VERSION=$(echo $WEBEXT_VERSION | sed "s/\.[^.]*//")
+NATIVE_VERSION=$(echo $WEBEXT_VERSION | sed "s/\.[^.]*$//")
 NATIVE_VERSION_TAG="${NATIVE_VERSION}.0"
 if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
 
@@ -80,9 +80,9 @@ if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
     pushd "$BUILD_DIR"
 
     # compile windows build
-    x86_64-w64-mingw32-cmake .. -DBUILD_WEBRECORDER=true -DCMAKE_INSTALL_PREFIX="$BUILD_DIR/dist"
-    cmake --build . --config Release
-    cmake --install . --config Release
+    x86_64-w64-mingw32-cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_WEBRECORDER=true -DCMAKE_INSTALL_PREFIX="$BUILD_DIR/dist"
+    cmake --build .
+    cmake --install .
 
     # build .msi installer
     peldd -a -t --ignore-errors dist/*.exe | xargs -r cp -t dist &> /dev/null || true

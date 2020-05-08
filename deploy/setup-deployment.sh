@@ -11,7 +11,7 @@ SigLevel = Optional TrustAll
 Server = http://martchus.no-ip.biz/repo/arch/\$repo/os/\$arch
 EOF
 fi
-pacman -Syy
+pacman -Syyu
 
 # install make dependencies for extension
 pacman -S --noconfirm --needed npm
@@ -22,7 +22,7 @@ pacman -S --noconfirm --needed hub
 pacman -S --noconfirm --needed asio gumbo-parser gtk3
 
 # install make dependencies for Windows build
-pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake
+pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake mingw-w64-openssl
 aur-cache -i mingw-w64-gumbo-parser
 aur-cache -i peldd-git
 aur-cache -i msitools
