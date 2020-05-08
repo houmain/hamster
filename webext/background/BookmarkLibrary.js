@@ -178,8 +178,12 @@ class BookmarkLibrary {
 
     let recorder = this._recorderByBookmarkId[bookmarkId]
     if (recorder && recorder.finishing) {
-      while (recorder.finishing) {
+      for (let i = 0; recorder.finishing; ++i) {
         await Utils.sleep(10)
+        if (i === 1000) {
+          console.error('Waiting for recorder to finish timed out')
+          return
+        }
       }
       verify(!this._recorderByBookmarkId[bookmarkId])
       recorder = null
@@ -275,7 +279,7 @@ class BookmarkLibrary {
 
       recorder.tabIds.splice(recorder.tabIds.indexOf(tabId), 1)
       if (recorder.tabIds.length === 0) {
-        this._stopRecording(recorder.bookmarkId)
+        await this._stopRecording(recorder.bookmarkId)
       }
     }
   }
@@ -469,8 +473,12 @@ class BookmarkLibrary {
       if (bookmark && !recorder && !Utils.isLocalUrl(originalUrl)) {
         // start recording
         recorder = await this._startRecordingInTab(bookmark.id, originalUrl, tabId)
-        while (!recorder.localUrl) {
+        for (let i = 0; !recorder.localUrl; ++i) {
           await Utils.sleep(10)
+          if (i === 100) {
+            console.error('Starting recorder timed out')
+            return { cancel: true }
+          }
         }
       }
 

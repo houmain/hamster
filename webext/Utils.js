@@ -114,19 +114,10 @@ class Utils {
     }
   }
 
-  static async tryUpdateTabUrl (tabId, url) {
-    try {
-      //DEBUG('updating tab url', (await browser.tabs.get(tabId)).url, 'to', url)
-      await browser.tabs.update(tabId, { url: url })
-    } catch {
-      // tab already closed
-    }
-  }
-
   static async tryUpdateBookmarkUrl (bookmarkId, url) {
     try {
       //DEBUG('updating bookmark url', (await Utils.getBookmarkById(bookmarkId)).url, 'to', url)
-      return await browser.bookmarks.update(bookmarkId, { url: url })
+      await browser.bookmarks.update(bookmarkId, { url: url })
     } catch {
       // bookmark deleted
     }
