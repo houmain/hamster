@@ -186,6 +186,14 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
+  async setBlockHostsList (hosts) {
+    const request = {
+      action: 'setBlockHostsList',
+      hosts: hosts,
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
   async _pollRecordingOutput (recorderId, handleOutput) {
     const request = {
       action: 'getRecordingOutput',

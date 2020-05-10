@@ -6,8 +6,8 @@ const MENU_FILE_LISTING_ID = 'menu-file-listing'
 const MENU_OPTIONS_SEPARATOR_ID = 'menu-options-separator'
 const MENU_OPTIONS_ID = 'menu-options'
 const DEFAULT_BYPASS_HOSTS_LIST =
-`www.youtube.com
-www.vimeo.com
+`youtube.com
+vimeo.com
 digiteka.net
 `
 

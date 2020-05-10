@@ -66,8 +66,10 @@ function addTreeNode (url, isLeaf, size, status) {
   }
 
   filesTree.add({
-    label: base + '<div class="info info' + level + '"><span class="size">' +
-      (size ? Utils.getReadableFileSize(size) : '') + '</span><span class="status"></span></span>',
+    label: base + '<div class="info info' + level + '">' +
+      '<span class="size">' + (size ? Utils.getReadableFileSize(size) : '') + '</span>' +
+      '<span class="status">' + (status ? status : '') + '</span>' +
+      '</div>',
     id: url,
     parent: parent,
     href: (isLeaf ? url : undefined),

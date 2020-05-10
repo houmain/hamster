@@ -51,7 +51,8 @@ Logic::Logic(const Settings& settings)
 }
 
 Logic::~Logic() {
-  inject_script("");
+  set_temporary_file(m_inject_script_file, "");
+  set_temporary_file(m_block_hosts_file, "");
 }
 
 std::filesystem::path Logic::to_full_path(
@@ -140,6 +141,11 @@ void Logic::start_recording(Response&, const Request& request) {
       "--inject-js-file", '\"' + m_inject_script_file.u8string() + '\"',
     });
 
+  if (!m_block_hosts_file.empty())
+    arguments.insert(end(arguments), {
+      "--block-hosts-file", '\"' + m_block_hosts_file.u8string() + '\"',
+    });
+
   m_webrecorders.emplace(std::piecewise_construct,
     std::forward_as_tuple(id),
     std::forward_as_tuple(std::move(arguments), path.parent_path().u8string()));
@@ -198,22 +204,27 @@ void Logic::browse_directories(Response& response, const Request& request) {
   }
 }
 
-void Logic::inject_script(std::string_view script) {
-  if (!m_inject_script_file.empty()) {
+void Logic::set_temporary_file(std::filesystem::path& path, std::string_view content) {
+  if (!path.empty()) {
     auto error = std::error_code{ };
-    std::filesystem::remove(m_inject_script_file, error);
-    m_inject_script_file.clear();
+    std::filesystem::remove(path, error);
+    path.clear();
   }
-  if (!script.empty()) {
-    m_inject_script_file = generate_temporary_filename();
-    auto file = std::ofstream(m_inject_script_file,
-      std::ios::binary | std::ios::out);
-    file.write(script.data(), static_cast<std::streamsize>(script.size()));
+  if (!content.empty()) {
+    path = generate_temporary_filename();
+    auto file = std::ofstream(path, std::ios::binary | std::ios::out);
+    file.write(content.data(), static_cast<std::streamsize>(content.size()));
   }
 }
 
 void Logic::inject_script(Response&, const Request& request) {
-  inject_script(json::try_get_string(request, "script").value_or(""));
+  set_temporary_file(m_inject_script_file,
+    json::try_get_string(request, "script").value_or(""));
+}
+
+void Logic::set_block_hosts_list(Response&, const Request& request) {
+  set_temporary_file(m_block_hosts_file,
+    json::try_get_string(request, "hosts").value_or(""));
 }
 
 void Logic::get_file_size(Response& response, const Request& request) {
@@ -295,6 +306,7 @@ void Logic::handle_request(Response& response, const Request& request) {
     { "setLibraryRoot", &Logic::set_library_root },
     { "browserDirectories", &Logic::browse_directories },
     { "injectScript", &Logic::inject_script },
+    { "setBlockHostsList", &Logic::set_block_hosts_list },
     { "getFileSize", &Logic::get_file_size },
     { "getFileListing", &Logic::get_file_listing },
     { "updateSearchIndex", &Logic::update_search_index },

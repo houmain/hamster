@@ -36,7 +36,7 @@ class BookmarkLibrary {
     return this._rootId
   }
 
-  setBypassHosts (hostList) {
+  async setBypassHosts (hostList) {
     const hosts = { }
     hostList
       .split('\n')
@@ -44,6 +44,7 @@ class BookmarkLibrary {
       .filter(line => line.length > 0 && line.indexOf(';') !== 0)
       .forEach(host => hosts[host] = true)
     this._bypassHosts = hosts
+    return backend.setBlockHostsList(hostList)
   }
 
   getOriginalUrl (url) {
@@ -146,7 +147,7 @@ class BookmarkLibrary {
     verify(!this._recorderByBookmarkId[bookmarkId])
     verify(!this._recorderByTabId[initialTabId])
 
-    //DEBUG('start recording', url)
+    //DEBUG('start recording', url, 'in tab', initialTabId)
     const bookmark = await Utils.getBookmarkById(bookmarkId)
     const recorder = {
       recorderId: this._nextRecorderId++,
@@ -193,6 +194,7 @@ class BookmarkLibrary {
       return this._startRecording(bookmarkId, url, tabId)
     }
 
+    //DEBUG('adding recorder', url, 'to tab', tabId)
     verify(recorder.tabIds.indexOf(tabId) === -1)
     this._recorderByTabId[tabId] = recorder
     recorder.tabIds.push(tabId)
@@ -274,6 +276,9 @@ class BookmarkLibrary {
 
   async _stopRecordingInTab (tabId) {
     const recorder = this._recorderByTabId[tabId]
+    if (!recorder) {
+      //DEBUG('closing tab without recorder', tabId)
+    }
     if (recorder) {
       delete this._recorderByTabId[tabId]
 
@@ -444,6 +449,20 @@ class BookmarkLibrary {
     return recorder.localUrl.origin + '/' + url
   }
 
+  _shouldBypass (url) {
+    let host = new URL(url).host
+    for (;;) {
+      if (this._bypassHosts[host]) {
+        return true
+      }
+      const dot = host.indexOf('.')
+      if (dot === -1) {
+        return false
+      }
+      host = host.substring(dot + 1)
+    }
+  }
+
   async _handleBeforeRequest (details) {
     const { url, documentUrl, tabId, type } = details
     if (tabId < 0) {
@@ -475,7 +494,7 @@ class BookmarkLibrary {
         recorder = await this._startRecordingInTab(bookmark.id, originalUrl, tabId)
         for (let i = 0; !recorder.localUrl; ++i) {
           await Utils.sleep(10)
-          if (i === 100) {
+          if (i === 1000) {
             console.error('Starting recorder timed out')
             return { cancel: true }
           }
@@ -493,9 +512,7 @@ class BookmarkLibrary {
     }
     else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
       // redirect resources to recorder
-
-      const host = new URL(url).host
-      if (this._bypassHosts[host]) {
+      if (this._shouldBypass(url)) {
         //DEBUG('bypassed', url)
         return
       }

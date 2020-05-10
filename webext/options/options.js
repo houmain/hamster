@@ -99,8 +99,9 @@ async function updateAllowLossyCompression(e) {
 }
 
 async function updateBypassUrls(e) {
-  const text = document.getElementById('bypass-hosts').value
-  return Utils.setSetting('bypass-hosts', text)
+  const hostList = document.getElementById('bypass-hosts').value
+  await Utils.setSetting('bypass-hosts', hostList)
+  await bookmarkLibrary.setBypassHosts(hostList)
 }
 
 async function initialize() {
