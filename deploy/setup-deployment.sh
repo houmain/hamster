@@ -1,7 +1,7 @@
+#!/usr/bin/bash
+set -e -u
 
 if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
-
-set -e -u
 
 # add martchus.no-ip.biz ownstuff repository
 if ! grep -q ownstuff /etc/pacman.conf; then
@@ -20,6 +20,7 @@ pacman -S --noconfirm --needed hub
 
 # install make dependencies for Linux build
 pacman -S --noconfirm --needed asio gumbo-parser gtk3
+aur-cache -i makeself
 
 # install make dependencies for Windows build
 pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake mingw-w64-openssl

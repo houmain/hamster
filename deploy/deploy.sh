@@ -1,24 +1,19 @@
 #!/bin/bash
-
 set -e -u
 
-if [ ! -f _credentials.conf ]; then
-cat <<EOF > _credentials.conf
-GITHUB_USER=""
-GITHUB_PASSWORD=""
-MOZILLA_API_KEY=""
-MOZILLA_API_SECRET=""
-EOF
-fi
-source _credentials.conf
-if [ -z "$MOZILLA_API_KEY" ] || [ -z "$MOZILLA_API_SECRET" ];  then
-  echo "Please complete the API access credentials in _credentials.conf"
-  exit
+if [[ $(id -u) -eq 0 ]] ; then echo "Please do not run as root" ; exit 1 ; fi
+
+if [ -z ${GITHUB_USER+x} ] || \
+   [ -z ${GITHUB_PASSWORD+x} ] || \
+   [ -z ${MOZILLA_API_KEY+x} ] || \
+   [ -z ${MOZILLA_API_SECRET+x} ];  then
+  echo "Please provide the API access credentials"
+  exit 1
 fi
 
 # cd to main directory
 DEPLOY_DIR=$(pwd)
-cd ..
+cd $(dirname $0)/..
 
 # update source from origin
 git submodule update --init --recursive
@@ -66,6 +61,24 @@ if [ "${WEBEXT_VERSION}" == "$NATIVE_VERSION_TAG" ]; then
     cp "$DEPLOY_DIR/PKGBUILD" "$BUILD_DIR"
     sed -i "s/^\(\s*pkgver=\s*\).*/\1$NATIVE_VERSION/" PKGBUILD
     makepkg
+
+    # attach package to GitHub release
+    attach_release "$NATIVE_VERSION_TAG" "$PACKAGE_PATH"
+    popd
+  fi
+
+  BUILD_DIR=$(realpath _build_arch)
+  PACKAGE_PATH="$BUILD_DIR/bookmark-hamster-${NATIVE_VERSION}.run"
+  if [ ! -f "$PACKAGE_PATH" ]; then
+    echo "Building generic Linux installer"
+    pushd "$BUILD_DIR"
+
+    mkdir -p "_makeself"
+    cp "pkg/bookmark-hamster/usr/bin/bookmark-hamster" "_makeself/hamster"
+    cp "pkg/bookmark-hamster/usr/bin/webrecorder" "_makeself/webrecorder"
+    cp "$DEPLOY_DIR/makeself-setup.sh" "_makeself/setup.sh"
+    cp "$DEPLOY_DIR/hamster-mozilla.json" "_makeself"
+    makeself "_makeself" "$PACKAGE_PATH" "Bookmark Hamster" "./setup.sh"
 
     # attach package to GitHub release
     attach_release "$NATIVE_VERSION_TAG" "$PACKAGE_PATH"
