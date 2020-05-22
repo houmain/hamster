@@ -15,10 +15,6 @@ fi
 DEPLOY_DIR=$(pwd)
 cd $(dirname $0)/..
 
-# update source from origin
-git submodule update --init --recursive
-git pull --recurse-submodules
-
 function attach_release() {
   export GITHUB_USER GITHUB_PASSWORD &&
     (hub release create -m "Version $1" "$1" 2> /dev/null || true) &&

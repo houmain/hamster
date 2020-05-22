@@ -15,7 +15,7 @@ pacman -Syyu
 
 # install make dependencies for extension
 pacman -S --noconfirm --needed npm
-npm install --global web-ext
+npm list --global web-ext || npm install --global web-ext
 pacman -S --noconfirm --needed hub
 
 # install make dependencies for Linux build
@@ -24,6 +24,6 @@ aur-cache -i makeself
 
 # install make dependencies for Windows build
 pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake mingw-w64-openssl
-aur-cache -i mingw-w64-gumbo-parser
+pushd "$(dirname $0)" && aur-cache -i mingw-w64-gumbo-parser && popd
 aur-cache -i peldd-git
 aur-cache -i msitools
