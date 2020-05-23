@@ -8,7 +8,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCES
+set(SOURCES ${SOURCES}
     src/main.cpp
     src/common.cpp
     src/Webrecorder.cpp
@@ -22,7 +22,12 @@ set(SOURCES
 )
 file(GLOB_RECURSE HEADERS include *.h)
 
-set(INCLUDES libs/webrecorder)
+set(INCLUDES ${INCLUDES}
+    libs/webrecorder
+    libs/webrecorder/libs/gumbo/src
+    libs/webrecorder/libs/zlib/src
+    libs/sqlite
+)
 
 if(NOT MSVC)
     set_source_files_properties(${SOURCES}
@@ -33,6 +38,7 @@ else()
 endif()
 
 set(SOURCES ${SOURCES}
+    libs/sqlite/sqlite3.c
     libs/TinyProcessLib/process.cpp
     libs/entities/entities.c
     libs/webrecorder/src/Archive.cpp
@@ -44,29 +50,52 @@ set(SOURCES ${SOURCES}
     libs/webrecorder/libs/minizip/zip.c
     libs/webrecorder/libs/minizip/unzip.c
     libs/webrecorder/libs/minizip/ioapi.c
+    libs/webrecorder/libs/gumbo/src/attribute.c
+    libs/webrecorder/libs/gumbo/src/char_ref.c
+    libs/webrecorder/libs/gumbo/src/error.c
+    libs/webrecorder/libs/gumbo/src/parser.c
+    libs/webrecorder/libs/gumbo/src/string_buffer.c
+    libs/webrecorder/libs/gumbo/src/string_piece.c
+    libs/webrecorder/libs/gumbo/src/tag.c
+    libs/webrecorder/libs/gumbo/src/tokenizer.c
+    libs/webrecorder/libs/gumbo/src/utf8.c
+    libs/webrecorder/libs/gumbo/src/util.c
+    libs/webrecorder/libs/gumbo/src/vector.c
+    libs/webrecorder/libs/zlib/src/adler32.c
+    libs/webrecorder/libs/zlib/src/compress.c
+    libs/webrecorder/libs/zlib/src/crc32.c
+    libs/webrecorder/libs/zlib/src/deflate.c
+    libs/webrecorder/libs/zlib/src/gzclose.c
+    libs/webrecorder/libs/zlib/src/gzlib.c
+    libs/webrecorder/libs/zlib/src/gzread.c
+    libs/webrecorder/libs/zlib/src/gzwrite.c
+    libs/webrecorder/libs/zlib/src/infback.c
+    libs/webrecorder/libs/zlib/src/inffast.c
+    libs/webrecorder/libs/zlib/src/inflate.c
+    libs/webrecorder/libs/zlib/src/inftrees.c
+    libs/webrecorder/libs/zlib/src/trees.c
+    libs/webrecorder/libs/zlib/src/uncompr.c
+    libs/webrecorder/libs/zlib/src/zutil.c
 )
 
 if(NOT WIN32)
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_unix.cpp
     )
-    link_libraries(stdc++fs sqlite3)
+    link_libraries(stdc++fs dl)
 else()
     add_compile_definitions(_WIN32_WINNT=0x0501 SQLITE_ENABLE_FTS5)
 
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_win.cpp
         libs/webrecorder/libs/minizip/iowin32.c
-        libs/sqlite/sqlite3.c
     )
-    set(INCLUDES ${INCLUDES}
-        libs/sqlite
+    set(INCLUDES ${INCLUDES} 
+        libs/webrecorder/libs/gumbo/src/visualc
     )
 endif()
 
 add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
-
-link_libraries(gumbo z)
 
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})

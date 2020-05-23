@@ -5,11 +5,12 @@ let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
 function getDownloadLink (version) {
-  const base = 'https://github.com/houmaster/hamster/releases/'
-  if (version.os === 'win') {
-    return base + `download/${version.requiredVersion}.0/bookmark_hamster_win64-${version.requiredVersion}.msi`
-  }
-  return base + `tag/${version.requiredVersion}.0`
+  const base = 'https://github.com/houmaster/hamster/releases/download/'
+  const extension = {
+      'linux_x86-64': 'linux64.run',
+      'win_x86-64': 'win64.msi',
+  }[`${version.os}_${version.arch}`]
+  return base + `${version.requiredVersion}.0/bookmark-hamster-${version.requiredVersion}-${extension}`
 }
 
 async function localizeControls () {

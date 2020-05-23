@@ -69,7 +69,7 @@ std::string_view QueryResult::to_text(int column) {
 nonstd::span<const std::byte> QueryResult::to_blob(int column) {
   const auto data = sqlite3_column_blob(m_statement, column);
   const auto length = sqlite3_column_bytes(m_statement, column);
-  return { static_cast<const std::byte*>(data), length };
+  return { static_cast<const std::byte*>(data), static_cast<size_t>(length) };
 }
 
 //-------------------------------------------------------------------------

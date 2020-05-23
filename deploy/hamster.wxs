@@ -6,12 +6,12 @@
     Name="Bookmark Hamster"
     Language="1033"
     Version="$(var.VERSION)"
-    Manufacturer="https://github.com/houmaster/hamster"
+    Manufacturer="https://my-foss.net"
     UpgradeCode="ED04838D-35E4-4B52-A173-63519391CA7E"
   >
     <Package
       Description="Bookmark Hamster Installer"
-      Manufacturer="https://github.com/houmaster/hamster"
+      Manufacturer="https://my-foss.net"
       InstallerVersion="200"
       Compressed="yes"
       InstallScope="perUser"
@@ -39,14 +39,14 @@
       <Component Id="ProductComponent" Guid="1B9BC777-FE0D-4E0B-A485-162144DDBEA9">
 
         <RegistryKey Root="HKCU" Key="Software\Mozilla\NativeMessagingHosts\hamster">
-          <RegistryValue Type="string" Value="[INSTALLFOLDER]hamster.json" KeyPath="yes"/>
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]hamster-mozilla.json" KeyPath="yes"/>
         </RegistryKey>
 
         <CreateFolder />
         <RemoveFolder Id="RemoveAppRootDirectory" On="uninstall" />
 
         <File Id="LICENSE" Source="../LICENSE"/>
-        <File Id="hamster.json" Source="hamster-windows.json" Name="hamster.json"/>
+        <File Id="hamster-mozilla.json" Name="hamster-mozilla.json"/>
       </Component>
     </ComponentGroup>
   </Fragment>

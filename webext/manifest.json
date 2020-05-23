@@ -4,11 +4,11 @@
   "author": "Albert Kalchmair",
   "version": "0.0.0",
   "description": "__MSG_extension_description__",
-  "homepage_url": "https://github.com/houmaster/hamster",
+  "homepage_url": "https://my-foss.net/bookmark-hamster",
   "default_locale": "en",
   "applications": {
     "gecko": {
-      "id": "hamster@localhost",
+      "id": "hamster@my-foss.net",
       "strict_min_version": "64.0"
     }
   },

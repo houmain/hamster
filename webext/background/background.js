@@ -66,19 +66,23 @@ async function initializeBookmarkRoot () {
 }
 
 async function restoreOptions () {
-  await Utils.setDefaultSetting('default-refresh-mode', 'standard')
-  await Utils.setDefaultSetting('allow-lossy-compression', true)
-  await Utils.setDefaultSetting('bypass-hosts', DEFAULT_BYPASS_HOSTS_LIST)
+  try {
+    await Utils.setDefaultSetting('default-refresh-mode', 'standard')
+    await Utils.setDefaultSetting('allow-lossy-compression', true)
+    await Utils.setDefaultSetting('bypass-hosts', DEFAULT_BYPASS_HOSTS_LIST)
 
-  const hostList = await Utils.getSetting('bypass-hosts', '')
-  await bookmarkLibrary.setBypassHosts(hostList)
+    const hostList = await Utils.getSetting('bypass-hosts', '')
+    await bookmarkLibrary.setBypassHosts(hostList)
 
-  if (await backend.checkVersion()) {
-    const filesystemRoot = await Utils.getSetting('filesystem-root')
-    await backend.setFilesystemRoot(filesystemRoot)
+    if (await backend.checkVersion()) {
+      const filesystemRoot = await Utils.getSetting('filesystem-root')
+      await backend.setFilesystemRoot(filesystemRoot)
 
-    const rootId = await initializeBookmarkRoot()
-    await bookmarkLibrary.setRootId(rootId)
+      const rootId = await initializeBookmarkRoot()
+      await bookmarkLibrary.setRootId(rootId)
+    }
+  }
+  catch {
   }
 }
 

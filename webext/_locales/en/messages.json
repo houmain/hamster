@@ -66,6 +66,6 @@
     "message": "The installation does not require special permissions. The installer can be downloaded from:"
   },
   "download_instructions_linux": {
-    "message": "A generic installer or a package for your GNU/Linux distribution can be downloaded from:"
+    "message": "The installation does not require root permissions. The installer can be downloaded from:"
   }
 }

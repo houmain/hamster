@@ -1,7 +1,7 @@
 {
   "name": "hamster",
   "description": "Bookmark Hamster",
-  "path": "/usr/bin/bookmark-hamster",
+  "path": "hamster.exe",
   "type": "stdio",
-  "allowed_extensions": [ "hamster@localhost" ]
+  "allowed_extensions": [ "hamster@my-foss.net" ]
 }

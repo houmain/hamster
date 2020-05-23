@@ -1,7 +1,0 @@
-{
-  "name": "hamster",
-  "description": "Bookmark Hamster",
-  "path": "/usr/bin/bookmark-hamster",
-  "type": "stdio",
-  "allowed_origins": [ "chrome-extension://mnhebdedhmlncpcnkacooafcgafkigda/" ]
-}

@@ -2,20 +2,19 @@
 set -e -u
 
 if [ $# == 0 ]; then
+  echo "Installing..."
 
   dest="${HOME}/.mozilla"
   if [ -d "$dest" ]; then
-    echo
-    echo "Installing for Firefox..."
     dest="${dest}/native-messaging-hosts"
     mkdir -p "$dest"
-    cp -v webrecorder "$dest"
-    cp -v hamster "$dest"
+    cp -v bin/webrecorder "$dest"
+    cp -v bin/hamster "$dest"
     cp -v hamster-mozilla.json "${dest}/hamster.json"
     sed -i "s|^\(.*\"path\":\s*\"\).*\(\",.*\)|\1${dest}/hamster\2|" "${dest}/hamster.json"
-    echo "Done."
   fi
 
+  echo "Done."
   echo
   echo "To uninstall call installer with \" -- uninstall\" (note the space after --)."
 

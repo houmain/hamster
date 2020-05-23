@@ -66,6 +66,6 @@
     "message": "Für die Installation werden keine Administrator-Rechte benötigt. Das Installationsprogramm kann hier heruntergeladen werden:"
   },
   "download_instructions_linux": {
-    "message": "Ein generisches Installationsprogramm oder ein Paket für ihre GNU/Linux Distribution kann hier heruntergeladen werden:"
+    "message": "Für die Installation werden keine Root-Rechte benötigt. Das Installationsprogramm kann hier heruntergeladen werden:"
   }
 }
