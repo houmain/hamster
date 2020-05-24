@@ -19,7 +19,7 @@ npm list --global web-ext || npm install --global web-ext
 pacman -S --noconfirm --needed hub
 
 # install make dependencies for Linux build
-pacman -S --noconfirm --needed asio gtk3
+pacman -S --noconfirm --needed cmake asio gtk3
 aur-cache -i makeself
 
 # install make dependencies for Windows build
