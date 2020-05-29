@@ -29,7 +29,7 @@ async function handleHistoryChanged (item) {
     await browser.history.deleteUrl({ url: item.url })
     await browser.history.addUrl({ url: url })
   } else {
-    //DEBUG("URL added to history", item.url)
+    DEBUG("URL added to history", item.url)
   }
 }
 

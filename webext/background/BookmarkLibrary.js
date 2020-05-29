@@ -147,7 +147,7 @@ class BookmarkLibrary {
     verify(!this._recorderByBookmarkId[bookmarkId])
     verify(!this._recorderByTabId[initialTabId])
 
-    //DEBUG('start recording', url, 'in tab', initialTabId)
+    DEBUG('start recording', url, 'in tab', initialTabId)
     const bookmark = await Utils.getBookmarkById(bookmarkId)
     const recorder = {
       recorderId: this._nextRecorderId++,
@@ -194,7 +194,7 @@ class BookmarkLibrary {
       return this._startRecording(bookmarkId, url, tabId)
     }
 
-    //DEBUG('adding recorder', url, 'to tab', tabId)
+    DEBUG('adding recorder', url, 'to tab', tabId)
     verify(recorder.tabIds.indexOf(tabId) === -1)
     this._recorderByTabId[tabId] = recorder
     recorder.tabIds.push(tabId)
@@ -224,7 +224,7 @@ class BookmarkLibrary {
   }
 
   async _handleRecordingStarted (recorder, localUrl) {
-    //DEBUG('recording started', recorder.url.href, 'at', localUrl)
+    DEBUG('recording started', recorder.url.href, 'at', localUrl)
     await Utils.tryUpdateBookmarkUrl(recorder.bookmarkId, localUrl)
     await this._updateLibraryBookmarkList()
     recorder.localUrl = new URL(localUrl)
@@ -234,7 +234,7 @@ class BookmarkLibrary {
 
   async _handleRecordingRedirected (recorder, url) {
     verify(Utils.isHttpUrl(url), !Utils.isLocalUrl(url))
-    //DEBUG('recording redirected', recorder.url, 'to', url)
+    DEBUG('recording redirected', recorder.url, 'to', url)
     recorder.url = new URL(url)
     await this._updateRecentRecorders(recorder)
   }
@@ -253,7 +253,7 @@ class BookmarkLibrary {
   }
 
   async _updateRecentRecorders (recorder) {
-    //DEBUG('updating recent recorders', recorder.localUrl.origin, recorder.url.origin)
+    DEBUG('updating recent recorders', recorder.localUrl.origin, recorder.url.origin)
     this._recentRecorders.unshift({
       localOrigin: recorder.localUrl.origin,
       bookmarkUrl: recorder.bookmarkUrl,
@@ -277,7 +277,7 @@ class BookmarkLibrary {
   async _stopRecordingInTab (tabId) {
     const recorder = this._recorderByTabId[tabId]
     if (!recorder) {
-      //DEBUG('closing tab without recorder', tabId)
+      DEBUG('closing tab without recorder', tabId)
     }
     if (recorder) {
       delete this._recorderByTabId[tabId]
@@ -292,7 +292,7 @@ class BookmarkLibrary {
   async _stopRecording (bookmarkId) {
     const recorder = this._recorderByBookmarkId[bookmarkId]
     if (recorder && !recorder.finishing) {
-      //DEBUG('stop recording', recorder.url)
+      DEBUG('stop recording', recorder.url)
       recorder.finishing = true
 
       await Utils.tryUpdateBookmarkUrl(bookmarkId, recorder.bookmarkUrl)
@@ -307,7 +307,7 @@ class BookmarkLibrary {
   }
 
   async _handleRecordingFinished (recorder) {
-    //DEBUG('recording finished', recorder.url)
+    DEBUG('recording finished', recorder.url)
     delete this._recorderByBookmarkId[recorder.bookmarkId]
     for (const action of recorder.onFinished) {
       await action()
@@ -466,7 +466,7 @@ class BookmarkLibrary {
   async _handleBeforeRequest (details) {
     const { url, documentUrl, tabId, type } = details
     if (tabId < 0) {
-      //DEBUG('ignoring request not in a tab', url)
+      DEBUG('ignoring request not in a tab', url)
       return
     }
 
@@ -477,7 +477,7 @@ class BookmarkLibrary {
 
       if (Utils.isLocalUrl(url) && !bookmark && originalUrl !== url) {
         // restore original url of local url not belonging to a bookmark
-        //DEBUG('redirecting request', url, 'to', originalUrl)
+        DEBUG('redirecting request', url, 'to', originalUrl)
         return { redirectUrl: originalUrl }
       }
 
@@ -504,25 +504,25 @@ class BookmarkLibrary {
       if (recorder) {
         const patchedUrl = this._patchUrl(originalUrl, recorder)
         if (url !== patchedUrl) {
-          //DEBUG('redirecting request', url, 'to', patchedUrl)
+          DEBUG('redirecting request', url, 'to', patchedUrl)
           return { redirectUrl: patchedUrl }
         }
       }
-      //DEBUG('passing request to', url)
+      DEBUG('passing request to', url)
     }
     else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
       // redirect resources to recorder
       if (this._shouldBypass(url)) {
-        //DEBUG('bypassed', url)
+        DEBUG('bypassed', url)
         return
       }
 
       if (recorder.finishing) {
-        //DEBUG('cancelling resource request', url)
+        DEBUG('cancelling resource request', url)
         return { cancel: true }
       }
       const patchedUrl = this._patchUrl(url, recorder)
-      //DEBUG('redirecting resource request', url, 'to', patchedUrl)
+      DEBUG('redirecting resource request', url, 'to', patchedUrl)
       return { redirectUrl: patchedUrl }
     }
   }
