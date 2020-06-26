@@ -84,7 +84,7 @@ if(NOT WIN32)
     )
     link_libraries(stdc++fs dl)
 else()
-    add_compile_definitions(_WIN32_WINNT=0x0501 SQLITE_ENABLE_FTS5)
+    add_compile_definitions(_WIN32_WINNT=0x0501)
 
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_win.cpp
@@ -95,7 +95,7 @@ else()
     )
 endif()
 
-add_compile_definitions(RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
+add_compile_definitions(SQLITE_ENABLE_FTS5 RAPIDJSON_HAS_STDSTRING=1 UNICODE NOCRYPT)
 
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
