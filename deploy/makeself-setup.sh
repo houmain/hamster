@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 set -e -u
 
 if [ $# == 0 ]; then

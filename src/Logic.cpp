@@ -118,9 +118,9 @@ void Logic::start_recording(Response&, const Request& request) {
 
   create_directories_handle_symlinks(path.parent_path());
   auto arguments = std::vector<std::string>{
-    webrecorder_path().u8string(),
+    path_to_utf8(webrecorder_path()),
     "--url", '\"' + std::string(url) + '\"',
-    "--file", '\"' + path.filename().u8string() + '\"',
+    "--file", '\"' + path_to_utf8(path.filename()) + '\"',
     "--patch-base-tag",
   };
 
@@ -139,17 +139,17 @@ void Logic::start_recording(Response&, const Request& request) {
 
   if (!m_inject_script_file.empty())
     arguments.insert(end(arguments), {
-      "--inject-js-file", '\"' + m_inject_script_file.u8string() + '\"',
+      "--inject-js-file", '\"' + path_to_utf8(m_inject_script_file) + '\"',
     });
 
   if (!m_block_hosts_file.empty())
     arguments.insert(end(arguments), {
-      "--block-hosts-file", '\"' + m_block_hosts_file.u8string() + '\"',
+      "--block-hosts-file", '\"' + path_to_utf8(m_block_hosts_file) + '\"',
     });
 
   m_webrecorders.emplace(std::piecewise_construct,
     std::forward_as_tuple(id),
-    std::forward_as_tuple(std::move(arguments), path.parent_path().u8string()));
+    std::forward_as_tuple(std::move(arguments), path_to_utf8(path.parent_path())));
 }
 
 void Logic::stop_recording(Response&, const Request& request) {
@@ -191,7 +191,7 @@ void Logic::set_library_root(Response& response, const Request& request) {
   m_library_root = library_root;
 
   response.Key("path");
-  response.String(library_root.u8string());
+  response.String(path_to_utf8(library_root));
 }
 
 void Logic::browse_directories(Response& response, const Request& request) {

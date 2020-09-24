@@ -39,7 +39,7 @@ namespace {
 
 Database::Database(const std::filesystem::path& path)
   : m_db(new sqlite::Database()) {
-  m_db->open(path.u8string());
+  m_db->open(path_to_utf8(path));
   m_db->execute(R"(
     CREATE VIRTUAL TABLE IF NOT EXISTS pages USING fts5 (
       uid, url, title, text, text_low,

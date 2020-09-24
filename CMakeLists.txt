@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.12)
 project(hamster)
 
 option(BUILD_WEBRECORDER "Build webrecorder")
@@ -6,7 +6,8 @@ if(BUILD_WEBRECORDER)
     add_subdirectory(libs/webrecorder)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES ${SOURCES}
     src/main.cpp
