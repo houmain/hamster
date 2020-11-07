@@ -101,6 +101,11 @@ add_compile_definitions(SQLITE_ENABLE_FTS5 RAPIDJSON_HAS_STDSTRING=1 UNICODE NOC
 find_package(Threads REQUIRED)
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
 
+option(USE_ICONV "Use iconv for charset conversion" ON)
+if(USE_ICONV)
+    add_compile_definitions(USE_ICONV)
+endif()
+
 if(WIN32)
     add_definitions(-DNOC_FILE_DIALOG_WIN32)
 else()

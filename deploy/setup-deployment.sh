@@ -11,7 +11,7 @@ SigLevel = Optional TrustAll
 Server = http://martchus.no-ip.biz/repo/arch/\$repo/os/\$arch
 EOF
 fi
-pacman -Syyu
+pacman -Syyu --noconfirm
 
 # install make dependencies for extension
 pacman -S --noconfirm --needed npm
