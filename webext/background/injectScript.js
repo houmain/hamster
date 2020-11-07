@@ -89,7 +89,23 @@ function injectScript(document) {
     }
   }
 
+  function patchHistory () {
+    const pushState = history.pushState
+    history.pushState = function () {
+      let url = arguments[2]
+      if (url.startsWith("#"))
+        url = window.location + url
+      else if (url.startsWith("/"))
+        url = window.location.origin + url
+      else
+        url = url.split(__webrecorder.origin).join(window.location.origin)
+      arguments[2] = url
+      return pushState.apply(this, arguments)
+    }
+  }
+
   patchWindow(window)
+  patchHistory()
   patchSetCookie()
   patchDateNow()
   patchMathRandom()
