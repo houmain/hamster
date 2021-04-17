@@ -47,6 +47,9 @@
   "menu_file_listing": {
     "message": "File listing"
   },
+  "menu_copy_url": {
+    "message": "Copy URL to clipboard"
+  },
   "menu_options": {
     "message": "Options"
   },

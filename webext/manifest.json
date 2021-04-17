@@ -22,6 +22,7 @@
     "webRequestBlocking",
     "menus",
     "notifications",
+    "clipboardWrite",
     "<all_urls>"
   ],
   "icons": {

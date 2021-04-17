@@ -3,6 +3,7 @@
 const NATIVE_CLIENT_ID = 'hamster'
 const MENU_ROOT_ID = 'menu-root'
 const MENU_FILE_LISTING_ID = 'menu-file-listing'
+const MENU_COPY_URL_ID = 'menu-copy-url'
 const MENU_OPTIONS_SEPARATOR_ID = 'menu-options-separator'
 const MENU_OPTIONS_ID = 'menu-options'
 const DEFAULT_BYPASS_HOSTS_LIST =
@@ -125,18 +126,22 @@ function handleOmniBoxSelection (url, disposition) {
   }
 }
 
-async function handleFileListingMenuClicked (info) {
-  let bookmarkId = info.bookmarkId
+async function _getContextBookmarkId (info) {
   if (Utils.isHttpUrl(info.pageUrl)) {
-    const bookmark = await bookmarkLibrary.findBookmarkByUrl(info.pageUrl)
-    if (bookmark) {
-      bookmarkId = bookmark.id
-    }
+    return bookmarkLibrary.findBookmarkByUrl(info.pageUrl)
   }
-  if (bookmarkId) {
-    const url = browser.runtime.getURL('listing/listing.html?id=' + bookmarkId)
-    browser.tabs.create({ url })
-  }
+  return Utils.getBookmarkById(info.bookmarkId)
+}
+
+async function handleFileListingMenuClicked (info) {
+  const bookmark = await(_getContextBookmarkId(info))
+  const url = browser.runtime.getURL('listing/listing.html?id=' + bookmark.id)
+  browser.tabs.create({ url })
+}
+
+async function handleCopyUrlMenuClicked (info) {
+  const bookmark = await(_getContextBookmarkId(info))
+  navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(bookmark.url))
 }
 
 async function handleOptionsMenuClicked () {
@@ -156,6 +161,14 @@ function createMenus () {
     contexts: [ "bookmark", "tab" ],
     title: browser.i18n.getMessage("menu_file_listing"),
     onclick: handleFileListingMenuClicked
+  })
+
+  browser.menus.create({
+    id: MENU_COPY_URL_ID,
+    parentId: MENU_ROOT_ID,
+    contexts: [ "bookmark", "tab" ],
+    title: browser.i18n.getMessage("menu_copy_url"),
+    onclick: handleCopyUrlMenuClicked
   })
 
   browser.menus.create({

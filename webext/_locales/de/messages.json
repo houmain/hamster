@@ -47,6 +47,9 @@
   "menu_file_listing": {
     "message": "Dateien auflisten"
   },
+  "menu_copy_url": {
+    "message": "URL in Zwischenablage kopieren"
+  },
   "menu_options": {
     "message": "Einstellungen"
   },
