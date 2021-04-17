@@ -122,6 +122,7 @@ void Logic::start_recording(Response&, const Request& request) {
     "--url", '\"' + std::string(url) + '\"',
     "--file", '\"' + path_to_utf8(path.filename()) + '\"',
     "--patch-base-tag",
+    "--patch-title",
   };
 
   arguments.push_back("--refresh");

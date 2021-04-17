@@ -5,7 +5,7 @@ let bookmarkLibrary = undefined
 let restoreOptions = undefined
 
 function getDownloadLink (version) {
-  const base = 'https://github.com/houmaster/hamster/releases/download/'
+  const base = 'https://github.com/houmain/hamster/releases/download/'
   const extension = {
       'linux_x86-64': 'linux64.run',
       'win_x86-64': 'win64.msi',
