@@ -1,4 +1,5 @@
 'use strict'
+/* global Utils, DEBUG, NativeClient, Backend, BookmarkLibrary */
 
 const NATIVE_CLIENT_ID = 'hamster'
 const MENU_ROOT_ID = 'menu-root'
@@ -30,7 +31,7 @@ async function handleHistoryChanged (item) {
     await browser.history.deleteUrl({ url: item.url })
     await browser.history.addUrl({ url: url })
   } else {
-    DEBUG("URL added to history", item.url)
+    DEBUG('URL added to history', item.url)
   }
 }
 
@@ -58,8 +59,7 @@ async function initializeBookmarkRoot () {
       await Utils.getBookmarkById(rootId)
       return rootId
     }
-  }
-  catch (ex) {
+  } catch {
   }
   const rootId = await createDefaultBookmarkRoot()
   await Utils.setSetting('bookmark-root-id', rootId)
@@ -82,8 +82,7 @@ async function restoreOptions () {
       const rootId = await initializeBookmarkRoot()
       await bookmarkLibrary.setRootId(rootId)
     }
-  }
-  catch {
+  } catch {
   }
 }
 
@@ -93,7 +92,7 @@ function createSuggestions (response) {
     for (const match of response.matches) {
       suggestions.push({
         content: match.url,
-        description: match.snippet,
+        description: match.snippet
       })
     }
     return resolve(suggestions)
@@ -114,13 +113,13 @@ function handleOmniBoxSelection (url, disposition) {
     url = browser.runtime.getURL('search/search.html') + '?s=' + url
   }
   switch (disposition) {
-    case "currentTab":
+    case 'currentTab':
       browser.tabs.update({ url })
       break
-    case "newForegroundTab":
+    case 'newForegroundTab':
       browser.tabs.create({ url })
       break
-    case "newBackgroundTab":
+    case 'newBackgroundTab':
       browser.tabs.create({ url, active: false })
       break
   }
@@ -134,13 +133,13 @@ async function _getContextBookmarkId (info) {
 }
 
 async function handleFileListingMenuClicked (info) {
-  const bookmark = await(_getContextBookmarkId(info))
+  const bookmark = await _getContextBookmarkId(info)
   const url = browser.runtime.getURL('listing/listing.html?id=' + bookmark.id)
   browser.tabs.create({ url })
 }
 
 async function handleCopyUrlMenuClicked (info) {
-  const bookmark = await(_getContextBookmarkId(info))
+  const bookmark = await _getContextBookmarkId(info)
   navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(bookmark.url))
 }
 
@@ -151,48 +150,48 @@ async function handleOptionsMenuClicked () {
 function createMenus () {
   browser.menus.create({
     id: MENU_ROOT_ID,
-    contexts: [ "bookmark", "tab" ],
-    title: browser.i18n.getMessage("menu_root")
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_root')
   })
 
   browser.menus.create({
     id: MENU_FILE_LISTING_ID,
     parentId: MENU_ROOT_ID,
-    contexts: [ "bookmark", "tab" ],
-    title: browser.i18n.getMessage("menu_file_listing"),
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_file_listing'),
     onclick: handleFileListingMenuClicked
   })
 
   browser.menus.create({
     id: MENU_COPY_URL_ID,
     parentId: MENU_ROOT_ID,
-    contexts: [ "bookmark", "tab" ],
-    title: browser.i18n.getMessage("menu_copy_url"),
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_copy_url'),
     onclick: handleCopyUrlMenuClicked
   })
 
   browser.menus.create({
     id: MENU_OPTIONS_SEPARATOR_ID,
     parentId: MENU_ROOT_ID,
-    type: "separator",
-    contexts: [ "bookmark", "tab" ],
+    type: 'separator',
+    contexts: ['bookmark', 'tab']
   })
 
   browser.menus.create({
     id: MENU_OPTIONS_ID,
     parentId: MENU_ROOT_ID,
-    contexts: [ "bookmark", "tab" ],
-    title: browser.i18n.getMessage("menu_options"),
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_options'),
     onclick: handleOptionsMenuClicked
   })
   browser.menus.refresh()
 
   browser.menus.onShown.addListener(async (info) => {
     let bookmarkId = null
-    if (info.contexts.includes("bookmark")) {
+    if (info.contexts.includes('bookmark')) {
       bookmarkId = info.bookmarkId
     }
-    if (info.contexts.includes("tab")) {
+    if (info.contexts.includes('tab')) {
       if (Utils.isHttpUrl(info.pageUrl)) {
         const bookmark = await bookmarkLibrary.findBookmarkByUrl(info.pageUrl)
         if (bookmark) {
@@ -201,13 +200,12 @@ function createMenus () {
       }
     }
     if (bookmarkId) {
-      const isFolder = ((await Utils.getBookmarkById(bookmarkId)).type === "folder")
+      const isFolder = ((await Utils.getBookmarkById(bookmarkId)).type === 'folder')
       const { inLibrary } = await bookmarkLibrary.getBookmarkPath(bookmarkId)
       browser.menus.update(MENU_ROOT_ID, { visible: inLibrary })
       browser.menus.update(MENU_FILE_LISTING_ID, { visible: !isFolder })
       browser.menus.update(MENU_OPTIONS_SEPARATOR_ID, { visible: !isFolder })
-    }
-    else {
+    } else {
       browser.menus.update(MENU_ROOT_ID, { visible: false })
     }
     browser.menus.refresh()
@@ -223,10 +221,10 @@ function createMenus () {
   const errorMessage = (await backend.getVersion()).errorMessage
   if (errorMessage) {
     browser.notifications.create({
-      "type": "basic",
-      "iconUrl": browser.extension.getURL("icons/icon.svg"),
-      "title": browser.i18n.getMessage("notification_no_backend_title"),
-      "message": browser.i18n.getMessage(errorMessage)
+      type: 'basic',
+      iconUrl: browser.extension.getURL('icons/icon.svg'),
+      title: browser.i18n.getMessage('notification_no_backend_title'),
+      message: browser.i18n.getMessage(errorMessage)
     })
   }
 
@@ -235,7 +233,6 @@ function createMenus () {
   // TODO: bookmark context menus are only supported by Firefox
   try {
     createMenus()
-  }
-  catch {
+  } catch {
   }
 })()

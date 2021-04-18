@@ -1,17 +1,18 @@
 'use strict'
 
-let debugEnabled = false;
+const debugEnabled = false
 
 function DEBUG () {
-  if (debugEnabled)
+  if (debugEnabled) {
     console.log('DEBUG: ', ...arguments)
+  }
 }
 
 function verify () {
   for (let i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
       console.trace()
-      throw "verification failed"
+      throw 'verification failed'
     }
   }
 }
@@ -35,13 +36,11 @@ class Utils {
 
   static async getBookmarkBaseFolders () {
     for (const bookmarkId of [
-        'root________', // Firefox
-        '0',            // Chromium
-        ]) {
+      'root________', // Firefox
+      '0']) { // Chromium
       try {
         return await browser.bookmarks.getChildren(bookmarkId)
-      }
-      catch (e) {
+      } catch {
       }
     }
   }
@@ -51,29 +50,31 @@ class Utils {
     return (await browser.bookmarks.get(bookmarkId))[0]
   }
 
-  static getOrigin(url) {
+  static getOrigin (url) {
     verify(this.isHttpUrl(url))
     return new URL(url).origin
   }
 
-  static getPathQuery(url) {
+  static getPathQuery (url) {
     verify(this.isHttpUrl(url))
     url = new URL(url)
     return url.href.substring(url.origin.length)
   }
 
-  static getHostPathWithoutWWW(url) {
+  static getHostPathWithoutWWW (url) {
     verify(this.isHttpUrl(url))
     url = new URL(url)
-    return (url.host.startsWith('www.') ?
-      url.host.substring(4) : url.host) + url.pathname
+    return (url.host.startsWith('www.')
+      ? url.host.substring(4)
+      : url.host) + url.pathname
   }
 
-  static getHostnamePathWithoutWWW(url) {
+  static getHostnamePathWithoutWWW (url) {
     verify(this.isHttpUrl(url))
     url = new URL(url)
-    return (url.hostname.startsWith('www.') ?
-      url.hostname.substring(4) : url.hostname) + url.pathname
+    return (url.hostname.startsWith('www.')
+      ? url.hostname.substring(4)
+      : url.hostname) + url.pathname
   }
 
   static getUrlMatchPattern (url, urlFilters) {
@@ -88,7 +89,7 @@ class Utils {
     return browser.tabs.get(tabId)
   }
 
-  static async getActiveTab() {
+  static async getActiveTab () {
     return (await browser.tabs.query({
       active: true,
       currentWindow: true
@@ -103,7 +104,7 @@ class Utils {
     // also filter by port, which is ignored in query
     const origin = this.getOrigin(url)
     if (this.isLocalUrl(origin)) {
-      return tabs.filter(tab => { return tab.url.startsWith(origin) });
+      return tabs.filter(tab => { return tab.url.startsWith(origin) })
     }
     return tabs
   }
@@ -134,14 +135,16 @@ class Utils {
 
   static async setDefaultSetting (key, defaultValue) {
     const settings = await browser.storage.local.get(key)
-    if (!settings || typeof(settings[key]) === 'undefined')
+    if (!settings || typeof settings[key] === 'undefined') {
       return this.setSetting(key, defaultValue)
+    }
   }
 
   static async getSetting (key, defaultValue) {
     const settings = await browser.storage.local.get(key)
-    if (!settings || typeof(settings[key]) === 'undefined')
+    if (!settings || typeof settings[key] === 'undefined') {
       return defaultValue
+    }
     return settings[key]
   }
 
@@ -168,10 +171,10 @@ class Utils {
   }
 
   static getReadableFileSize (bytes) {
-    const units = ['bytes', 'KiB','MiB','GiB']
+    const units = ['bytes', 'KiB', 'MiB', 'GiB']
     for (let u = 0, count = bytes * 1.0; ; ++u, count /= 1024) {
-      if (count < 1024 || u == units.length - 1) {
-        return count.toFixed(u == 0 ? 0 : 1) + ' ' + units[u]
+      if (count < 1024 || u === units.length - 1) {
+        return count.toFixed(u === 0 ? 0 : 1) + ' ' + units[u]
       }
     }
   }

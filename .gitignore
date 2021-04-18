@@ -2,3 +2,4 @@
 /src/_*
 /deploy/_*
 /webext/web-ext-artifacts/*
+/webext/node_modules

@@ -1,7 +1,7 @@
+'use strict'
+/* global __webrecorder */
 
-function injectScript(document) {
-  'use strict'
-
+function injectScript (document) {
   function patchPostMessage (window) {
     const postMessage = window.postMessage
     window.postMessage = function () {
@@ -10,7 +10,7 @@ function injectScript(document) {
     }
   }
 
-  function patchWindow(window) {
+  function patchWindow (window) {
     for (let i = 0; i < window.frames.length; ++i) {
       patchWindow(window.frames[i])
     }
@@ -44,10 +44,7 @@ function injectScript(document) {
         for (const c of __webrecorder.cookies.split(';')) {
           set(c)
         }
-        for (const c of decodeURIComponent(cookie).split(';')) {
-          set(c)
-          break
-        }
+        set(decodeURIComponent(cookie).split(';')[0])
         const array = []
         Object.keys(map).forEach(
           function (key, index) { array.push(key + '=' + map[key]) })
@@ -61,19 +58,19 @@ function injectScript(document) {
   }
 
   function patchDateNow () {
-    const dateNow = Date.now
-    const date = Date
+    const Date = window.Date
 
     // for the first second keep returning a constant time
-    const startTime = dateNow() + 1000
+    const startTime = Date.now() + 1000
 
-    Date = function (time) { return new date(time || Date.now()) }
-    Date.prototype = date.prototype
-    Date.UTC = date.UTC
-    Date.parse = date.parse
-    Date.now = function () {
-      return __webrecorder.response_time * 1000 + Math.max(0, dateNow() - startTime)
+    const date = function (time) { return new Date(time || window.Date.now()) }
+    date.prototype = Date.prototype
+    date.UTC = Date.UTC
+    date.parse = Date.parse
+    date.now = function () {
+      return __webrecorder.response_time * 1000 + Math.max(0, Date.now() - startTime)
     }
+    window.Date = date
   }
 
   function patchMathRandom () {
@@ -90,15 +87,16 @@ function injectScript(document) {
   }
 
   function patchHistory () {
-    const pushState = history.pushState
-    history.pushState = function () {
+    const pushState = window.history.pushState
+    window.history.pushState = function () {
       let url = arguments[2]
-      if (url.startsWith("#"))
+      if (url.startsWith('#')) {
         url = window.location + url
-      else if (url.startsWith("/"))
+      } else if (url.startsWith('/')) {
         url = window.location.origin + url
-      else
+      } else {
         url = url.split(__webrecorder.origin).join(window.location.origin)
+      }
       arguments[2] = url
       return pushState.apply(this, arguments)
     }
@@ -110,4 +108,3 @@ function injectScript(document) {
   patchDateNow()
   patchMathRandom()
 }
-

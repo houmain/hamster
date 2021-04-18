@@ -1,7 +1,7 @@
 'use strict'
+/* global Utils, verify, DEBUG, injectScript */
 
 class BookmarkLibrary {
-
   constructor (backend) {
     this._backend = backend
     this._rootId = null
@@ -19,15 +19,15 @@ class BookmarkLibrary {
     browser.tabs.onRemoved.addListener((id) => this._stopRecordingInTab(id))
     browser.webRequest.onBeforeRequest.addListener(
       async (details) => this._handleBeforeRequest(details),
-      { urls: [ 'http://*/*', 'https://*/*' ] }, [ 'blocking' ])
+      { urls: ['http://*/*', 'https://*/*'] }, ['blocking'])
   }
 
   async setRootId (rootId) {
     verify(rootId)
-    if (this._rootId != rootId) {
+    if (this._rootId !== rootId) {
       this._rootId = rootId
       await this._restoreRecentRecorders()
-      await backend.injectScript(`(${injectScript})(document)`)
+      await this._backend.injectScript(`(${injectScript})(document)`)
       return this._updateLibraryBookmarkList()
     }
   }
@@ -42,9 +42,9 @@ class BookmarkLibrary {
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0 && line.indexOf(';') !== 0)
-      .forEach(host => hosts[host] = true)
+      .forEach(host => { hosts[host] = true })
     this._bypassHosts = hosts
-    return backend.setBlockHostsList(hostList)
+    return this._backend.setBlockHostsList(hostList)
   }
 
   getOriginalUrl (url) {
@@ -81,7 +81,7 @@ class BookmarkLibrary {
   addRecordingEventHandler (bookmarkId, handler) {
     const recorder = this._recorderByBookmarkId[bookmarkId]
     if (recorder) {
-      for (let event of recorder.events) {
+      for (const event of recorder.events) {
         handler(event)
       }
       recorder.onEvent.push(handler)
@@ -109,7 +109,7 @@ class BookmarkLibrary {
     if (!this._rootId) {
       return []
     }
-    let bookmarks = []
+    const bookmarks = []
     const rec = function (bookmark) {
       for (const child of bookmark.children) {
         if (child.type === 'folder') {
@@ -157,7 +157,7 @@ class BookmarkLibrary {
       localOrigin: null,
       localHost: null,
       localHostname: null,
-      tabIds: [ initialTabId ],
+      tabIds: [initialTabId],
       finishing: false,
       events: [],
       onFinished: [],
@@ -210,13 +210,12 @@ class BookmarkLibrary {
       await this._handleRecordingRedirected(recorder, event.substring(9))
     } else {
       recorder.events.push(event)
-      for (let i = 0; i < recorder.onEvent.length; ) {
+      for (let i = 0; i < recorder.onEvent.length;) {
         try {
           const handler = recorder.onEvent[i]
           await handler(event)
           ++i
-        }
-        catch {
+        } catch {
           recorder.onEvent.splice(i, 1)
         }
       }
@@ -359,7 +358,7 @@ class BookmarkLibrary {
   }
 
   async _reloadTabs (bookmarkId, excludeTabId) {
-    for (let tab of await this._findTabsByBookmarkId(bookmarkId)) {
+    for (const tab of await this._findTabsByBookmarkId(bookmarkId)) {
       if (tab.id !== excludeTabId) {
         Utils.tryReloadTab(tab.id)
       }
@@ -429,7 +428,7 @@ class BookmarkLibrary {
   _patchUrl (url, recorder) {
     verify(recorder, recorder.localUrl)
     if (!Utils.isHttpUrl(url) || Utils.isLocalUrl(url)) {
-      return url;
+      return url
     }
 
     // replace [http://]127.0.0.1[:port] in the middle
@@ -443,7 +442,7 @@ class BookmarkLibrary {
     }
 
     // convert to local url
-    if (Utils.getOrigin(url) == recorder.url.origin) {
+    if (Utils.getOrigin(url) === recorder.url.origin) {
       return recorder.localUrl.origin + Utils.getPathQuery(url)
     }
     return recorder.localUrl.origin + '/' + url
@@ -509,8 +508,7 @@ class BookmarkLibrary {
         }
       }
       DEBUG('passing request to', url)
-    }
-    else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
+    } else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
       // redirect resources to recorder
       if (this._shouldBypass(url)) {
         DEBUG('bypassed', url)

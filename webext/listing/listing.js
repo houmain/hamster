@@ -1,9 +1,10 @@
 'use strict'
+/* global Utils, VanillaTree */
 
-let backend = undefined
-let bookmarkLibrary = undefined
-let filesTree = undefined
-let addedUrls = { }
+let backend
+let bookmarkLibrary
+let filesTree
+const addedUrls = { }
 
 function initializeTree () {
   const files = document.getElementById('files')
@@ -15,7 +16,7 @@ function initializeTree () {
     if (id && event.target.tagName === 'A') {
       filesTree.toggle(id)
     }
-  });
+  })
 }
 
 function splitParentBasePath (url) {
@@ -50,10 +51,10 @@ function addTreeNode (url, isLeaf, size, status) {
     if (size || status) {
       const node = filesTree.getLeaf(url)
       if (size) {
-        node.querySelector(".size").textContent = Utils.getReadableFileSize(size)
+        node.querySelector('.size').textContent = Utils.getReadableFileSize(size)
       }
       if (status) {
-        node.querySelector(".status").textContent += status + ', '
+        node.querySelector('.status').textContent += status + ', '
       }
     }
     return
@@ -68,7 +69,7 @@ function addTreeNode (url, isLeaf, size, status) {
   filesTree.add({
     label: base + '<div class="info info' + level + '">' +
       '<span class="size">' + (size ? Utils.getReadableFileSize(size) : '') + '</span>' +
-      '<span class="status">' + (status ? status : '') + '</span>' +
+      '<span class="status">' + (status || '') + '</span>' +
       '</div>',
     id: url,
     parent: parent,
@@ -78,13 +79,13 @@ function addTreeNode (url, isLeaf, size, status) {
 }
 
 function handleRecordingEvent (event) {
-  const { type, status, size, url } = function () {
+  const { type, status, size, url } = (function () {
     const p = event.split(' ')
     if (p[0] === 'DOWNLOAD_FINISHED') {
       return { type: p[0], status: p[1], size: p[2], url: p[3] }
     }
     return { type: p[0], url: p[1] }
-  }()
+  })()
   if (type === 'FINISHED') {
     return
   }
@@ -107,7 +108,7 @@ async function requestListing () {
   initializeTree()
 
   if (response.files) {
-    for (let file of response.files) {
+    for (const file of response.files) {
       addTreeNode(file.url, true, file.compressedSize)
     }
   }

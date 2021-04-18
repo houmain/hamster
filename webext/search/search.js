@@ -1,7 +1,6 @@
 'use strict'
 
-let backend = undefined
-let bookmarkLibrary = undefined
+let backend
 
 async function executeSearch () {
   const urlParams = new URLSearchParams(window.location.search)
@@ -36,7 +35,7 @@ async function executeSearch () {
       result.appendChild(urlDiv)
 
       const snippetDiv = document.createElement('div')
-      for (let pos = 0;;) {
+      for (let pos = 0; ;) {
         const begin = match.snippet.indexOf('<b>', pos)
         if (begin >= 0) {
           const end = match.snippet.indexOf('</b>', begin + 3)
@@ -71,7 +70,6 @@ async function executeSearch () {
 
 browser.runtime.getBackgroundPage().then(background => {
   backend = background.getBackend()
-  bookmarkLibrary = background.getBookmarkLibrary()
 
   document.addEventListener('DOMContentLoaded', executeSearch)
 })

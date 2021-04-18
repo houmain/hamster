@@ -1,14 +1,14 @@
 'use strict'
+/* global Utils */
 
 class Backend {
-
   constructor (nativeClient) {
     this._filesystemRoot = undefined
     this._nativeClient = nativeClient
   }
 
   async getRequiredVersion () {
-    const minorVersionRegex = /\d+\.\d+/;
+    const minorVersionRegex = /\d+\.\d+/
     const manifest = await browser.runtime.getManifest()
     return minorVersionRegex.exec(manifest.version)[0]
   }
@@ -16,7 +16,7 @@ class Backend {
   async getCurrentVersion () {
     try {
       const request = {
-        action: 'getStatus',
+        action: 'getStatus'
       }
       const response = await this._nativeClient.sendRequest(request)
       if (response && response.status && response.status.version) {
@@ -44,10 +44,11 @@ class Backend {
     }
     if (!supported || requiredVersion !== currentVersion) {
       result.valid = false
-      result.errorMessage =
-        (!supported ? "notification_unsupported_system" :
-          !currentVersion ? "notification_no_backend" :
-          "notification_wrong_backend_version")
+      result.errorMessage = (!supported
+        ? 'notification_unsupported_system'
+        : !currentVersion
+            ? 'notification_no_backend'
+            : 'notification_wrong_backend_version')
     }
     return result
   }
@@ -81,7 +82,7 @@ class Backend {
       path: path,
       refresh: refreshMode,
       allowLossyCompression: allowLossyCompression,
-      deterministic: true,
+      deterministic: true
     }
     await this._nativeClient.sendRequest(request)
     this._pollRecordingOutput(recorderId, handleOutput)
@@ -189,7 +190,7 @@ class Backend {
   async setBlockHostsList (hosts) {
     const request = {
       action: 'setBlockHostsList',
-      hosts: hosts,
+      hosts: hosts
     }
     return this._nativeClient.sendRequest(request)
   }
@@ -204,9 +205,8 @@ class Backend {
       for (const event of response.events) {
         try {
           await handleOutput(event)
-        }
-        catch (e) {
-          console.error('unhandled exception in output handling:', e.message)
+        } catch (ex) {
+          console.error('unhandled exception in output handling:', ex.message)
         }
       }
       setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 250)

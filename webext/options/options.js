@@ -1,14 +1,15 @@
 'use strict'
+/* global browser, Utils */
 
-let backend = undefined
-let bookmarkLibrary = undefined
-let restoreOptions = undefined
+let backend
+let bookmarkLibrary
+let restoreOptions
 
 function getDownloadLink (version) {
   const base = 'https://github.com/houmain/hamster/releases/download/'
   const extension = {
-      'linux_x86-64': 'linux64.run',
-      'win_x86-64': 'win64.msi',
+    'linux_x86-64': 'linux64.run',
+    'win_x86-64': 'win64.msi'
   }[`${version.os}_${version.arch}`]
   return base + `${version.requiredVersion}.0/bookmark-hamster-${version.requiredVersion}-${extension}`
 }
@@ -55,13 +56,11 @@ async function updateControls () {
 
     const filesystemRoot = document.getElementById('filesystem-root')
     filesystemRoot.value = backend.filesystemRoot
-  }
-  else {
+  } else {
     Utils.localize('notification-message', 'textContent', version.errorMessage)
     if (version.supported) {
       Utils.localize('download-instructions', 'textContent', 'download_instructions_' + version.os)
-    }
-    else {
+    } else {
       document.getElementById('download-instructions').textContent =
         `os='${version.os}' arch='${version.arch}'`
     }
@@ -89,23 +88,23 @@ async function browseFilesystemRoot () {
   }
 }
 
-async function updateRefreshMode() {
+async function updateRefreshMode () {
   const value = document.getElementById('default-refresh-mode').value
   return Utils.setSetting('default-refresh-mode', value)
 }
 
-async function updateAllowLossyCompression(e) {
+async function updateAllowLossyCompression (e) {
   const checked = document.getElementById('allow-lossy-compression').checked
   return Utils.setSetting('allow-lossy-compression', checked)
 }
 
-async function updateBypassUrls(e) {
+async function updateBypassUrls (e) {
   const hostList = document.getElementById('bypass-hosts').value
   await Utils.setSetting('bypass-hosts', hostList)
   await bookmarkLibrary.setBypassHosts(hostList)
 }
 
-async function initialize() {
+async function initialize () {
   const background = await browser.runtime.getBackgroundPage()
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
