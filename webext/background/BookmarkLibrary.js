@@ -11,12 +11,13 @@ class BookmarkLibrary {
     this._nextRecorderId = 1
     this._libraryBookmarkTitles = { }
     this._bypassHosts = { }
+    this._temporarilyBypassedBookmarkIds = []
 
     browser.bookmarks.onCreated.addListener((id, info) => this._handleBookmarkCreated(id, info))
     browser.bookmarks.onChanged.addListener((id, info) => this._handleBookmarkChanged(id, info))
     browser.bookmarks.onRemoved.addListener((id, info) => this._handleBookmarkRemoved(id, info))
     browser.bookmarks.onMoved.addListener((id, info) => this._handleBookmarkMoved(id, info))
-    browser.tabs.onRemoved.addListener((id) => this._stopRecordingInTab(id))
+    browser.tabs.onRemoved.addListener((id) => this._handleTabRemoved(id))
     browser.webRequest.onBeforeRequest.addListener(
       async (details) => this._handleBeforeRequest(details),
       { urls: ['http://*/*', 'https://*/*'] }, ['blocking'])
@@ -45,6 +46,15 @@ class BookmarkLibrary {
       .forEach(host => { hosts[host] = true })
     this._bypassHosts = hosts
     return this._backend.setBlockHostsList(hostList)
+  }
+
+  temporarilyBypassBookmark (bookmarkId) {
+    this._temporarilyBypassedBookmarkIds.push(bookmarkId)
+    if (this._recorderByBookmarkId[bookmarkId]) {
+      this._stopRecording(bookmarkId)
+      return false
+    }
+    return true
   }
 
   getOriginalUrl (url) {
@@ -99,8 +109,20 @@ class BookmarkLibrary {
     }
     for (const bookmark of await this._getBookmarks()) {
       if (Utils.isHttpUrl(bookmark.url) &&
-          url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url))) {
+          url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url)) &&
+          this._temporarilyBypassedBookmarkIds.indexOf(bookmark.id) === -1) {
         return bookmark
+      }
+    }
+  }
+
+  async _purgeTemporarilyBypassedBookmarks () {
+    for (let i = 0; i < this._temporarilyBypassedBookmarkIds.length;) {
+      const tabs = await this._findTabsByBookmarkId(this._temporarilyBypassedBookmarkIds[i])
+      if (tabs.length > 0) {
+        ++i
+      } else {
+        this._temporarilyBypassedBookmarkIds.splice(i, 1)
       }
     }
   }
@@ -305,6 +327,11 @@ class BookmarkLibrary {
     }
   }
 
+  async _handleTabRemoved (id) {
+    await this._stopRecordingInTab(id)
+    this._purgeTemporarilyBypassedBookmarks()
+  }
+
   async _handleRecordingFinished (recorder) {
     DEBUG('recording finished', recorder.url)
     delete this._recorderByBookmarkId[recorder.bookmarkId]
@@ -448,7 +475,7 @@ class BookmarkLibrary {
     return recorder.localUrl.origin + '/' + url
   }
 
-  _shouldBypass (url) {
+  _shouldBypassHost (url) {
     let host = new URL(url).host
     for (;;) {
       if (this._bypassHosts[host]) {
@@ -510,7 +537,7 @@ class BookmarkLibrary {
       DEBUG('passing request to', url)
     } else if (Utils.isLocalUrl(documentUrl) && !Utils.isLocalUrl(url) && recorder) {
       // redirect resources to recorder
-      if (this._shouldBypass(url)) {
+      if (this._shouldBypassHost(url)) {
         DEBUG('bypassed', url)
         return
       }
@@ -522,6 +549,8 @@ class BookmarkLibrary {
       const patchedUrl = this._patchUrl(url, recorder)
       DEBUG('redirecting resource request', url, 'to', patchedUrl)
       return { redirectUrl: patchedUrl }
+    } else {
+      DEBUG('ignored', url)
     }
   }
 }

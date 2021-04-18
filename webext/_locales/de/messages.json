@@ -50,6 +50,9 @@
   "menu_copy_url": {
     "message": "URL in Zwischenablage kopieren"
   },
+  "menu_open_original": {
+    "message": "Original öffnen"
+  },
   "menu_options": {
     "message": "Einstellungen"
   },

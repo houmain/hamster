@@ -50,6 +50,9 @@
   "menu_copy_url": {
     "message": "Copy URL to clipboard"
   },
+  "menu_open_original": {
+    "message": "Open original"
+  },
   "menu_options": {
     "message": "Options"
   },

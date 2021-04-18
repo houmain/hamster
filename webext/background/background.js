@@ -5,6 +5,7 @@ const NATIVE_CLIENT_ID = 'hamster'
 const MENU_ROOT_ID = 'menu-root'
 const MENU_FILE_LISTING_ID = 'menu-file-listing'
 const MENU_COPY_URL_ID = 'menu-copy-url'
+const MENU_OPEN_ORIGINAL_ID = 'menu-open-original'
 const MENU_OPTIONS_SEPARATOR_ID = 'menu-options-separator'
 const MENU_OPTIONS_ID = 'menu-options'
 const DEFAULT_BYPASS_HOSTS_LIST =
@@ -143,6 +144,13 @@ async function handleCopyUrlMenuClicked (info) {
   navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(bookmark.url))
 }
 
+async function handleOpenOriginalMenuClicked (info) {
+  const bookmark = await _getContextBookmarkId(info)
+  if (bookmarkLibrary.temporarilyBypassBookmark(bookmark.id)) {
+    browser.tabs.create({ url: bookmark.url })
+  }
+}
+
 async function handleOptionsMenuClicked () {
   browser.runtime.openOptionsPage()
 }
@@ -155,11 +163,11 @@ function createMenus () {
   })
 
   browser.menus.create({
-    id: MENU_FILE_LISTING_ID,
+    id: MENU_OPEN_ORIGINAL_ID,
     parentId: MENU_ROOT_ID,
     contexts: ['bookmark', 'tab'],
-    title: browser.i18n.getMessage('menu_file_listing'),
-    onclick: handleFileListingMenuClicked
+    title: browser.i18n.getMessage('menu_open_original'),
+    onclick: handleOpenOriginalMenuClicked
   })
 
   browser.menus.create({
@@ -168,6 +176,14 @@ function createMenus () {
     contexts: ['bookmark', 'tab'],
     title: browser.i18n.getMessage('menu_copy_url'),
     onclick: handleCopyUrlMenuClicked
+  })
+
+  browser.menus.create({
+    id: MENU_FILE_LISTING_ID,
+    parentId: MENU_ROOT_ID,
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_file_listing'),
+    onclick: handleFileListingMenuClicked
   })
 
   browser.menus.create({
@@ -203,6 +219,8 @@ function createMenus () {
       const isFolder = ((await Utils.getBookmarkById(bookmarkId)).type === 'folder')
       const { inLibrary } = await bookmarkLibrary.getBookmarkPath(bookmarkId)
       browser.menus.update(MENU_ROOT_ID, { visible: inLibrary })
+      browser.menus.update(MENU_OPEN_ORIGINAL_ID, { visible: !isFolder })
+      browser.menus.update(MENU_COPY_URL_ID, { visible: !isFolder })
       browser.menus.update(MENU_FILE_LISTING_ID, { visible: !isFolder })
       browser.menus.update(MENU_OPTIONS_SEPARATOR_ID, { visible: !isFolder })
     } else {
