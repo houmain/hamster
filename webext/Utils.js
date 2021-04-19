@@ -111,8 +111,8 @@ class Utils {
 
   static async tryReloadTab (tabId) {
     try {
-      DEBUG('reloading tab', (await browser.tabs.get(tabId)).url)
-      await browser.tabs.reload(tabId)
+      DEBUG('reloading tab', tabId, (await browser.tabs.get(tabId)).url)
+      return browser.tabs.reload(tabId)
     } catch {
       // tab already closed
     }
@@ -121,7 +121,7 @@ class Utils {
   static async tryUpdateBookmarkUrl (bookmarkId, url) {
     try {
       DEBUG('updating bookmark url', (await Utils.getBookmarkById(bookmarkId)).url, 'to', url)
-      await browser.bookmarks.update(bookmarkId, { url: url })
+      return browser.bookmarks.update(bookmarkId, { url: url })
     } catch {
       // bookmark deleted
     }

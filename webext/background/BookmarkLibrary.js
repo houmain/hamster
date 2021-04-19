@@ -164,13 +164,14 @@ class BookmarkLibrary {
   }
 
   async _startRecording (bookmarkId, url, initialTabId) {
+    const bookmark = await Utils.getBookmarkById(bookmarkId)
+
     verify(bookmarkId, initialTabId)
     verify(Utils.isHttpUrl(url), !Utils.isLocalUrl(url))
     verify(!this._recorderByBookmarkId[bookmarkId])
     verify(!this._recorderByTabId[initialTabId])
 
     DEBUG('start recording', url, 'in tab', initialTabId)
-    const bookmark = await Utils.getBookmarkById(bookmarkId)
     const recorder = {
       recorderId: this._nextRecorderId++,
       url: new URL(url),
@@ -387,7 +388,7 @@ class BookmarkLibrary {
   async _reloadTabs (bookmarkId, excludeTabId) {
     for (const tab of await this._findTabsByBookmarkId(bookmarkId)) {
       if (tab.id !== excludeTabId) {
-        Utils.tryReloadTab(tab.id)
+        await Utils.tryReloadTab(tab.id)
       }
     }
   }
