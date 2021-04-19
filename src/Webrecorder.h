@@ -21,7 +21,7 @@ private:
   void handle_output(const char* data, size_t size);
   void handle_finished();
 
-  TinyProcessLib::Process m_process;
+  std::optional<TinyProcessLib::Process> m_process;
   std::thread m_thread;
   mutable std::mutex m_output_mutex;
   std::condition_variable m_output_signal;

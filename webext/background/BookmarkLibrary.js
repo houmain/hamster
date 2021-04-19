@@ -225,6 +225,7 @@ class BookmarkLibrary {
   }
 
   async _handleRecordingOutput (recorder, event) {
+    DEBUG('webrecorder', event)
     if (!event) {
       await this._handleRecordingFinished(recorder)
     } else if (event.startsWith('ACCEPT ')) {

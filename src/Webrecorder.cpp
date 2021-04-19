@@ -40,18 +40,22 @@ namespace {
 
 Webrecorder::Webrecorder(
     const std::vector<std::string>& arguments,
-    const std::string& working_directory)
-  : m_process(utf8_to_native(arguments), utf8_to_native(working_directory),
-      std::bind(&Webrecorder::handle_output, this, _1, _2)) {
+    const std::string& working_directory) {
 
-  if (!m_process.get_id())
+  const auto message = std::string_view("STARTING\n");
+  m_output_buffer.insert(end(m_output_buffer), message.begin(), message.end());
+
+  m_process.emplace(utf8_to_native(arguments), utf8_to_native(working_directory),
+      std::bind(&Webrecorder::handle_output, this, _1, _2));
+  if (!m_process->get_id())
     throw std::runtime_error("starting webrecorder process failed");
 
   m_thread = std::thread(&Webrecorder::thread_func, this);
 
   // wait for first output, so first poll receives it, to optimize latency
   auto lock = std::unique_lock(m_output_mutex);
-  m_output_signal.wait_for(lock, std::chrono::milliseconds(500),
+  m_output_signal.wait_for(lock,
+    std::chrono::milliseconds(500),
     [&]() { return !m_output_buffer.empty(); });
 }
 
@@ -64,11 +68,11 @@ void Webrecorder::stop() {
 #if defined(_WIN32)
   // almost too easy
   TinyProcessLib::Process ctrl_c_process(
-    utf8_to_native("ctrl_c " + std::to_string(m_process.get_id())));
+    utf8_to_native("ctrl_c " + std::to_string(m_process->get_id())));
   if (ctrl_c_process.get_exit_status())
-    m_process.kill();
+    m_process->kill();
 #else
-  m_process.kill();
+  m_process->kill();
 #endif
 }
 
@@ -98,7 +102,7 @@ bool Webrecorder::finished() const {
 }
 
 void Webrecorder::thread_func() noexcept {
-  m_process.get_exit_status();
+  m_process->get_exit_status();
   handle_finished();
 }
 
