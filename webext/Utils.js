@@ -8,6 +8,26 @@ function DEBUG () {
   }
 }
 
+function DEBUG_LOG_ASYNC_CALLS (object) {
+  if (debugEnabled) {
+    for (const name of Object.getOwnPropertyNames(object)) {
+      const call = object[name]
+      if (typeof call === 'function' &&
+          call.constructor.name === 'AsyncFunction') {
+        object[name] = async function () {
+          const begin = new Date().getTime()
+          const result = await call.apply(this, arguments)
+          const end = new Date().getTime()
+          if (end - begin > 50) {
+            console.warn(`calling ${name} took ${end - begin}ms`)
+          }
+          return result
+        }
+      }
+    }
+  }
+}
+
 function verify () {
   for (let i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
@@ -179,3 +199,5 @@ class Utils {
     }
   }
 }
+
+DEBUG_LOG_ASYNC_CALLS(Utils)

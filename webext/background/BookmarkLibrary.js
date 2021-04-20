@@ -1,5 +1,5 @@
 'use strict'
-/* global Utils, verify, DEBUG, injectScript */
+/* global Utils, verify, DEBUG, DEBUG_LOG_ASYNC_CALLS, injectScript */
 
 class BookmarkLibrary {
   constructor (backend) {
@@ -556,3 +556,5 @@ class BookmarkLibrary {
     }
   }
 }
+
+DEBUG_LOG_ASYNC_CALLS(BookmarkLibrary.prototype)

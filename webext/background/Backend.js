@@ -1,5 +1,5 @@
 'use strict'
-/* global Utils */
+/* global Utils, DEBUG_LOG_ASYNC_CALLS */
 
 class Backend {
   constructor (nativeClient) {
@@ -20,11 +20,10 @@ class Backend {
       }
       const response = await this._nativeClient.sendRequest(request)
       if (response && response.status && response.status.version) {
-        const minorVersionRegex = /\d+\.\d+/;
+        const minorVersionRegex = /\d+\.\d+/
         return minorVersionRegex.exec(response.status.version)[0]
       }
-    }
-    catch {
+    } catch {
     }
   }
 
@@ -209,9 +208,11 @@ class Backend {
           console.error('unhandled exception in output handling:', ex.message)
         }
       }
-      setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 250)
+      setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 50)
     } else {
       await handleOutput()
     }
   }
 }
+
+DEBUG_LOG_ASYNC_CALLS(Backend.prototype)
