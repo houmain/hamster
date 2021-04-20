@@ -199,8 +199,12 @@ class Backend {
       action: 'getRecordingOutput',
       id: recorderId
     }
-    const response = await this._nativeClient.sendRequest(request)
-    if (response.events) {
+    for (;;) {
+      const response = await this._nativeClient.sendRequest(request)
+      if (!response.events) {
+        await handleOutput()
+        break
+      }
       for (const event of response.events) {
         try {
           await handleOutput(event)
@@ -208,9 +212,7 @@ class Backend {
           console.error('unhandled exception in output handling:', ex.message)
         }
       }
-      setTimeout(() => this._pollRecordingOutput(recorderId, handleOutput), 50)
-    } else {
-      await handleOutput()
+      await Utils.sleep(250)
     }
   }
 }

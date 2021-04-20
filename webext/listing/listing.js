@@ -86,7 +86,7 @@ function handleRecordingEvent (event) {
     }
     return { type: p[0], url: p[1] }
   })()
-  if (type === 'FINISHED') {
+  if (type === 'STARTING' || type === 'FINISHED') {
     return
   }
   addTreeNode(url, true, size, type)
