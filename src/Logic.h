@@ -8,6 +8,7 @@
 using Response = json::Writer;
 using Request = json::Document;
 class Database;
+class BackgroundWorker;
 
 class Logic {
 public:
@@ -34,6 +35,7 @@ private:
   void set_block_hosts_list(Response&, const Request& request);
   void get_file_size(Response& response, const Request& request);
   void get_file_listing(Response& response, const Request& request);
+  BackgroundWorker& background_worker();
   Database& database();
   void update_search_index(Response&, const Request& request);
   void execute_search(Response& response, const Request& request);
@@ -44,4 +46,5 @@ private:
   std::filesystem::path m_block_hosts_file;
   std::filesystem::path m_library_root;
   std::map<int, Webrecorder> m_webrecorders;
+  std::unique_ptr<BackgroundWorker> m_background_worker;
 };

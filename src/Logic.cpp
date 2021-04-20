@@ -1,9 +1,10 @@
 
 #include "Logic.h"
 #include "Database.h"
-#include "common.h"
+#include "BackgroundWorker.h"
 #include "platform.h"
 #include "Indexing.h"
+#include "common.h"
 #include <random>
 #include <fstream>
 #include <sstream>
@@ -259,6 +260,12 @@ void Logic::get_file_listing(Response& response, const Request& request) {
   }
 }
 
+BackgroundWorker& Logic::background_worker() {
+  if (!m_background_worker)
+    m_background_worker = std::make_unique<BackgroundWorker>();
+  return *m_background_worker;
+}
+
 Database& Logic::database() {
   if (m_library_root.empty())
     throw std::runtime_error("library root not set");
@@ -269,7 +276,7 @@ Database& Logic::database() {
 
 void Logic::update_search_index(Response&, const Request& request) {
   const auto path = to_full_path(json::get_string_list(request, "path"));
-  database().update_index(path);
+  background_worker().execute(std::bind(&Database::update_index, &database(), path));
 }
 
 void Logic::execute_search(Response& response, const Request& request) {

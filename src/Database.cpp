@@ -52,15 +52,20 @@ Database::Database(const std::filesystem::path& path)
 Database::~Database() = default;
 
 void Database::update_index(const std::filesystem::path& filename) {
-  auto clear = m_db->prepare(R"(
-    DELETE FROM pages WHERE uid = ?
-  )");
-  auto insert = m_db->prepare(R"(
-    INSERT INTO pages
-      (uid, url, title, text, text_low)
-    VALUES
-      (?, ?, ?, ?, ?)
-  )");
+  auto clear = sqlite::Statement();
+  auto insert = sqlite::Statement();
+  {
+    auto lock = std::lock_guard(m_db_mutex);
+    clear = m_db->prepare(R"(
+      DELETE FROM pages WHERE uid = ?
+    )");
+    insert = m_db->prepare(R"(
+      INSERT INTO pages
+        (uid, url, title, text, text_low)
+      VALUES
+        (?, ?, ?, ?, ?)
+    )");
+  }
 
   const auto uid = get_archive_uid(filename);
 
@@ -68,6 +73,7 @@ void Database::update_index(const std::filesystem::path& filename) {
   for_each_archive_html(filename,
     [&](ArchiveHtml html) {
       if (!std::exchange(deleted, true)) {
+        auto lock = std::lock_guard(m_db_mutex);
         clear.bind(0, uid);
         clear.execute();
       }
@@ -90,6 +96,7 @@ void Database::update_index(const std::filesystem::path& filename) {
           }
         });
       if (!title.empty() && (!text.empty() || !text_low.empty())) {
+        auto lock = std::lock_guard(m_db_mutex);
         insert.bind(0, uid);
         insert.bind(1, html.url);
         insert.bind(2, normalize_space(decode_html_entities(std::string(title))));
@@ -103,6 +110,7 @@ void Database::update_index(const std::filesystem::path& filename) {
 void Database::execute_search(std::string_view query,
     bool highlight, int snippet_size, int max_count,
     const std::function<void(SearchResult)>& match_callback) {
+  auto lock = std::lock_guard(m_db_mutex);
 
   auto added = std::unordered_set<std::string_view>();
   for (auto [column_index, column_name] : {
@@ -128,6 +136,7 @@ void Database::execute_search(std::string_view query,
       snippet_size,
       column_name,
       max_count);
+
     auto select = m_db->prepare(buffer.data());
     select.bind(0, query);
     auto result = select.query();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <filesystem>
 #include <functional>
 
@@ -24,5 +25,6 @@ public:
     const std::function<void(SearchResult)>& match_callback);
 
 private:
+  std::mutex m_db_mutex;
   std::unique_ptr<sqlite::Database> m_db;
 };
