@@ -22,6 +22,9 @@ pacman -S --noconfirm --needed hub
 pacman -S --noconfirm --needed cmake asio gtk3
 aur-cache -i makeself
 
+# install make dependencies for Linux ARM64 build
+aur-cache -i aarch64-linux-gnu-pkg-config aarch64-linux-gnu-environment aarch64-linux-gnu-cmake
+
 # install make dependencies for Windows build
 pacman -S --noconfirm --needed mingw-w64-gcc mingw-w64-cmake mingw-w64-openssl
 aur-cache -i peldd-git

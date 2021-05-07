@@ -15,15 +15,6 @@ namespace {
   const auto trash_directory_name = ".trash";
   const auto index_database_filename = ".hamster.sqlite";
 
-  std::filesystem::path generate_temporary_filename() {
-    auto rand = std::random_device();
-    auto filename = std::string("hamster_");
-    for (auto i = 0; i < 10; i++)
-      filename.push_back(static_cast<char>('0' + rand() % 10));
-    filename += ".tmp";
-    return std::filesystem::temp_directory_path() / filename;
-  }
-
   void create_directories_handle_symlinks(const std::filesystem::path& path) {
     if (!std::filesystem::is_symlink(path))
       std::filesystem::create_directories(path);
@@ -114,7 +105,9 @@ void Logic::start_recording(Response&, const Request& request) {
   const auto id = json::get_int(request, "id");
   const auto url = json::get_string(request, "url");
   const auto path = to_full_path(json::get_string_list(request, "path"));
-  const auto refresh = json::try_get_string(request, "refresh");
+  const auto download = json::try_get_string(request, "download");
+  const auto serve = json::try_get_string(request, "serve");
+  const auto archive = json::try_get_string(request, "archive");
   const auto allow_lossy_compression = json::try_get_bool(request, "allowLossyCompression").value_or(false);
 
   create_directories_handle_symlinks(path.parent_path());
@@ -126,15 +119,18 @@ void Logic::start_recording(Response&, const Request& request) {
     "--patch-title",
   };
 
-  arguments.push_back("--refresh");
-  if (refresh == "standard")
-    arguments.push_back("when-expired");
-  else if (refresh == "async")
-    arguments.push_back("when-expired-async");
-  else if (refresh == "always")
-    arguments.push_back("always");
-  else
-    arguments.push_back("never");
+  if (download.has_value()) {
+    arguments.emplace_back("--download");
+    arguments.emplace_back(download.value());
+  }
+  if (serve.has_value()) {
+    arguments.emplace_back("--serve");
+    arguments.emplace_back(serve.value());
+  }
+  if (archive.has_value()) {
+    arguments.emplace_back("--archive");
+    arguments.emplace_back(archive.value());
+  }
 
   if (allow_lossy_compression)
     arguments.push_back("--allow-lossy-compression");
@@ -214,7 +210,7 @@ void Logic::set_temporary_file(std::filesystem::path& path, std::string_view con
     path.clear();
   }
   if (!content.empty()) {
-    path = generate_temporary_filename();
+    path = generate_temporary_filename("hamster-");
     auto file = std::ofstream(path, std::ios::binary | std::ios::out);
     file.write(content.data(), static_cast<std::streamsize>(content.size()));
   }

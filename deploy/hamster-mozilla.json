@@ -3,5 +3,5 @@
   "description": "Bookmark Hamster",
   "path": "hamster.exe",
   "type": "stdio",
-  "allowed_extensions": [ "hamster@my-foss.net" ]
+  "allowed_extensions": [ "hamster@houmain" ]
 }

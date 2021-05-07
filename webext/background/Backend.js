@@ -72,14 +72,14 @@ class Backend {
   }
 
   async startRecording (recorderId, path, url, handleOutput) {
-    const refreshMode = await Utils.getSetting('default-refresh-mode')
+    const serveMode = await Utils.getSetting('default-serve-mode')
     const allowLossyCompression = await Utils.getSetting('allow-lossy-compression')
     const request = {
       action: 'startRecording',
       id: recorderId,
       url: url,
       path: path,
-      refresh: refreshMode,
+      serve: serveMode,
       allowLossyCompression: allowLossyCompression,
       deterministic: true
     }

@@ -20,17 +20,17 @@
   "filesystem_root_browse": {
     "message": "Browse"
   },
-  "default_refresh_mode": {
-    "message": "Default validation mode"
+  "default_serve_mode": {
+    "message": "Serve version"
   },
-  "refresh_mode_standard": {
-    "message": "Standard"
+  "serve_mode_latest": {
+    "message": "Current"
   },
-  "refresh_mode_async": {
-    "message": "Asynchronous"
+  "serve_mode_last": {
+    "message": "Last"
   },
-  "refresh_mode_never": {
-    "message": "Never"
+  "serve_mode_first": {
+    "message": "First"
   },
   "bypass_hosts": {
     "message": "Omit embedded resources from hosts"

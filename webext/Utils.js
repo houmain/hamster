@@ -18,7 +18,8 @@ function DEBUG_LOG_ASYNC_CALLS (object) {
           const begin = new Date().getTime()
           const result = await call.apply(this, arguments)
           const end = new Date().getTime()
-          if (end - begin > 50) {
+          if (end - begin > 100) {
+            console.trace()
             console.warn(`calling ${name} took ${end - begin}ms`)
           }
           return result

@@ -69,7 +69,7 @@ async function initializeBookmarkRoot () {
 
 async function restoreOptions () {
   try {
-    await Utils.setDefaultSetting('default-refresh-mode', 'standard')
+    await Utils.setDefaultSetting('default-serve-mode', 'latest')
     await Utils.setDefaultSetting('allow-lossy-compression', true)
     await Utils.setDefaultSetting('bypass-hosts', DEFAULT_BYPASS_HOSTS_LIST)
 

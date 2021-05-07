@@ -20,17 +20,17 @@
   "filesystem_root_browse": {
     "message": "Durchsuchen"
   },
-  "default_refresh_mode": {
-    "message": "Aktualisierungsmodus"
+  "default_serve_mode": {
+    "message": "Version anzeigen"
   },
-  "refresh_mode_standard": {
-    "message": "Normal"
+  "serve_mode_latest": {
+    "message": "Aktuelle"
   },
-  "refresh_mode_async": {
-    "message": "Asynchron"
+  "serve_mode_last": {
+    "message": "Letzte"
   },
-  "refresh_mode_never": {
-    "message": "Nie"
+  "serve_mode_first": {
+    "message": "Erste"
   },
   "bypass_hosts": {
     "message": "Eingebundene Daten von Hosts nicht speichern"

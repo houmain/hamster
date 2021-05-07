@@ -19,7 +19,7 @@ async function localizeControls () {
   Utils.localize('bookmark-root-title-label', 'textContent', 'bookmark_root_title')
   Utils.localize('filesystem-root-label', 'textContent', 'filesystem_root')
   Utils.localize('filesystem-root-browse', 'textContent', 'filesystem_root_browse')
-  Utils.localize('default-refresh-mode-label', 'textContent', 'default_refresh_mode')
+  Utils.localize('default-serve-mode-label', 'textContent', 'default_serve_mode')
   Utils.localize('bypass-hosts-label', 'textContent', 'bypass_hosts')
   Utils.localize('allow-lossy-compression-label', 'textContent', 'allow_lossy_compression')
 
@@ -32,15 +32,15 @@ async function localizeControls () {
   }
   Utils.updateSelectOptions('bookmark-root-parent', options)
 
-  const refreshModes = []
-  for (const mode of ['standard', 'async', 'never']) {
-    refreshModes.push({ value: mode, title: browser.i18n.getMessage('refresh_mode_' + mode) })
+  const serveModes = []
+  for (const mode of ['latest', 'last', 'first']) {
+    serveModes.push({ value: mode, title: browser.i18n.getMessage('serve_mode_' + mode) })
   }
-  Utils.updateSelectOptions('default-refresh-mode', refreshModes)
+  Utils.updateSelectOptions('default-serve-mode', serveModes)
 }
 
 async function updateControls () {
-  document.getElementById('default-refresh-mode').value = await Utils.getSetting('default-refresh-mode')
+  document.getElementById('default-serve-mode').value = await Utils.getSetting('default-serve-mode')
   document.getElementById('allow-lossy-compression').checked = await Utils.getSetting('allow-lossy-compression')
   document.getElementById('bypass-hosts').textContent = await Utils.getSetting('bypass-hosts')
 
@@ -88,9 +88,9 @@ async function browseFilesystemRoot () {
   }
 }
 
-async function updateRefreshMode () {
-  const value = document.getElementById('default-refresh-mode').value
-  return Utils.setSetting('default-refresh-mode', value)
+async function updateServeMode () {
+  const value = document.getElementById('default-serve-mode').value
+  return Utils.setSetting('default-serve-mode', value)
 }
 
 async function updateAllowLossyCompression (e) {
@@ -113,7 +113,7 @@ async function initialize () {
   document.getElementById('bookmark-root-parent').onchange = moveBookmarkRoot
   document.getElementById('bookmark-root-title').onchange = renameBookmarkRoot
   document.getElementById('filesystem-root-browse').onclick = browseFilesystemRoot
-  document.getElementById('default-refresh-mode').onchange = updateRefreshMode
+  document.getElementById('default-serve-mode').onchange = updateServeMode
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
   document.getElementById('bypass-hosts').onchange = updateBypassUrls
 
