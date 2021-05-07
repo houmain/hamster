@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <functional>
 #include <filesystem>
+#include <optional>
 
 class Webrecorder {
 public:

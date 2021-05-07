@@ -331,7 +331,7 @@ class BookmarkLibrary {
 
   async _handleTabRemoved (id) {
     await this._stopRecordingInTab(id)
-    this._purgeTemporarilyBypassedBookmarks()
+    setTimeout(() => { this._purgeTemporarilyBypassedBookmarks() }, 100)
   }
 
   async _handleRecordingFinished (recorder) {

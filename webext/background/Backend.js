@@ -80,6 +80,7 @@ class Backend {
       url: url,
       path: path,
       serve: serveMode,
+      archive: 'latest-and-first',
       allowLossyCompression: allowLossyCompression,
       deterministic: true
     }
