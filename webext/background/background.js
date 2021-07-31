@@ -143,13 +143,16 @@ async function handleFileListingMenuClicked (info) {
 
 async function handleCopyUrlMenuClicked (info) {
   const bookmark = await _getContextBookmarkId(info)
-  navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(info.pageUrl))
+  navigator.clipboard.writeText(
+    bookmarkLibrary.getOriginalUrl(info.pageUrl || bookmark.url))
 }
 
 async function handleOpenOriginalMenuClicked (info) {
   const bookmark = await _getContextBookmarkId(info)
   if (bookmarkLibrary.temporarilyBypassBookmark(bookmark.id)) {
-    browser.tabs.create({ url: bookmarkLibrary.getOriginalUrl(info.pageUrl) })
+    browser.tabs.create({
+      url: bookmarkLibrary.getOriginalUrl(info.pageUrl || bookmark.url)
+    })
   }
 }
 
