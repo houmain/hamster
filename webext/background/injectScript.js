@@ -2,6 +2,11 @@
 /* global __webrecorder */
 
 function injectScript (document) {
+
+  function busyWait(ms) {
+    for (var begin = new Date().getTime(); new Date().getTime() < begin + ms; ) ;
+  }
+
   function patchPostMessage (window) {
     const postMessage = window.postMessage
     window.postMessage = function () {
@@ -19,9 +24,11 @@ function injectScript (document) {
 
   function onCookieSet (cookie) {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/__webrecorder_setcookie')
+    xhr.open('POST', window.location.origin + '/__webrecorder_setcookie')
     xhr.setRequestHeader('Content-Type', 'text/plain')
     xhr.send(cookie)
+    // wait to reduce chance of location change cancelling the request
+    busyWait(50)
   }
 
   function patchSetCookie () {

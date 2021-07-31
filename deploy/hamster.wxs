@@ -6,12 +6,12 @@
     Name="Bookmark Hamster"
     Language="1033"
     Version="$(var.VERSION)"
-    Manufacturer="https://my-foss.net"
+    Manufacturer="https://github.com/houmain/hamster"
     UpgradeCode="ED04838D-35E4-4B52-A173-63519391CA7E"
   >
     <Package
       Description="Bookmark Hamster Installer"
-      Manufacturer="https://my-foss.net"
+      Manufacturer="https://github.com/houmain/hamster"
       InstallerVersion="200"
       Compressed="yes"
       InstallScope="perUser"
