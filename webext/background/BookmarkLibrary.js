@@ -239,8 +239,9 @@ class BookmarkLibrary {
           const handler = recorder.onEvent[i]
           await handler(event)
           ++i
-        } catch {
+        } catch (ex) {
           recorder.onEvent.splice(i, 1)
+          DEBUG('recording output handler failed: ', ex)
         }
       }
     }

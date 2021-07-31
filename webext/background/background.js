@@ -60,7 +60,8 @@ async function initializeBookmarkRoot () {
       await Utils.getBookmarkById(rootId)
       return rootId
     }
-  } catch {
+  } catch (ex) {
+    DEBUG('initializing bookmark root failed: ', ex)
   }
   const rootId = await createDefaultBookmarkRoot()
   await Utils.setSetting('bookmark-root-id', rootId)
@@ -83,7 +84,8 @@ async function restoreOptions () {
       const rootId = await initializeBookmarkRoot()
       await bookmarkLibrary.setRootId(rootId)
     }
-  } catch {
+  } catch (ex) {
+    DEBUG('restoring options failed: ', ex)
   }
 }
 
@@ -141,13 +143,13 @@ async function handleFileListingMenuClicked (info) {
 
 async function handleCopyUrlMenuClicked (info) {
   const bookmark = await _getContextBookmarkId(info)
-  navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(bookmark.url))
+  navigator.clipboard.writeText(bookmarkLibrary.getOriginalUrl(info.pageUrl))
 }
 
 async function handleOpenOriginalMenuClicked (info) {
   const bookmark = await _getContextBookmarkId(info)
   if (bookmarkLibrary.temporarilyBypassBookmark(bookmark.id)) {
-    browser.tabs.create({ url: bookmark.url })
+    browser.tabs.create({ url: bookmarkLibrary.getOriginalUrl(info.pageUrl) })
   }
 }
 
