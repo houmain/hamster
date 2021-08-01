@@ -94,19 +94,22 @@ function injectScript (document) {
   }
 
   function patchHistory () {
-    const pushState = window.history.pushState
-    window.history.pushState = function () {
-      let url = arguments[2]
-      if (url.startsWith('#')) {
-        url = window.location + url
-      } else if (url.startsWith('/')) {
-        url = window.location.origin + url
-      } else {
-        url = url.split(__webrecorder.origin).join(window.location.origin)
+    function patch(orig) {
+      return function () {
+        let url = arguments[2]
+        if (url.startsWith('#') || url.startsWith('?')) {
+          url = window.location + url
+        } else if (url.startsWith('/')) {
+          url = window.location.origin + url
+        } else {
+          url = url.split(__webrecorder.origin).join(window.location.origin)
+        }
+        arguments[2] = url
+        return orig.apply(this, arguments)
       }
-      arguments[2] = url
-      return pushState.apply(this, arguments)
     }
+    window.history.pushState = patch(window.history.pushState)
+    window.history.replaceState = patch(window.history.replaceState)
   }
 
   patchWindow(window)
