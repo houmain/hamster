@@ -7,6 +7,7 @@ const MENU_FILE_LISTING_ID = 'menu-file-listing'
 const MENU_COPY_URL_ID = 'menu-copy-url'
 const MENU_OPEN_ORIGINAL_ID = 'menu-open-original'
 const MENU_OPTIONS_SEPARATOR_ID = 'menu-options-separator'
+const MENU_SEARCH_ID = 'menu-search'
 const MENU_OPTIONS_ID = 'menu-options'
 const DEFAULT_BYPASS_HOSTS_LIST =
 `youtube.com
@@ -110,15 +111,12 @@ function handleOmniBoxInput (text, addSuggestions) {
     .then(createSuggestions).then(addSuggestions)
 }
 
-function handleOmniBoxSelection (url, disposition) {
-  const isHttp = /^https?:/i
-  if (!isHttp.test(url)) {
-    url = browser.runtime.getURL('search/search.html') + '?s=' + url
-  }
+function openPage (url, disposition) {
   switch (disposition) {
     case 'currentTab':
       browser.tabs.update({ url })
       break
+    default:
     case 'newForegroundTab':
       browser.tabs.create({ url })
       break
@@ -126,6 +124,18 @@ function handleOmniBoxSelection (url, disposition) {
       browser.tabs.create({ url, active: false })
       break
   }
+}
+
+function handleOmniBoxSelection (url, disposition) {
+  const isHttp = /^https?:/i
+  if (!isHttp.test(url)) {
+    url = browser.runtime.getURL('search/search.html') + '?s=' + url
+  }
+  openPage(url, disposition)
+}
+
+function handleSearchMenuClicked () {
+  openPage(browser.runtime.getURL('search/search.html'))
 }
 
 async function _getContextBookmarkId (info) {
@@ -196,6 +206,14 @@ function createMenus () {
     parentId: MENU_ROOT_ID,
     type: 'separator',
     contexts: ['bookmark', 'tab']
+  })
+
+  browser.menus.create({
+    id: MENU_SEARCH_ID,
+    parentId: MENU_ROOT_ID,
+    contexts: ['bookmark', 'tab'],
+    title: browser.i18n.getMessage('menu_search'),
+    onclick: handleSearchMenuClicked
   })
 
   browser.menus.create({

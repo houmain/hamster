@@ -38,6 +38,12 @@
   "allow_lossy_compression": {
     "message": "Allow lossy compression"
   },
+  "search_placeholder": {
+    "message": "Search hamstered pages"
+  },
+  "search_submit": {
+    "message": "Search"
+  },
   "search_no_results": {
     "message": "No results"
   },
@@ -52,6 +58,9 @@
   },
   "menu_open_original": {
     "message": "Open original"
+  },
+  "menu_search": {
+    "message": "Search"
   },
   "menu_options": {
     "message": "Options"

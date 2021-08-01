@@ -15,6 +15,10 @@ div {
   padding: 1px;
 }
 
+#search-form {
+  margin-bottom: 30px;
+}
+
 div.result {
   margin-bottom: 30px;
   border-radius: 4px;

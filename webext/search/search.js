@@ -73,3 +73,12 @@ browser.runtime.getBackgroundPage().then(background => {
 
   document.addEventListener('DOMContentLoaded', executeSearch)
 })
+
+document.getElementById('search-input').value =
+  new URLSearchParams(window.location.search).get('s')
+document.getElementById('search-input').placeholder =
+  browser.i18n.getMessage('search_placeholder')
+document.getElementById('search-submit').value =
+  browser.i18n.getMessage('search_submit')
+
+document.getElementById('search-input').focus()

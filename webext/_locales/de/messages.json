@@ -38,6 +38,12 @@
   "allow_lossy_compression": {
     "message": "Verlustbehaftete Kompression erlauben"
   },
+  "search_placeholder": {
+    "message": "Gehamsterte Seiten durchsuchen"
+  },
+  "search_submit": {
+    "message": "Suchen"
+  },
   "search_no_results": {
     "message": "Keine Ergebnisse"
   },
@@ -52,6 +58,9 @@
   },
   "menu_open_original": {
     "message": "Original öffnen"
+  },
+  "menu_search": {
+    "message": "Durchsuchen"
   },
   "menu_options": {
     "message": "Einstellungen"
