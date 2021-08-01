@@ -52,6 +52,10 @@ Database::Database(const std::filesystem::path& path)
 Database::~Database() = default;
 
 void Database::update_index(const std::filesystem::path& filename) {
+  auto reader = ArchiveReader();
+  if (!reader.open(filename))
+    throw std::runtime_error("indexing archive failed");
+
   auto clear = sqlite::Statement();
   auto insert = sqlite::Statement();
   {
@@ -67,44 +71,43 @@ void Database::update_index(const std::filesystem::path& filename) {
     )");
   }
 
-  const auto uid = get_archive_uid(filename);
+  const auto uid = get_archive_uid(reader);
 
   auto deleted = false;
-  for_each_archive_html(filename,
-    [&](ArchiveHtml html) {
-      if (!std::exchange(deleted, true)) {
-        auto lock = std::lock_guard(m_db_mutex);
-        clear.bind(0, uid);
-        clear.execute();
-      }
-      auto title = std::string_view();
-      auto text = std::vector<std::string_view>();
-      auto text_low = std::vector<std::string_view>();
-      for_each_html_text(html.html,
-        [&](std::string_view string, HtmlSection section) {
-          switch (section) {
-            case HtmlSection::heading:
-            case HtmlSection::content:
-              text.push_back(string);
-              break;
-            case HtmlSection::navigation:
-              text_low.push_back(string);
-              break;
-            case HtmlSection::title:
-              title = string;
-              break;
-          }
-        });
-      if (!title.empty() && (!text.empty() || !text_low.empty())) {
-        auto lock = std::lock_guard(m_db_mutex);
-        insert.bind(0, uid);
-        insert.bind(1, html.url);
-        insert.bind(2, normalize_space(decode_html_entities(std::string(title))));
-        insert.bind(3, normalize_space(decode_html_entities(concatenate(text, " "))));
-        insert.bind(4, normalize_space(decode_html_entities(concatenate(text_low, " | "))));
-        insert.execute();
-      }
-    });
+  for_each_archive_html(reader, [&](ArchiveHtml html) {
+    if (!std::exchange(deleted, true)) {
+      auto lock = std::lock_guard(m_db_mutex);
+      clear.bind(0, uid);
+      clear.execute();
+    }
+    auto title = std::string_view();
+    auto text = std::vector<std::string_view>();
+    auto text_low = std::vector<std::string_view>();
+    for_each_html_text(html.html,
+      [&](std::string_view string, HtmlSection section) {
+        switch (section) {
+          case HtmlSection::heading:
+          case HtmlSection::content:
+            text.push_back(string);
+            break;
+          case HtmlSection::navigation:
+            text_low.push_back(string);
+            break;
+          case HtmlSection::title:
+            title = string;
+            break;
+        }
+      });
+    if (!title.empty() && (!text.empty() || !text_low.empty())) {
+      auto lock = std::lock_guard(m_db_mutex);
+      insert.bind(0, uid);
+      insert.bind(1, html.url);
+      insert.bind(2, normalize_space(decode_html_entities(std::string(title))));
+      insert.bind(3, normalize_space(decode_html_entities(concatenate(text, " "))));
+      insert.bind(4, normalize_space(decode_html_entities(concatenate(text_low, " | "))));
+      insert.execute();
+    }
+  });
 }
 
 void Database::execute_search(std::string_view query,

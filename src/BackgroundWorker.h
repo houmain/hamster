@@ -8,13 +8,15 @@
 
 class BackgroundWorker {
 private:
+  using Task = std::function<void()>;
+
   std::mutex m_mutex;
   std::thread m_thread;
   std::condition_variable m_signal;
-  std::deque<std::function<void()>> m_queue;
+  std::deque<Task> m_queue;
   bool m_stop{ };
 
-  void thread_func() {
+  void thread_func() noexcept {
     for (;;) {
       auto lock = std::unique_lock(m_mutex);
       m_signal.wait(lock, [&]() { return m_stop || !m_queue.empty(); });
@@ -24,7 +26,11 @@ private:
       m_queue.pop_front();
       lock.unlock();
 
-      task();
+      try {
+        task();
+      }
+      catch (...) {
+      }
     }
   }
 

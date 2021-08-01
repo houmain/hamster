@@ -1,16 +1,18 @@
 ﻿
 #include "Indexing.h"
 #include "gumbo.h"
-#include "libs/webrecorder/src/Archive.h"
 #include "libs/webrecorder/src/HeaderStore.h"
 #include <cstring>
 #include <sstream>
 
-int64_t get_archive_uid(const std::filesystem::path& filename) {
-  auto reader = ArchiveReader();
-  if (!reader.open(filename))
-    return 0;
+namespace {
+  bool is_html_or_plaintext_mime_type(std::string_view mime_type) {
+    return iequals_any(mime_type,
+      "text/html", "text/plain", "text", "html", "plain");
+  }
+} // namespace
 
+int64_t get_archive_uid(const ArchiveReader& reader) {
   auto uid = int64_t{ };
   auto uid_string = reader.read("uid");
   auto ss = std::istringstream(std::string(as_string_view(uid_string)));
@@ -18,12 +20,8 @@ int64_t get_archive_uid(const std::filesystem::path& filename) {
   return uid;
 }
 
-bool for_each_archive_file(const std::filesystem::path& filename,
+void for_each_archive_file(const ArchiveReader& reader,
     std::function<void(ArchiveFile)> file_callback) {
-
-  auto reader = ArchiveReader();
-  if (!reader.open(filename))
-    return false;
 
   auto header = reader.read("headers");
   auto header_store = HeaderStore();
@@ -38,15 +36,10 @@ bool for_each_archive_file(const std::filesystem::path& filename,
         info->modification_time
       });
   }
-  return true;
 }
 
-bool for_each_archive_html(const std::filesystem::path& filename,
+void for_each_archive_html(const ArchiveReader& reader,
     std::function<void(ArchiveHtml)> file_callback) {
-
-  auto reader = ArchiveReader();
-  if (!reader.open(filename))
-    return false;
 
   const auto url = std::string(as_string_view(reader.read("url")));
   const auto base_hostname = get_hostname(url);
@@ -66,7 +59,7 @@ bool for_each_archive_html(const std::filesystem::path& filename,
         continue;
     if (auto it = header.find("Content-Type"); it != header.end()) {
       const auto [mime_type, charset] = split_content_type(it->second);
-      if (iequals(mime_type, "text/html")) {
+      if (is_html_or_plaintext_mime_type(mime_type)) {
         auto data = reader.read(to_local_filename(entry.first));
         if (!data.empty())
           file_callback({
@@ -76,7 +69,6 @@ bool for_each_archive_html(const std::filesystem::path& filename,
       }
     }
   }
-  return true;
 }
 
 void for_each_html_text(std::string_view html,

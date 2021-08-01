@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "libs/webrecorder/src/Archive.h"
 #include <filesystem>
 #include <functional>
 
@@ -23,10 +24,10 @@ enum class HtmlSection {
   navigation,
 };
 
-int64_t get_archive_uid(const std::filesystem::path& filename);
-bool for_each_archive_file(const std::filesystem::path& filename,
+int64_t get_archive_uid(const ArchiveReader& reader);
+void for_each_archive_file(const ArchiveReader& reader,
   std::function<void(ArchiveFile)> file_callback);
-bool for_each_archive_html(const std::filesystem::path& filename,
+void for_each_archive_html(const ArchiveReader& reader,
   std::function<void(ArchiveHtml)> file_callback);
 void for_each_html_text(std::string_view html,
   std::function<void(std::string_view, HtmlSection)> text_callback);

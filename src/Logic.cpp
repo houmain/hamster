@@ -237,20 +237,21 @@ void Logic::get_file_size(Response& response, const Request& request) {
 
 void Logic::get_file_listing(Response& response, const Request& request) {
   const auto path = to_full_path(json::get_string_list(request, "path"));
-  if (std::filesystem::is_regular_file(path)) {
+  auto reader = ArchiveReader();
+  if (reader.open(path)) {
     response.Key("files");
     response.StartArray();
-    for_each_archive_file(path, [&](const ArchiveFile& file) {
-        response.StartObject();
-        response.String("url");
-        response.String(file.url.data(), static_cast<json::size_t>(file.url.size()));
-        response.String("compressedSize");
-        response.Uint64(file.compressed_size);
-        response.String("uncompressedSize");
-        response.Uint64(file.uncompressed_size);
-        response.String("modificationTime");
-        response.Int64(file.modification_time);
-        response.EndObject();
+    for_each_archive_file(reader, [&](const ArchiveFile& file) {
+      response.StartObject();
+      response.String("url");
+      response.String(file.url.data(), static_cast<json::size_t>(file.url.size()));
+      response.String("compressedSize");
+      response.Uint64(file.compressed_size);
+      response.String("uncompressedSize");
+      response.Uint64(file.uncompressed_size);
+      response.String("modificationTime");
+      response.Int64(file.modification_time);
+      response.EndObject();
     });
     response.EndArray();
   }
