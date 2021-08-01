@@ -7,6 +7,16 @@ function injectScript (document) {
     for (var begin = new Date().getTime(); new Date().getTime() < begin + ms; ) ;
   }
 
+  function patchUrl (url) {
+    if (url.startsWith('#') || url.startsWith('?')) {
+      return window.location + url
+    } else if (url.startsWith('/')) {
+      return window.location.origin + url
+    } else {
+      return url.split(__webrecorder.origin).join(window.location.origin)
+    }
+  }
+
   function patchPostMessage (window) {
     const postMessage = window.postMessage
     window.postMessage = function () {
@@ -15,16 +25,24 @@ function injectScript (document) {
     }
   }
 
+  function patchWorker (window) {
+    const Worker = window.Worker
+    window.Worker = function (url) {
+      return new Worker(patchUrl(url))
+    }
+  }
+
   function patchWindow (window) {
     for (let i = 0; i < window.frames.length; ++i) {
       patchWindow(window.frames[i])
     }
     patchPostMessage(window)
+    patchWorker(window)
   }
 
   function onCookieSet (cookie) {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', window.location.origin + '/__webrecorder_setcookie')
+    xhr.open('POST', patchUrl('/__webrecorder_setcookie'))
     xhr.setRequestHeader('Content-Type', 'text/plain')
     xhr.send(cookie)
     // wait to reduce chance of location change cancelling the request
@@ -96,15 +114,7 @@ function injectScript (document) {
   function patchHistory () {
     function patch(orig) {
       return function () {
-        let url = arguments[2]
-        if (url.startsWith('#') || url.startsWith('?')) {
-          url = window.location + url
-        } else if (url.startsWith('/')) {
-          url = window.location.origin + url
-        } else {
-          url = url.split(__webrecorder.origin).join(window.location.origin)
-        }
-        arguments[2] = url
+        arguments[2] = patchUrl(arguments[2])
         return orig.apply(this, arguments)
       }
     }
