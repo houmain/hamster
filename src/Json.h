@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <optional>
+#include <vector>
 #include "libs/rapidjson/document.h"
 #include "libs/rapidjson/stringbuffer.h"
 #include "libs/rapidjson/writer.h"

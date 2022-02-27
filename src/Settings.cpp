@@ -33,7 +33,7 @@ void print_help_message(const char* argv0) {
     program = program.substr(0, i);
 
   printf(
-    "hamster %s (c) 2020-2021 by Albert Kalchmair\n"
+    "hamster %s (c) 2020-2022 by Albert Kalchmair\n"
     "\n"
     "Usage: %s [-options]\n"
     "  -p          run plain stdio JSON command interface.\n"

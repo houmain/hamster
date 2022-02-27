@@ -5,8 +5,18 @@ option(BUILD_WEBRECORDER "Build webrecorder")
 if(BUILD_WEBRECORDER)
     add_subdirectory(libs/webrecorder)
 endif()
+configure_file("src/version.h.in" "${CMAKE_SOURCE_DIR}/src/_version.h")
 
-set(CMAKE_CXX_STANDARD 20)
+set(GIT_COMMIT_LAST_TAG "0.0.0")
+find_package(Git)
+if(GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags
+                  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                  OUTPUT_VARIABLE GIT_COMMIT_LAST_TAG
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES ${SOURCES}
@@ -103,11 +113,16 @@ link_libraries(${CMAKE_THREAD_LIBS_INIT})
 
 option(USE_ICONV "Use iconv for charset conversion" ON)
 if(USE_ICONV)
-    add_compile_definitions(USE_ICONV)
+    find_package(Iconv)
+    if(Iconv_FOUND)
+        add_compile_definitions(USE_ICONV)
+    endif()
 endif()
 
 if(WIN32)
     add_definitions(-DNOC_FILE_DIALOG_WIN32)
+elseif(APPLE)
+    add_definitions(-DNOC_FILE_DIALOG_OSX)
 else()
     find_package(PkgConfig REQUIRED)
     PKG_CHECK_MODULES(GTK3 REQUIRED gtk+-3.0)
@@ -131,9 +146,40 @@ if(WIN32)
     add_executable(ctrl_c WIN32 src/ctrl_c.cpp)
 endif()
 
+# install
 if(NOT WIN32)
     install(TARGETS hamster DESTINATION "bin")
 else()
     install(TARGETS hamster DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
 endif()
+
+# package
+set(CPACK_PACKAGE_NAME "hamster")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "hamster")
+set(CPACK_PACKAGE_VENDOR "Albert Kalchmair")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "hamster")
+set(CPACK_PACKAGE_EXECUTABLES "hamster;hamster")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/houmain/hamster")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_STRIP_FILES TRUE)
+string(REGEX MATCHALL "[0-9]+" VERSION_LIST "${GIT_COMMIT_LAST_TAG}")
+list(GET VERSION_LIST 0 CPACK_PACKAGE_VERSION_MAJOR)
+list(GET VERSION_LIST 1 CPACK_PACKAGE_VERSION_MINOR)
+list(GET VERSION_LIST 2 CPACK_PACKAGE_VERSION_PATCH)
+
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(CPACK_GENERATOR WIX)
+    file(COPY "${CMAKE_SOURCE_DIR}/LICENSE"
+        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/LICENSE"
+        "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+    set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/webext/icons/icon.ico")
+    set(CPACK_WIX_UPGRADE_GUID "496D7789-0BF5-472B-AC15-9CF1A1301868")
+else()
+    set(CPACK_GENERATOR TGZ)
+endif()
+
+include(CPack)
