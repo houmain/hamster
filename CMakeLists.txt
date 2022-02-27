@@ -40,12 +40,12 @@ set(INCLUDES ${INCLUDES}
     libs/sqlite
 )
 
-if(NOT MSVC)
-    set_source_files_properties(${SOURCES}
-        PROPERTIES COMPILE_FLAGS  "-Wall -Wextra -Wsign-conversion -Wconversion")
-else()
+if(MSVC)
     add_compile_options(/GR- /W1)
     set(MSVC_SHARED_RUNTIME OFF)
+else()
+    set_source_files_properties(${SOURCES}
+        PROPERTIES COMPILE_FLAGS  "-Wall -Wextra -Wsign-conversion -Wconversion")
 endif()
 
 set(SOURCES ${SOURCES}
@@ -89,20 +89,22 @@ set(SOURCES ${SOURCES}
     libs/webrecorder/libs/zlib/src/zutil.c
 )
 
-if(NOT WIN32)
-    set(SOURCES ${SOURCES}
-        libs/TinyProcessLib/process_unix.cpp
-    )
-    link_libraries(stdc++fs dl)
-else()
+if(WIN32)
     add_compile_definitions(_WIN32_WINNT=0x0501)
 
     set(SOURCES ${SOURCES}
         libs/TinyProcessLib/process_win.cpp
         libs/webrecorder/libs/minizip/iowin32.c
     )
-    set(INCLUDES ${INCLUDES} 
+    set(INCLUDES ${INCLUDES}
         libs/webrecorder/libs/gumbo/src/visualc
+    )
+else()
+    if(NOT APPLE)
+        link_libraries(stdc++fs dl)
+    endif()
+    set(SOURCES ${SOURCES}
+        libs/TinyProcessLib/process_unix.cpp
     )
 endif()
 
@@ -116,14 +118,22 @@ if(USE_ICONV)
     find_package(Iconv)
     if(Iconv_FOUND)
         add_compile_definitions(USE_ICONV)
+        if(Iconv_LIBRARY)
+            link_libraries(${Iconv_LIBRARY})
+        endif()
     endif()
 endif()
 
 if(WIN32)
+    set(SOURCES ${SOURCES} libs/noc/noc_file_dialog.c)
     add_definitions(-DNOC_FILE_DIALOG_WIN32)
 elseif(APPLE)
+    set(SOURCES ${SOURCES} libs/noc/noc_file_dialog.m)
     add_definitions(-DNOC_FILE_DIALOG_OSX)
+    find_library(COCOA_LIBRARY Cocoa)
+    link_libraries(${COCOA_LIBRARY})
 else()
+    set(SOURCES ${SOURCES} libs/noc/noc_file_dialog.c)
     find_package(PkgConfig REQUIRED)
     PKG_CHECK_MODULES(GTK3 REQUIRED gtk+-3.0)
     include_directories(${GTK3_INCLUDE_DIRS})
