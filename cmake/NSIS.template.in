@@ -1,0 +1,140 @@
+
+!define REGUINSTKEY "{ED04838D-35E4-4B52-A173-63519391CA7E}"
+!define REGUINST 'HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${REGUINSTKEY}"'
+Name "@CPACK_NSIS_PACKAGE_NAME@ @CPACK_PACKAGE_VERSION@"
+OutFile "@CPACK_TOPLEVEL_DIRECTORY@/@CPACK_OUTPUT_FILE_NAME@"
+
+RequestExecutionLevel User
+Unicode True
+#InstallDir ; Not used, we determine the default in .onInit
+InstallDirRegKey ${REGUINST} UninstallString
+
+!define MUI_COMPONENTSPAGE_NODESC
+!include MUI2.nsh
+!include LogicLib.nsh
+!define /IfNDef SHPPFW_DIRCREATE 0x01
+!define /IfNDef KF_FLAG_CREATE 0x00008000
+!define /IfNDef FOLDERID_UserProgramFiles {5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}
+
+
+Function .onInit
+StrCpy $0 "$LocalAppData"
+
+${If} $InstDir == ""
+	System::Call 'SHELL32::SHGetKnownFolderPath(g "${FOLDERID_UserProgramFiles}", i ${KF_FLAG_CREATE}, p 0, *p .r2)i.r1'
+	${If} $1 == 0
+		System::Call '*$2(&w${NSIS_MAX_STRLEN} .r1)'
+		System::Call 'OLE32::CoTaskMemFree(p r2)'
+		StrCpy $0 $1
+	${EndIf}
+
+	StrCpy $InstDir "$0\@CPACK_PACKAGE_INSTALL_DIRECTORY@"
+${EndIf}
+FunctionEnd
+
+
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+
+!insertmacro MUI_LANGUAGE "English" ;first language is the default language
+!insertmacro MUI_LANGUAGE "Afrikaans"
+!insertmacro MUI_LANGUAGE "Albanian"
+!insertmacro MUI_LANGUAGE "Arabic"
+!insertmacro MUI_LANGUAGE "Asturian"
+!insertmacro MUI_LANGUAGE "Basque"
+!insertmacro MUI_LANGUAGE "Belarusian"
+!insertmacro MUI_LANGUAGE "Bosnian"
+!insertmacro MUI_LANGUAGE "Breton"
+!insertmacro MUI_LANGUAGE "Bulgarian"
+!insertmacro MUI_LANGUAGE "Catalan"
+!insertmacro MUI_LANGUAGE "Corsican"
+!insertmacro MUI_LANGUAGE "Croatian"
+!insertmacro MUI_LANGUAGE "Czech"
+!insertmacro MUI_LANGUAGE "Danish"
+!insertmacro MUI_LANGUAGE "Dutch"
+!insertmacro MUI_LANGUAGE "Esperanto"
+!insertmacro MUI_LANGUAGE "Estonian"
+!insertmacro MUI_LANGUAGE "Farsi"
+!insertmacro MUI_LANGUAGE "Finnish"
+!insertmacro MUI_LANGUAGE "French"
+!insertmacro MUI_LANGUAGE "Galician"
+!insertmacro MUI_LANGUAGE "German"
+!insertmacro MUI_LANGUAGE "Greek"
+!insertmacro MUI_LANGUAGE "Hebrew"
+!insertmacro MUI_LANGUAGE "Hungarian"
+!insertmacro MUI_LANGUAGE "Icelandic"
+!insertmacro MUI_LANGUAGE "Indonesian"
+!insertmacro MUI_LANGUAGE "Irish"
+!insertmacro MUI_LANGUAGE "Italian"
+!insertmacro MUI_LANGUAGE "Japanese"
+!insertmacro MUI_LANGUAGE "Korean"
+!insertmacro MUI_LANGUAGE "Kurdish"
+!insertmacro MUI_LANGUAGE "Latvian"
+!insertmacro MUI_LANGUAGE "Lithuanian"
+!insertmacro MUI_LANGUAGE "Luxembourgish"
+!insertmacro MUI_LANGUAGE "Macedonian"
+!insertmacro MUI_LANGUAGE "Malay"
+!insertmacro MUI_LANGUAGE "Mongolian"
+!insertmacro MUI_LANGUAGE "Norwegian"
+!insertmacro MUI_LANGUAGE "NorwegianNynorsk"
+!insertmacro MUI_LANGUAGE "Pashto"
+!insertmacro MUI_LANGUAGE "Polish"
+!insertmacro MUI_LANGUAGE "Portuguese"
+!insertmacro MUI_LANGUAGE "PortugueseBR"
+!insertmacro MUI_LANGUAGE "Romanian"
+!insertmacro MUI_LANGUAGE "Russian"
+!insertmacro MUI_LANGUAGE "ScotsGaelic"
+!insertmacro MUI_LANGUAGE "Serbian"
+!insertmacro MUI_LANGUAGE "SerbianLatin"
+!insertmacro MUI_LANGUAGE "SimpChinese"
+!insertmacro MUI_LANGUAGE "Slovak"
+!insertmacro MUI_LANGUAGE "Slovenian"
+!insertmacro MUI_LANGUAGE "Spanish"
+!insertmacro MUI_LANGUAGE "SpanishInternational"
+!insertmacro MUI_LANGUAGE "Swedish"
+!insertmacro MUI_LANGUAGE "Tatar"
+!insertmacro MUI_LANGUAGE "Thai"
+!insertmacro MUI_LANGUAGE "TradChinese"
+!insertmacro MUI_LANGUAGE "Turkish"
+!insertmacro MUI_LANGUAGE "Ukrainian"
+!insertmacro MUI_LANGUAGE "Uzbek"
+!insertmacro MUI_LANGUAGE "Vietnamese"
+!insertmacro MUI_LANGUAGE "Welsh"
+
+
+Section "Required files"
+SectionIn RO
+System::Call 'SHELL32::SHPathPrepareForWrite(p $hwndParent, p 0, t d, i ${SHPPFW_DIRCREATE})'
+SetOutPath $InstDir
+WriteUninstaller "$InstDir\Uninstall.exe"
+WriteRegStr ${REGUINST} UninstallString '"$InstDir\Uninstall.exe"'
+WriteRegStr ${REGUINST} DisplayIcon "$InstDir\icon.ico"
+WriteRegStr ${REGUINST} DisplayName "@CPACK_NSIS_PACKAGE_NAME@"
+WriteRegStr ${REGUINST} DisplayVersion "@CPACK_PACKAGE_VERSION@"
+WriteRegStr ${REGUINST} Publisher "@CPACK_PACKAGE_VENDOR@"
+WriteRegStr ${REGUINST} UrlInfoAbout "@CPACK_PACKAGE_HOMEPAGE_URL@"
+
+WriteRegStr HKCU "Software\Mozilla\NativeMessagingHosts\hamster" "" "$InstDir\hamster-mozilla.json"
+
+File "@CPACK_TEMPORARY_DIRECTORY@\hamster.exe"
+File "@CPACK_TEMPORARY_DIRECTORY@\webrecorder.exe"
+File "@CPACK_TEMPORARY_DIRECTORY@\ctrl_c.exe"
+File "@CPACK_TEMPORARY_DIRECTORY@\hamster-mozilla.json"
+File "@CPACK_TEMPORARY_DIRECTORY@\icon.ico"
+SectionEnd
+ 
+
+Section -Uninstall
+Delete "$InstDir\hamster.exe"
+Delete "$InstDir\webrecorder.exe"
+Delete "$InstDir\ctrl_c.exe"
+Delete "$InstDir\hamster-mozilla.json"
+Delete "$InstDir\icon.ico"
+Delete "$InstDir\uninstall.exe"
+RMDir "$InstDir"
+DeleteRegKey HKCU "Software\Mozilla\NativeMessagingHosts\hamster"
+SectionEnd

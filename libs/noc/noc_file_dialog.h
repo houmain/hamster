@@ -183,8 +183,13 @@ const char *noc_file_dialog_open(int flags,
             IMalloc *imalloc;
             ret = SHGetPathFromIDListA(pidl, szFile);
             if (SUCCEEDED(SHGetMalloc(&imalloc))) {
+#if defined(__cplusplus)
                 imalloc->Free(pidl);
-                imalloc->Release ( );
+                imalloc->Release( );
+#else
+                imalloc->lpVtbl->Free(imalloc, pidl);
+                imalloc->lpVtbl->Release(imalloc);
+#endif
             }
         }
     } else {

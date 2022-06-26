@@ -3,6 +3,7 @@
 #include "sqlite.h"
 #include "Indexing.h"
 #include "libs/entities/entities.h"
+#include <array>
 #include <algorithm>
 #include <unordered_set>
 

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(hamster)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 option(BUILD_WEBRECORDER "Build webrecorder")
 if(BUILD_WEBRECORDER)
@@ -7,14 +8,18 @@ if(BUILD_WEBRECORDER)
 endif()
 configure_file("src/version.h.in" "${CMAKE_SOURCE_DIR}/src/_version.h")
 
-set(GIT_COMMIT_LAST_TAG "0.0.0")
 find_package(Git)
-if(GIT_FOUND)
+if(NOT VERSION AND GIT_FOUND)
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags
                   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                  OUTPUT_VARIABLE GIT_COMMIT_LAST_TAG
+                  OUTPUT_VARIABLE VERSION
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
+if(NOT VERSION MATCHES "^[0-9]+\.[0-9]+\.[0-9]+")
+    message(WARNING "Could not get version from git repository (defaulting to VERSION=0.0.0).")
+    set(VERSION "0.0.0")
+endif()
+configure_file("src/version.h.in" "${CMAKE_SOURCE_DIR}/src/_version.h")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -162,34 +167,24 @@ if(NOT WIN32)
 else()
     install(TARGETS hamster DESTINATION .)
     install(TARGETS ctrl_c DESTINATION .)
+    install(FILES deploy/hamster-mozilla.json DESTINATION .)
+    install(FILES webext/icons/icon.ico DESTINATION .)
 endif()
 
 # package
-set(CPACK_PACKAGE_NAME "hamster")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "hamster")
+set(CPACK_PACKAGE_NAME "BookmarkHamster")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Bookmark Hamster")
 set(CPACK_PACKAGE_VENDOR "Albert Kalchmair")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "hamster")
-set(CPACK_PACKAGE_EXECUTABLES "hamster;hamster")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Bookmark Hamster")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/houmain/hamster")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/webext/icons/icon.ico")
+ 
 set(CPACK_STRIP_FILES TRUE)
-string(REGEX MATCHALL "[0-9]+" VERSION_LIST "${GIT_COMMIT_LAST_TAG}")
+string(REGEX MATCHALL "[0-9]+" VERSION_LIST "${VERSION}")
 list(GET VERSION_LIST 0 CPACK_PACKAGE_VERSION_MAJOR)
 list(GET VERSION_LIST 1 CPACK_PACKAGE_VERSION_MINOR)
 list(GET VERSION_LIST 2 CPACK_PACKAGE_VERSION_PATCH)
-
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    set(CPACK_GENERATOR WIX)
-    file(COPY "${CMAKE_SOURCE_DIR}/LICENSE"
-        DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-    file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/LICENSE"
-        "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-    set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/webext/icons/icon.ico")
-    set(CPACK_WIX_UPGRADE_GUID "496D7789-0BF5-472B-AC15-9CF1A1301868")
-else()
-    set(CPACK_GENERATOR TGZ)
-endif()
 
 include(CPack)
