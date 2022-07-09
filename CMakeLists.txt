@@ -162,10 +162,8 @@ if(WIN32)
 endif()
 
 # install
-if(NOT WIN32)
-    install(TARGETS hamster DESTINATION "bin")
-else()
-    install(TARGETS hamster DESTINATION .)
+install(TARGETS hamster DESTINATION .)
+if(WIN32)
     install(TARGETS ctrl_c DESTINATION .)
     install(FILES deploy/hamster-mozilla.json DESTINATION .)
     install(FILES webext/icons/icon.ico DESTINATION .)
