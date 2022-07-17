@@ -1,0 +1,55 @@
+# Github Actions configuration file
+name: Build xpi
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+          
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Set Version
+      uses: jossef/action-set-json-field@v2
+      with:
+        file: webext/manifest.json
+        field: version
+        value: ${{ github.ref_name }}
+    
+    - name: web-ext build
+      id: web-ext-build
+      uses: kewisch/action-web-ext@v1
+      with:
+        cmd: build
+        source: webext
+        filename: "BookmarkHamster-{version}.xpi"
+
+    - name: web-ext sign
+      id: web-ext-sign
+      uses: kewisch/action-web-ext@v1
+      with:
+        cmd: sign
+        source: ${{ steps.web-ext-build.outputs.target }}
+        channel: unlisted
+        apiKey: ${{ secrets.AMO_SIGN_KEY }}
+        apiSecret: ${{ secrets.AMO_SIGN_SECRET }}
+        timeout: 900000
+    
+    - name:  Rename
+      run:   |
+        mv "${{ steps.web-ext-sign.outputs.target }}" "BookmarkHamster-{version}.xpi"
+  
+    - name: Upload to Github release
+      uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: BookmarkHamster-{version}.xpi
+        tags: true
+        draft: false
+
