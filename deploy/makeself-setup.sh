@@ -8,8 +8,8 @@ if [ $# == 0 ]; then
   if [ -d "$dest" ]; then
     dest="${dest}/native-messaging-hosts"
     mkdir -p "$dest"
-    cp -v bin/webrecorder "$dest"
-    cp -v bin/hamster "$dest"
+    cp -v webrecorder "$dest"
+    cp -v hamster "$dest"
     cp -v hamster-mozilla.json "${dest}/hamster.json"
     sed -i "s|^\(.*\"path\":\s*\"\).*\(\",.*\)|\1${dest}/hamster\2|" "${dest}/hamster.json"
   fi
