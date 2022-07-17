@@ -66,11 +66,11 @@ jobs:
       run: cmake --install ${{github.workspace}}/build --config Release
       
     - name: Package
-      if: matrix.package != 'makeself'
+      if: matrix.config.package != 'makeself'
       run: cpack -G ${{ matrix.config.package }} --config ${{github.workspace}}/build/CPackConfig.cmake
       
     - name: Create makeself Installer
-      if: matrix.package == 'makeself'
+      if: matrix.config.package == 'makeself'
       run: |
         cd "${{github.workspace}}"
         cp "deploy/makeself-setup.sh" "dist/setup.sh"
