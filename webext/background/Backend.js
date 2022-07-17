@@ -29,7 +29,7 @@ class Backend {
 
   async getVersion () {
     const platformInfo = await browser.runtime.getPlatformInfo()
-    const supported = (['linux', 'win'].indexOf(platformInfo.os) >= 0 &&
+    const supported = (['linux', 'win', 'mac'].indexOf(platformInfo.os) >= 0 &&
             platformInfo.arch === 'x86-64')
     const requiredVersion = await this.getRequiredVersion()
     const currentVersion = await this.getCurrentVersion()

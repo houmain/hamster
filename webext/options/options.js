@@ -8,10 +8,11 @@ let restoreOptions
 function getDownloadLink (version) {
   const base = 'https://github.com/houmain/hamster/releases/download/'
   const extension = {
-    'linux_x86-64': 'linux64.run',
-    'win_x86-64': 'win64.msi'
+    'linux_x86-64': 'linux-x64.run',
+    'win_x86-64': 'windows-x64.msi',
+    'mac_x86-64': 'macos-x64.run'
   }[`${version.os}_${version.arch}`]
-  return base + `${version.requiredVersion}.0/bookmark-hamster-${version.requiredVersion}-${extension}`
+  return base + `${version.requiredVersion}.0/BookmarkHamster-${version.requiredVersion}-${extension}`
 }
 
 async function localizeControls () {
