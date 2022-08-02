@@ -27,8 +27,9 @@ class BookmarkLibrary {
     verify(rootId)
     if (this._rootId !== rootId) {
       this._rootId = rootId
-      await this._restoreRecentRecorders()
       await this._backend.injectScript(`(${injectScript})(document)`)
+      await this._restoreRecentRecorders()
+      await this._reloadRecentRecorderTabs()
       return this._updateLibraryBookmarkList()
     }
   }
@@ -265,12 +266,21 @@ class BookmarkLibrary {
 
   async _restoreRecentRecorders () {
     this._recentRecorders = await Utils.getSetting('recent-recorders', [])
-
     // undo patching bookmark url (just in case browser crashed)
     for (const bookmark of await this._getBookmarks()) {
       for (const recentRecorder of this._recentRecorders) {
         if (bookmark.url && bookmark.url.startsWith(recentRecorder.localOrigin)) {
           await Utils.tryUpdateBookmarkUrl(bookmark.id, recentRecorder.bookmarkUrl)
+        }
+      }
+    }
+  }
+
+  async _reloadRecentRecorderTabs () {
+    for (const tab of await browser.tabs.query({})) {
+      for (const recentRecorder of this._recentRecorders) {
+        if (tab.url.startsWith(recentRecorder.localOrigin)) {
+          await Utils.tryReloadTab(tab.id)
         }
       }
     }
