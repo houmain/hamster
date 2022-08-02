@@ -118,7 +118,7 @@ async function initialize () {
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
   document.getElementById('bypass-hosts').onchange = updateBypassUrls
 
-  localizeControls()
+  await localizeControls()
   await restoreOptions()
   await updateControls()
 }

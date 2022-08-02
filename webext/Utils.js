@@ -1,6 +1,7 @@
 'use strict'
 
 const debugEnabled = false
+const debugLongAsyncDurationMs = 100
 
 function DEBUG () {
   if (debugEnabled) {
@@ -18,9 +19,9 @@ function DEBUG_LOG_ASYNC_CALLS (object) {
           const begin = new Date().getTime()
           const result = await call.apply(this, arguments)
           const end = new Date().getTime()
-          if (end - begin > 100) {
-            console.trace()
+          if (end - begin > debugLongAsyncDurationMs) {
             console.warn(`calling ${name} took ${end - begin}ms`)
+            console.trace()
           }
           return result
         }
@@ -32,6 +33,7 @@ function DEBUG_LOG_ASYNC_CALLS (object) {
 function verify () {
   for (let i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
+      console.error('verification failed')
       console.trace()
       throw 'verification failed'
     }
