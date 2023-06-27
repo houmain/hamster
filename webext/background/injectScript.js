@@ -8,7 +8,9 @@ function injectScript (document) {
   }
 
   function patchUrl (url) {
-    if (url.startsWith('#') || url.startsWith('?')) {
+    if (typeof(url) !== 'string') {
+      return url
+    } else if (url.startsWith('#') || url.startsWith('?')) {
       return window.location + url
     } else if (url.startsWith('/')) {
       return window.location.origin + url
