@@ -4,7 +4,8 @@
 let backend
 let bookmarkLibrary
 let filesTree
-const addedUrls = { }
+let nextId = 1
+const addedUrlIds = { }
 
 function initializeTree () {
   const files = document.getElementById('files')
@@ -47,9 +48,10 @@ function splitParentBasePath (url) {
 }
 
 function addTreeNode (url, isLeaf, size, status) {
-  if (addedUrls[url]) {
+  let id = addedUrlIds[url]
+  if (id) {
     if (size || status) {
-      const node = filesTree.getLeaf(url)
+      const node = filesTree.getLeaf(id)
       if (size) {
         node.querySelector('.size').textContent = Utils.getReadableFileSize(size)
       }
@@ -59,7 +61,8 @@ function addTreeNode (url, isLeaf, size, status) {
     }
     return
   }
-  addedUrls[url] = true
+  id = nextId++
+  addedUrlIds[url] = id
 
   const { parent, base, level } = splitParentBasePath(url)
   if (parent) {
@@ -71,8 +74,8 @@ function addTreeNode (url, isLeaf, size, status) {
       '<span class="size">' + (size ? Utils.getReadableFileSize(size) : '') + '</span>' +
       '<span class="status">' + (status || '') + '</span>' +
       '</div>',
-    id: url,
-    parent: parent,
+    id: id,
+    parent: addedUrlIds[parent],
     href: (isLeaf ? url : undefined),
     opened: true
   })
@@ -82,9 +85,9 @@ function handleRecordingEvent (event) {
   const { type, status, size, url } = (function () {
     const p = event.split(' ')
     if (p[0] === 'DOWNLOAD_FINISHED') {
-      return { type: p[0], status: p[1], size: p[2], url: p[3] }
+      return { type: p[0], status: p[1], size: p[2], url: p[3].trim() }
     }
-    return { type: p[0], url: p[1] }
+    return { type: p[0], url: p[1].trim() }
   })()
   if (type === 'STARTING' || type === 'FINISHED') {
     return
@@ -120,5 +123,5 @@ browser.runtime.getBackgroundPage().then(background => {
   backend = background.getBackend()
   bookmarkLibrary = background.getBookmarkLibrary()
 
-  document.addEventListener('DOMContentLoaded', requestListing)
+  requestListing()
 })
