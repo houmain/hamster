@@ -89,6 +89,17 @@ class BookmarkLibrary {
     return result
   }
 
+  async getBookmarkUrl (bookmarkId) {
+    const recorder = this._recorderByBookmarkId[bookmarkId]
+    if (recorder) {
+      return { url: recorder.url, localUrl: recorder.localUrl }
+    }
+    const bookmark = await Utils.getBookmarkById(bookmarkId)
+    if (bookmark) {
+      return { url: bookmark.url }
+    }
+  }
+
   addRecordingEventHandler (bookmarkId, handler) {
     const recorder = this._recorderByBookmarkId[bookmarkId]
     if (recorder) {
@@ -466,26 +477,10 @@ class BookmarkLibrary {
   }
 
   _patchUrl (url, recorder) {
-    verify(recorder, recorder.localUrl)
-    if (!Utils.isHttpUrl(url) || Utils.isLocalUrl(url)) {
+    if (!recorder.localUrl) {
       return url
     }
-
-    // replace [http://]127.0.0.1[:port] in the middle
-    if (url.indexOf(encodeURIComponent(recorder.localUrl.hostname) >= 0)) {
-      url = url.split(encodeURIComponent(recorder.localUrl.origin)).join(
-        encodeURIComponent(recorder.url.origin))
-      url = url.split(encodeURIComponent(recorder.localUrl.host)).join(
-        encodeURIComponent(recorder.url.host))
-      url = url.split(encodeURIComponent(recorder.localUrl.hostname)).join(
-        encodeURIComponent(recorder.url.hostname))
-    }
-
-    // convert to local url
-    if (Utils.getOrigin(url) === recorder.url.origin) {
-      return recorder.localUrl.origin + Utils.getPathQuery(url)
-    }
-    return recorder.localUrl.origin + '/' + url
+    return Utils.patchUrl(url, recorder.url, recorder.localUrl)
   }
 
   _shouldBypassHost (url) {
@@ -513,12 +508,6 @@ class BookmarkLibrary {
     if (type === 'main_frame') {
       const originalUrl = this.getOriginalUrl(url)
       const bookmark = await this.findBookmarkByUrl(originalUrl)
-
-      if (Utils.isLocalUrl(url) && !bookmark && originalUrl !== url) {
-        // restore original url of local url not belonging to a bookmark
-        DEBUG('redirecting request', url, 'to', originalUrl)
-        return { redirectUrl: originalUrl }
-      }
 
       if (recorder) {
         // stop recording when navigating away

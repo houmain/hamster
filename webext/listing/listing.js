@@ -4,6 +4,8 @@
 let backend
 let bookmarkLibrary
 let filesTree
+let bookmarkUrl
+let localUrl
 let nextId = 1
 const addedUrlIds = { }
 
@@ -70,6 +72,9 @@ function addTreeNode (url, isLeaf, size, status) {
     addTreeNode(parent)
   }
 
+  if (localUrl)
+    url = Utils.patchUrl(url, bookmarkUrl, localUrl)
+
   filesTree.add({
     label: base + '<div class="info info' + level + '">' +
       '<span class="size">' + (size ? Utils.getReadableFileSize(size) : '') + '</span>' +
@@ -105,6 +110,10 @@ async function requestListing () {
 
   const { path } = await bookmarkLibrary.getBookmarkPath(bookmarkId)
   const response = await backend.getFileListing(path)
+
+  const urls = await bookmarkLibrary.getBookmarkUrl(bookmarkId)
+  bookmarkUrl = urls.url
+  localUrl = urls.localUrl
 
   document.getElementById('title').textContent =
     (await Utils.getBookmarkById(bookmarkId)).title

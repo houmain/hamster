@@ -52,6 +52,31 @@ class Utils {
       url.match(/^https?:\/\/(127\.0\.0\.1|localhost)[:\/]/))
   }
 
+  static patchUrl (url, originalUrl, localUrl) {
+    if (!Utils.isHttpUrl(url) || 
+        Utils.isLocalUrl(url)) {
+      return url
+    }
+    verify(originalUrl)
+    verify(localUrl)
+
+    // replace [http://]127.0.0.1[:port] in the middle
+    if (url.indexOf(encodeURIComponent(localUrl.hostname) >= 0)) {
+      url = url.split(encodeURIComponent(localUrl.origin)).join(
+        encodeURIComponent(originalUrl.origin))
+      url = url.split(encodeURIComponent(localUrl.host)).join(
+        encodeURIComponent(originalUrl.host))
+      url = url.split(encodeURIComponent(localUrl.hostname)).join(
+        encodeURIComponent(originalUrl.hostname))
+    }
+
+    // convert to local url
+    if (Utils.getOrigin(url) === originalUrl.origin) {
+      return localUrl.origin + Utils.getPathQuery(url)
+    }
+    return localUrl.origin + '/' + url
+  }
+
   static sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
