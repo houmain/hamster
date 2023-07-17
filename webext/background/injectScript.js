@@ -32,6 +32,13 @@ function injectScript (document) {
     window.Worker = function (url) {
       return new Worker(patchUrl(url))
     }
+    if (window.navigator.serviceWorker) {
+      const register = window.navigator.serviceWorker.register
+      window.navigator.serviceWorker.register = function() {
+        arguments[1].scope = patchUrl(arguments[1].scope);
+        return register.apply(this, arguments)
+      }
+    }
   }
 
   function patchWindow (window) {
