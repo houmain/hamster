@@ -53,6 +53,8 @@ h2 {
   position: absolute;
   left:100px;
   font-size: 70%;
+  max-width: 500px;
+  overflow: hidden;
 }
 
 .info0 { left: calc(600px - 0*18px) }

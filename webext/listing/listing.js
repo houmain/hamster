@@ -56,7 +56,8 @@ function addTreeNode (url, isLeaf, size, status) {
         node.querySelector('.size').textContent = Utils.getReadableFileSize(size)
       }
       if (status) {
-        node.querySelector('.status').textContent += status + ', '
+        const statusNode = node.querySelector('.status')
+        statusNode.textContent += (statusNode.textContent.length > 0 ? ', ' : '') + status
       }
     }
     return
@@ -85,14 +86,14 @@ function handleRecordingEvent (event) {
   const { type, status, size, url } = (function () {
     const p = event.split(' ')
     if (p[0] === 'DOWNLOAD_FINISHED') {
-      return { type: p[0], status: p[1], size: p[2], url: p[3].trim() }
+      return { type: p[0], status: p[1], size: p[2], url: p[3] }
     }
-    return { type: p[0], url: p[1].trim() }
+    return { type: p[0], url: p[1] }
   })()
   if (type === 'STARTING' || type === 'FINISHED') {
     return
   }
-  addTreeNode(url, true, size, type)
+  addTreeNode((url || "").trim(), true, size, type)
 }
 
 async function requestListing () {
