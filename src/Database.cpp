@@ -6,6 +6,7 @@
 #include <array>
 #include <algorithm>
 #include <unordered_set>
+#include <utility>
 
 namespace {
   std::string concatenate(std::vector<std::string_view> texts, std::string_view separator) {
