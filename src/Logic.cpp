@@ -191,6 +191,33 @@ void Logic::set_library_root(Response& response, const Request& request) {
   response.String(path_to_utf8(library_root));
 }
 
+void Logic::get_library_listing(Response& response,
+    [[maybe_unused]] const Request& request) {
+  const auto options =
+    std::filesystem::directory_options::follow_directory_symlink |
+    std::filesystem::directory_options::skip_permission_denied;
+  auto error = std::error_code{ };
+  response.Key("files");
+  response.StartArray();
+  for (const auto& entry : std::filesystem::recursive_directory_iterator(
+                             m_library_root, options, error))
+    if (entry.is_regular_file()) {
+      auto reader = ArchiveReader();
+      if (reader.open_root(entry.path())) {
+        auto url = reader.read("url");
+        if (!url.empty()) {
+          response.StartObject();
+          response.Key("filename");
+          response.String(path_to_utf8(relative(entry.path(), m_library_root)));
+          response.Key("url");
+          response.String(std::string(as_string_view(url)));
+          response.EndObject();
+        }
+      }
+    }
+  response.EndArray();
+}
+
 void Logic::browse_directories(Response& response, const Request& request) {
   auto initial_path = std::string();
   if (const auto path = json::try_get_string(request, "path"))
@@ -309,6 +336,7 @@ void Logic::handle_request(Response& response, const Request& request) {
     { "stopRecording", &Logic::stop_recording },
     { "getRecordingOutput", &Logic::get_recording_output },
     { "setLibraryRoot", &Logic::set_library_root },
+    { "getLibraryListing", &Logic::get_library_listing },
     { "browserDirectories", &Logic::browse_directories },
     { "injectScript", &Logic::inject_script },
     { "setBlockHostsList", &Logic::set_block_hosts_list },

@@ -29,6 +29,7 @@ private:
   void stop_recording(Response&, const Request& request);
   void get_recording_output(Response& response, const Request& request);
   void set_library_root(Response& response, const Request& request);
+  void get_library_listing(Response& response, const Request& request);
   void browse_directories(Response& response, const Request& request);
   void set_temporary_file(std::filesystem::path& path, std::string_view content);
   void inject_script(Response&, const Request& request);

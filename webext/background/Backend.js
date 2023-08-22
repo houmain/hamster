@@ -179,6 +179,13 @@ class Backend {
     return this._nativeClient.sendRequest(request)
   }
 
+  async getLibraryListing () {
+    const request = {
+      action: 'getLibraryListing'
+    }
+    return this._nativeClient.sendRequest(request)
+  }
+
   async injectScript (script) {
     const request = {
       action: 'injectScript',
