@@ -71,7 +71,7 @@ async function executeSearch () {
 browser.runtime.getBackgroundPage().then(background => {
   backend = background.getBackend()
 
-  document.addEventListener('DOMContentLoaded', executeSearch)
+  executeSearch()
 })
 
 document.getElementById('search-input').value =

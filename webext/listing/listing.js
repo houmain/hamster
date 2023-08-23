@@ -25,7 +25,7 @@ function initializeTree () {
 function splitParentBasePath (url) {
   const maxLevel = 3
   const u = new URL(url)
-  if (u.pathname === '/' && !url.endsWith('/') && u.search == 0 && u.hash.length == 0) {
+  if (u.pathname === '/' && !url.endsWith('/') && u.search === '' && u.hash === '') {
     return {
       parent: undefined,
       base: url,

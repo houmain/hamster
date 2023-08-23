@@ -9,6 +9,7 @@ class BookmarkLibrary {
     this._recorderByTabId = { }
     this._recentRecorders = []
     this._nextRecorderId = 1
+    this._libraryBookmarks = []
     this._libraryBookmarkTitles = { }
     this._bypassHosts = { }
     this._temporarilyBypassedBookmarkIds = []
@@ -28,9 +29,9 @@ class BookmarkLibrary {
     if (this._rootId !== rootId) {
       this._rootId = rootId
       await this._backend.injectScript(`(${injectScript})(document)`)
+      await this._updateLibraryBookmarkList()
       await this._restoreRecentRecorders()
       await this._reloadRecentRecorderTabs()
-      return this._updateLibraryBookmarkList()
     }
   }
 
@@ -119,7 +120,7 @@ class BookmarkLibrary {
         return Utils.getBookmarkById(bookmarkId)
       }
     }
-    for (const bookmark of await this._getBookmarks()) {
+    for (const bookmark of this._libraryBookmarks) {
       if (Utils.isHttpUrl(bookmark.url) &&
           url.startsWith(Utils.getHostPathWithoutWWW(bookmark.url)) &&
           this._temporarilyBypassedBookmarkIds.indexOf(bookmark.id) === -1) {
@@ -139,7 +140,7 @@ class BookmarkLibrary {
     }
   }
 
-  async _getBookmarks () {
+  async _collectLibraryBookmarks () {
     if (!this._rootId) {
       return []
     }
@@ -168,8 +169,9 @@ class BookmarkLibrary {
   }
 
   async _updateLibraryBookmarkList () {
+    this._libraryBookmarks = await this._collectLibraryBookmarks()
     const bookmarkTitles = { }
-    for (const bookmark of await this._getBookmarks()) {
+    for (const bookmark of this._libraryBookmarks) {
       bookmarkTitles[bookmark.id] = bookmark.title
     }
     this._libraryBookmarkTitles = bookmarkTitles
@@ -278,7 +280,7 @@ class BookmarkLibrary {
   async _restoreRecentRecorders () {
     this._recentRecorders = await Utils.getSetting('recent-recorders', [])
     // undo patching bookmark url (just in case browser crashed)
-    for (const bookmark of await this._getBookmarks()) {
+    for (const bookmark of this._libraryBookmarks) {
       for (const recentRecorder of this._recentRecorders) {
         if (bookmark.url && bookmark.url.startsWith(recentRecorder.localOrigin)) {
           await Utils.tryUpdateBookmarkUrl(bookmark.id, recentRecorder.bookmarkUrl)
