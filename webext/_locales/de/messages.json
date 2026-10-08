@@ -14,11 +14,23 @@
   "bookmark_root_title": {
     "message": "Bibliothek Name"
   },
-  "filesystem_root": {
-    "message": "Speicherort im Dateisystem"
+  "server_hostname": {
+    "message": "Server"
   },
-  "filesystem_root_browse": {
-    "message": "Durchsuchen"
+  "server_port": {
+    "message": "Port"
+  },
+  "download_ca": {
+    "message": "CA-Zertifikat herunterladen"
+  },
+  "search_index_ready": {
+    "message": "Suchindex ist bereit"
+  },
+  "rebuild_search_index": {
+    "message": "Suchindex neu erstellen"
+  },
+  "indexing": {
+    "message": "Indizierung läuft..."
   },
   "default_serve_mode": {
     "message": "Version anzeigen"
@@ -53,9 +65,6 @@
   "menu_file_listing": {
     "message": "Dateien auflisten"
   },
-  "menu_copy_url": {
-    "message": "URL in Zwischenablage kopieren"
-  },
   "menu_open_original": {
     "message": "Original öffnen"
   },
@@ -65,22 +74,34 @@
   "menu_options": {
     "message": "Einstellungen"
   },
+  "popup_managed_page": {
+    "message": "Diese Seite gehört zur Hamster-Bibliothek."
+  },
+  "popup_unmanaged_page": {
+    "message": "Diese Seite ist nicht in der Hamster-Bibliothek."
+  },
   "notification_no_backend_title": {
     "message": "Bookmark Hamster"
   },
   "notification_unsupported_system": {
-    "message": "Ihr Bertriebssystem wird leider noch nicht unterstützt."
+    "message": "Ihr Betriebssystem wird leider noch nicht unterstützt."
   },
   "notification_no_backend": {
-    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen Ordner ihrer Festplatte erlaubt, muss installiert werden."
+    "message": "Der lokale Hamster-Proxy muss installiert werden."
+  },
+  "notification_no_server": {
+    "message": "Der Hamster-Server konnte nicht erreicht werden."
   },
   "notification_wrong_backend_version": {
-    "message": "Das Programm, welches der Erweiterung den Zugriff auf einen Ordner ihrer Festplatte erlaubt, muss aktualisiert werden."
+    "message": "Die Version des Hamster-Proxys passt nicht zu dieser Erweiterung und muss aktualisiert werden."
   },
   "download_instructions_win": {
     "message": "Für die Installation werden keine Administrator-Rechte benötigt. Das Installationsprogramm kann hier heruntergeladen werden:"
   },
   "download_instructions_linux": {
     "message": "Für die Installation werden keine Root-Rechte benötigt. Das Installationsprogramm kann hier heruntergeladen werden:"
+  },
+  "download_instructions_mac": {
+    "message": "Das Installationsprogramm kann hier heruntergeladen werden:"
   }
 }

@@ -3,48 +3,64 @@
 
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="options.css"/>
+  <link rel="stylesheet" href="options.css" />
 </head>
 
 <body>
-  <div class="browser-style" id="notification-panel">
+  <div id="notification-panel" role="alert">
     <div id="notification-message"></div>
-    <div id="download-instructions" style="margin-top:8px; margin-bottom:8px"></div>
+    <div id="notification-details"></div>
+    <div id="download-instructions"></div>
     <a id="download-link"></a>
   </div>
-
   <form>
-    <fieldset id="controls">
-      <div class="browser-style" style="margin-top:10px">
-        <label id="bookmark-root-parent-label" for="bookmark-root-parent"></label><br>
-        <select id="bookmark-root-parent" class="browser-style"></select>
+    <fieldset>
+      <div id="server-options">
+        <div class="setting">
+          <label id="server-hostname-label" for="server-hostname"></label>
+          <input id="server-hostname" type="text" size="12" placeholder="127.0.0.1">
+        </div>
+        <div class="setting">
+          <label id="server-port-label" for="server-port"></label>
+          <div class="port-control">
+            <input id="server-port" type="number" min="1" max="65535" size="6" value="8080">
+            <a id="download-ca" target="_blank" rel="noreferrer"></a>
+          </div>
+        </div>
       </div>
-      <div class="browser-style" style="margin-top:8px">
-        <label id="bookmark-root-title-label" for="bookmark-root-title"></label><br>
+    </fieldset>
+    <fieldset id="controls">
+      <div class="setting">
+        <label id="bookmark-root-parent-label" for="bookmark-root-parent"></label>
+        <select id="bookmark-root-parent"></select>
+      </div>
+      <div class="setting">
+        <label id="bookmark-root-title-label" for="bookmark-root-title"></label>
         <input type="text" id="bookmark-root-title">
       </div>
-      <div class="browser-style" style="margin-top:8px">
-        <label id="filesystem-root-label" for="filesystem-root-browse"></label><br>
-        <input type="text" id="filesystem-root" size="40" readonly>&nbsp;
-        <button type="button" id="filesystem-root-browse" class="browser-style"></button>
+      <div class="setting inline-setting">
+        <button id="rebuild-index" type="button"></button>
+        <span id="index-status" role="status"></span>
       </div>
-      <div class="browser-style" style="margin-top:8px">
-        <label id="default-serve-mode-label" for="default-serve-mode"></label><br>
-        <select id="default-serve-mode" class="browser-style"></select>
+      <div class="setting">
+        <label id="default-serve-mode-label" for="default-serve-mode"></label>
+        <select id="default-serve-mode"></select>
       </div>
-      <div class="browser-style" style="margin-top:8px">
-        <label id="bypass-hosts-label" for="bypass-hosts"></label><br>
-        <textarea id="bypass-hosts" class="browser-style" rows="12" cols="25"
-          wrap="off" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+      <div class="setting">
+        <label id="bypass-hosts-label" for="bypass-hosts"></label>
+        <textarea id="bypass-hosts" rows="12" cols="25" wrap="off" spellcheck="false"
+          autocorrect="off" autocapitalize="off"></textarea>
       </div>
-      <div class="browser-style" style="margin-top:8px">
-        <input type="checkbox" id="allow-lossy-compression"></input>
+      <div class="setting checkbox-setting">
+        <input type="checkbox" id="allow-lossy-compression">
         <label id="allow-lossy-compression-label" for="allow-lossy-compression"></label>
       </div>
-    <fieldset>
+    </fieldset>
   </form>
 
+  <script src="../BrowserApi.js"></script>
   <script src="../Utils.js"></script>
+  <script src="../Rpc.js"></script>
   <script src="options.js"></script>
 </body>
 

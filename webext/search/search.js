@@ -1,6 +1,5 @@
 'use strict'
-
-let backend
+/* global browser, HamsterRpc */
 
 async function executeSearch () {
   const urlParams = new URLSearchParams(window.location.search)
@@ -8,8 +7,13 @@ async function executeSearch () {
   if (!query) {
     return
   }
-  const response = await backend.executeSearch(query, true)
+  const response = await HamsterRpc.call('executeSearch', query, true)
   const results = document.createDocumentFragment()
+  if (response.indexError || response.indexing) {
+    const notice = document.createElement('p')
+    notice.textContent = response.indexError || 'Indexing is still running. Search again shortly for updated results.'
+    results.appendChild(notice)
+  }
 
   if (response.matches.length > 0) {
     for (const match of response.matches) {
@@ -59,20 +63,15 @@ async function executeSearch () {
 
       results.appendChild(result)
     }
-  }
-  else {
-    results.textContent = browser.i18n.getMessage('search_no_results')
+  } else {
+    results.appendChild(document.createTextNode(browser.i18n.getMessage('search_no_results')))
   }
   const resultsElement = document.getElementById('results')
   resultsElement.textContent = ''
   resultsElement.appendChild(results)
 }
 
-browser.runtime.getBackgroundPage().then(background => {
-  backend = background.getBackend()
-
-  executeSearch()
-})
+executeSearch().catch(error => { document.getElementById('results').textContent = error.message || String(error) })
 
 document.getElementById('search-input').value =
   new URLSearchParams(window.location.search).get('s')

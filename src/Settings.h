@@ -1,10 +1,18 @@
 #pragma once
 
+#include <chrono>
+#include <filesystem>
 #include <string>
 
 struct Settings {
-  std::string version;
-  bool plain_stdio_interface{ };
+  std::string listen_address{ "0.0.0.0" };
+  int port{8080};
+  std::filesystem::path library_root;
+  std::filesystem::path ca_directory;
+  std::string upstream_ca;
+  std::string proxy_server;
+  std::string impersonate{ "firefox147" };
+  std::chrono::seconds request_timeout{ 5 };
 };
 
 bool interpret_commandline(Settings& settings, int argc, const char* argv[]);

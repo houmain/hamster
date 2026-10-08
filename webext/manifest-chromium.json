@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Hamster",
+  "author": "Albert Kalchmair",
+  "version": "2.0.0",
+  "description": "__MSG_extension_description__",
+  "homepage_url": "https://github.com/houmain/hamster",
+  "default_locale": "en",
+  "minimum_chrome_version": "121",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx2Z6NEdfEHu43O50r+08KiKn24YxDHPXrmd5yf2uibg3ynB0xl90lH9CGCTTFLsq8DswRD9KJYSiu1nIZmUf5EPa74ythygoNYizfPq4O/c5VNUpzjrsJAArifXklM0nyHiRQCmlumznadJsX9eICANCMZm2wzvLaNExF2Od1/PD3AAqzcpZ+HTUFsDDCKIeW6BKN54OYG/pN69SY+NMxCQO79iz60oV/Gn1C6BmCGZQu6kplyPrRwyZj844HamEEYdbmGHjvn6GQDozfU7EgC+396yeieYLhfeCU3U0elYsw2I5fZ/NiKU5uTalmd69Ql7lV3o+AZXZ6JkGuSMGEQIDAQAB",
+  "permissions": [
+    "alarms",
+    "nativeMessaging",
+    "storage",
+    "tabs",
+    "bookmarks",
+    "contextMenus",
+    "notifications",
+    "proxy"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "icons/icon.svg",
+    "24": "icons/icon.svg",
+    "32": "icons/icon.svg",
+    "48": "icons/icon.svg",
+    "64": "icons/icon.svg",
+    "96": "icons/icon.svg",
+    "128": "icons/icon.svg",
+    "256": "icons/icon.svg",
+    "512": "icons/icon.svg",
+    "1024": "icons/icon.svg"
+  },
+  "action": {
+    "default_title": "Bookmark Hamster",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon.svg",
+      "32": "icons/icon.svg"
+    }
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "options_ui": {
+    "page": "options/options.html"
+  },
+  "omnibox": {
+    "keyword": "h"
+  }
+}

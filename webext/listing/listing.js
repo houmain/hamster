@@ -1,11 +1,7 @@
 'use strict'
-/* global Utils, VanillaTree */
+/* global Utils, VanillaTree, HamsterRpc */
 
-let backend
-let bookmarkLibrary
 let filesTree
-let bookmarkUrl
-let localUrl
 let nextId = 1
 const addedUrlIds = { }
 
@@ -72,9 +68,6 @@ function addTreeNode (url, isLeaf, size, status) {
     addTreeNode(parent)
   }
 
-  if (localUrl)
-    url = Utils.patchUrl(url, bookmarkUrl, localUrl)
-
   filesTree.add({
     label: base + '<div class="info info' + level + '">' +
       '<span class="size">' + (size ? Utils.getReadableFileSize(size) : '') + '</span>' +
@@ -87,20 +80,6 @@ function addTreeNode (url, isLeaf, size, status) {
   })
 }
 
-function handleRecordingEvent (event) {
-  const { type, status, size, url } = (function () {
-    const p = event.split(' ')
-    if (p[0] === 'DOWNLOAD_FINISHED') {
-      return { type: p[0], status: p[1], size: p[2], url: p[3] }
-    }
-    return { type: p[0], url: p[1] }
-  })()
-  if (type === 'STARTING' || type === 'FINISHED') {
-    return
-  }
-  addTreeNode((url || "").trim(), true, size, type)
-}
-
 async function requestListing () {
   const urlParams = new URLSearchParams(window.location.search)
   const bookmarkId = urlParams.get('id')
@@ -108,12 +87,8 @@ async function requestListing () {
     return
   }
 
-  const { path } = await bookmarkLibrary.getBookmarkPath(bookmarkId)
-  const response = await backend.getFileListing(path)
-
-  const urls = await bookmarkLibrary.getBookmarkUrl(bookmarkId)
-  bookmarkUrl = urls.url
-  localUrl = urls.localUrl
+  const { path } = await HamsterRpc.call('getBookmarkPath', bookmarkId)
+  const response = await HamsterRpc.call('getFileListing', path)
 
   document.getElementById('title').textContent =
     (await Utils.getBookmarkById(bookmarkId)).title
@@ -125,13 +100,6 @@ async function requestListing () {
       addTreeNode(file.url, true, file.compressedSize)
     }
   }
-
-  bookmarkLibrary.addRecordingEventHandler(bookmarkId, handleRecordingEvent)
 }
 
-browser.runtime.getBackgroundPage().then(background => {
-  backend = background.getBackend()
-  bookmarkLibrary = background.getBookmarkLibrary()
-
-  requestListing()
-})
+requestListing().catch(error => { document.getElementById('files').textContent = error.message || String(error) })

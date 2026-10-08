@@ -1,126 +1,147 @@
 'use strict'
-/* global browser, Utils */
-
-let backend
-let bookmarkLibrary
-let restoreOptions
+/* global browser, Utils, HamsterRpc */
 
 function getDownloadLink (version) {
   const base = 'https://github.com/houmain/hamster/releases/download/'
   const extension = {
     'linux_x86-64': 'linux-x64.run',
-    'win_x86-64': 'windows-x64.msi',
+    'win_x86-64': 'windows-x64.exe',
     'mac_x86-64': 'macos-x64.run'
   }[`${version.os}_${version.arch}`]
-  return base + `${version.requiredVersion}.0/BookmarkHamster-${version.requiredVersion}-${extension}`
+  return base + `${version.releaseVersion}/Hamster-${version.requiredVersion}-${extension}`
 }
 
 async function localizeControls () {
+  Utils.localize('server-hostname-label', 'textContent', 'server_hostname')
+  Utils.localize('server-port-label', 'textContent', 'server_port')
   Utils.localize('bookmark-root-parent-label', 'textContent', 'bookmark_root_parent')
   Utils.localize('bookmark-root-title-label', 'textContent', 'bookmark_root_title')
-  Utils.localize('filesystem-root-label', 'textContent', 'filesystem_root')
-  Utils.localize('filesystem-root-browse', 'textContent', 'filesystem_root_browse')
   Utils.localize('default-serve-mode-label', 'textContent', 'default_serve_mode')
   Utils.localize('bypass-hosts-label', 'textContent', 'bypass_hosts')
   Utils.localize('allow-lossy-compression-label', 'textContent', 'allow_lossy_compression')
+  Utils.localize('download-ca', 'textContent', 'download_ca')
+  Utils.localize('rebuild-index', 'textContent', 'rebuild_search_index')
 
-  const options = []
-  for (const folder of await Utils.getBookmarkBaseFolders()) {
-    options.push({
-      value: folder.id,
-      title: folder.title
-    })
-  }
+  const options = (await Utils.getBookmarkBaseFolders())
+    .map(folder => ({ value: folder.id, title: folder.title }))
   Utils.updateSelectOptions('bookmark-root-parent', options)
 
-  const serveModes = []
-  for (const mode of ['latest', 'last', 'first']) {
-    serveModes.push({ value: mode, title: browser.i18n.getMessage('serve_mode_' + mode) })
-  }
+  const serveModes = ['latest', 'last', 'first'].map(mode => ({
+    value: mode,
+    title: browser.i18n.getMessage('serve_mode_' + mode)
+  }))
   Utils.updateSelectOptions('default-serve-mode', serveModes)
 }
 
-async function updateControls () {
-  document.getElementById('default-serve-mode').value = await Utils.getSetting('default-serve-mode')
-  document.getElementById('allow-lossy-compression').checked = await Utils.getSetting('allow-lossy-compression')
-  document.getElementById('bypass-hosts').textContent = await Utils.getSetting('bypass-hosts')
+function updateControls (state) {
+  document.getElementById('default-serve-mode').value = state.defaultServeMode
+  document.getElementById('allow-lossy-compression').checked = state.allowLossyCompression
+  document.getElementById('bypass-hosts').value = state.bypassHosts
+  document.getElementById('server-hostname').value = state.serverHostname
+  document.getElementById('server-port').value = state.serverPort
+  document.getElementById('bookmark-root-parent').value = state.rootParentId
+  document.getElementById('bookmark-root-title').value = state.rootTitle
+  if (state.status) updateStatus(state.status, state.serverAddress)
+}
 
-  const version = await backend.getVersion()
-  document.getElementById('controls').disabled = (!version.valid)
-  document.getElementById('notification-panel').style.visibility = (version.valid ? 'collapse' : 'visible')
-  if (version.valid) {
-    const root = await Utils.getBookmarkById(bookmarkLibrary.rootId)
-    const rootParent = document.getElementById('bookmark-root-parent')
-    rootParent.value = root.parentId
-    const rootTitle = document.getElementById('bookmark-root-title')
-    rootTitle.value = root.title
-
-    const filesystemRoot = document.getElementById('filesystem-root')
-    filesystemRoot.value = backend.filesystemRoot
-  } else {
-    Utils.localize('notification-message', 'textContent', version.errorMessage)
-    if (version.supported) {
-      Utils.localize('download-instructions', 'textContent', 'download_instructions_' + version.os)
-    } else {
-      document.getElementById('download-instructions').textContent =
-        `os='${version.os}' arch='${version.arch}'`
+function updateStatus (status, serverAddress) {
+  if (status.origin !== serverAddress) return
+  document.getElementById('download-ca').href = serverAddress + '/ca.crt'
+  const notification = document.getElementById('notification-panel')
+  const instructions = document.getElementById('download-instructions')
+  const link = document.getElementById('download-link')
+  document.getElementById('controls').disabled = !status.valid
+  notification.style.display = status.valid ? 'none' : 'block'
+  document.getElementById('notification-details').textContent = status.detail || ''
+  instructions.textContent = ''
+  link.textContent = ''
+  link.removeAttribute('href')
+  if (!status.valid) {
+    Utils.localize('notification-message', 'textContent', status.errorMessage)
+    if (status.canDownload) {
+      Utils.localize('download-instructions', 'textContent', 'download_instructions_' + status.os)
+      link.textContent = link.href = getDownloadLink(status)
     }
-    const link = document.getElementById('download-link')
-    link.textContent = link.href = getDownloadLink(version)
+  }
+}
+
+async function refreshStatus () {
+  try {
+    const state = await HamsterRpc.call('getOptionsState', true)
+    if (state.status) updateStatus(state.status, state.serverAddress)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+async function updateConnection () {
+  try {
+    updateControls(await HamsterRpc.call('setConnection',
+      document.getElementById('server-hostname').value,
+      document.getElementById('server-port').value))
+  } catch (error) {
+    const notification = document.getElementById('notification-panel')
+    notification.style.display = 'block'
+    const host = document.getElementById('server-hostname').value.trim().toLowerCase()
+    Utils.localize('notification-message', 'textContent',
+      ['127.0.0.1', 'localhost'].includes(host) ? 'notification_no_backend' : 'notification_no_server')
+    document.getElementById('notification-details').textContent = error.message || String(error)
+    document.getElementById('controls').disabled = true
   }
 }
 
 async function moveBookmarkRoot () {
-  const parentId = document.getElementById('bookmark-root-parent').value
-  return browser.bookmarks.move(bookmarkLibrary.rootId, { parentId: parentId })
+  await HamsterRpc.call('moveBookmarkRoot', document.getElementById('bookmark-root-parent').value)
 }
 
 async function renameBookmarkRoot () {
-  const title = document.getElementById('bookmark-root-title').value
-  return browser.bookmarks.update(bookmarkLibrary.rootId, { title: title })
-}
-
-async function browseFilesystemRoot () {
-  const result = await backend.browserDirectories(backend.filesystemRoot)
-  if (result.path) {
-    await Utils.setSetting('filesystem-root', result.path)
-    await restoreOptions()
-    return updateControls()
-  }
+  await HamsterRpc.call('renameBookmarkRoot', document.getElementById('bookmark-root-title').value)
 }
 
 async function updateServeMode () {
-  const value = document.getElementById('default-serve-mode').value
-  return Utils.setSetting('default-serve-mode', value)
+  await HamsterRpc.call('setServeMode', document.getElementById('default-serve-mode').value)
 }
 
-async function updateAllowLossyCompression (e) {
-  const checked = document.getElementById('allow-lossy-compression').checked
-  return Utils.setSetting('allow-lossy-compression', checked)
+async function updateAllowLossyCompression () {
+  await HamsterRpc.call('setAllowLossyCompression',
+    document.getElementById('allow-lossy-compression').checked)
 }
 
-async function updateBypassUrls (e) {
-  const hostList = document.getElementById('bypass-hosts').value
-  await Utils.setSetting('bypass-hosts', hostList)
-  await bookmarkLibrary.setBypassHosts(hostList)
+async function updateBypassUrls () {
+  await HamsterRpc.call('setBypassHosts', document.getElementById('bypass-hosts').value)
 }
 
 async function initialize () {
-  const background = await browser.runtime.getBackgroundPage()
-  backend = background.getBackend()
-  bookmarkLibrary = background.getBookmarkLibrary()
-  restoreOptions = background.restoreOptions
-
+  document.getElementById('server-hostname').onchange = updateConnection
+  document.getElementById('server-port').onchange = updateConnection
+  document.getElementById('rebuild-index').onclick = async () => {
+    const button = document.getElementById('rebuild-index')
+    const label = document.getElementById('index-status')
+    button.disabled = true
+    try {
+      label.textContent = browser.i18n.getMessage('indexing')
+      await HamsterRpc.call('rebuildSearchIndex')
+      let status
+      do {
+        await Utils.sleep(250)
+        status = await HamsterRpc.call('getIndexStatus')
+      } while (status.indexing)
+      label.textContent = browser.i18n.getMessage('search_index_ready')
+    } catch (error) {
+      label.textContent = error.message || String(error)
+    } finally {
+      button.disabled = false
+    }
+  }
   document.getElementById('bookmark-root-parent').onchange = moveBookmarkRoot
   document.getElementById('bookmark-root-title').onchange = renameBookmarkRoot
-  document.getElementById('filesystem-root-browse').onclick = browseFilesystemRoot
   document.getElementById('default-serve-mode').onchange = updateServeMode
   document.getElementById('allow-lossy-compression').onchange = updateAllowLossyCompression
   document.getElementById('bypass-hosts').onchange = updateBypassUrls
 
   await localizeControls()
-  await restoreOptions()
-  await updateControls()
+  updateControls(await HamsterRpc.call('getOptionsState', true))
+  window.setInterval(refreshStatus, 5000)
 }
 
-document.addEventListener('DOMContentLoaded', initialize)
+document.addEventListener('DOMContentLoaded', () => { initialize().catch(console.error) })

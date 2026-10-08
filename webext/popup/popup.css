@@ -1,0 +1,59 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+}
+
+body {
+  box-sizing: border-box;
+  margin: 0;
+  min-width: 280px;
+  padding: 12px;
+}
+
+header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+header img {
+  height: 32px;
+  width: 32px;
+}
+
+#page-title {
+  margin-top: 2px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#status {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.actions {
+  display: grid;
+  gap: 5px;
+}
+
+button {
+  padding: 6px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #bbb;
+  margin: 3px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  #status { color: #aaa; }
+  hr { border-color: #555; }
+}

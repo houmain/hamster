@@ -1,4 +1,5 @@
 'use strict'
+/* global browser */
 
 const debugEnabled = false
 const debugLongAsyncDurationMs = 100
@@ -33,9 +34,7 @@ function DEBUG_LOG_ASYNC_CALLS (object) {
 function verify () {
   for (let i = 0; i < arguments.length; i++) {
     if (!arguments[i]) {
-      console.error('verification failed')
-      console.trace()
-      throw 'verification failed'
+      throw new Error('verification failed')
     }
   }
 }
@@ -52,44 +51,14 @@ class Utils {
       url.match(/^https?:\/\/(127\.0\.0\.1|localhost)[:\/]/))
   }
 
-  static patchUrl (url, originalUrl, localUrl) {
-    if (!Utils.isHttpUrl(url) || 
-        Utils.isLocalUrl(url)) {
-      return url
-    }
-    verify(originalUrl)
-    verify(localUrl)
-
-    // replace [http://]127.0.0.1[:port] in the middle
-    if (url.indexOf(encodeURIComponent(localUrl.hostname) >= 0)) {
-      url = url.split(encodeURIComponent(localUrl.origin)).join(
-        encodeURIComponent(originalUrl.origin))
-      url = url.split(encodeURIComponent(localUrl.host)).join(
-        encodeURIComponent(originalUrl.host))
-      url = url.split(encodeURIComponent(localUrl.hostname)).join(
-        encodeURIComponent(originalUrl.hostname))
-    }
-
-    // convert to local url
-    if (Utils.getOrigin(url) === originalUrl.origin) {
-      return localUrl.origin + Utils.getPathQuery(url)
-    }
-    return localUrl.origin + '/' + url
-  }
-
   static sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   static async getBookmarkBaseFolders () {
-    for (const bookmarkId of [
-      'root________', // Firefox
-      '0']) { // Chromium
-      try {
-        return await browser.bookmarks.getChildren(bookmarkId)
-      } catch {
-      }
-    }
+    const roots = await browser.bookmarks.getTree()
+    if (!roots.length || !roots[0].children) return []
+    return roots[0].children.filter(node => !node.url && !node.unmodifiable)
   }
 
   static async getBookmarkById (bookmarkId) {
@@ -159,7 +128,7 @@ class Utils {
   static async tryReloadTab (tabId) {
     try {
       DEBUG('reloading tab', tabId, (await browser.tabs.get(tabId)).url)
-      return browser.tabs.reload(tabId)
+      return browser.tabs.reload(tabId, { bypassCache: true })
     } catch {
       // tab already closed
     }

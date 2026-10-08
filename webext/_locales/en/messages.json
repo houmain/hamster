@@ -14,11 +14,23 @@
   "bookmark_root_title": {
     "message": "Library root name"
   },
-  "filesystem_root": {
-    "message": "Library root in filesystem"
+  "server_hostname": {
+    "message": "Server"
   },
-  "filesystem_root_browse": {
-    "message": "Browse"
+  "server_port": {
+    "message": "Port"
+  },
+  "download_ca": {
+    "message": "Download CA certificate"
+  },
+  "search_index_ready": {
+    "message": "Search index is ready"
+  },
+  "rebuild_search_index": {
+    "message": "Rebuild search index"
+  },
+  "indexing": {
+    "message": "Indexing..."
   },
   "default_serve_mode": {
     "message": "Serve version"
@@ -53,9 +65,6 @@
   "menu_file_listing": {
     "message": "File listing"
   },
-  "menu_copy_url": {
-    "message": "Copy URL to clipboard"
-  },
   "menu_open_original": {
     "message": "Open original"
   },
@@ -65,6 +74,12 @@
   "menu_options": {
     "message": "Options"
   },
+  "popup_managed_page": {
+    "message": "This page belongs to the Hamster library."
+  },
+  "popup_unmanaged_page": {
+    "message": "This page is not in the Hamster library."
+  },
   "notification_no_backend_title": {
     "message": "Bookmark Hamster"
   },
@@ -72,15 +87,21 @@
     "message": "Your operating system is unfortunately not supported yet."
   },
   "notification_no_backend": {
-    "message": "The application which allows this extension to access a folder on your hard disk needs to be installed."
+    "message": "The local Hamster proxy must be installed."
+  },
+  "notification_no_server": {
+    "message": "The Hamster server could not be reached."
   },
   "notification_wrong_backend_version": {
-    "message": "The application which allows this extension to access a folder on your hard disk needs to be updated."
+    "message": "The Hamster proxy version does not match this extension and must be updated."
   },
   "download_instructions_win": {
     "message": "The installation does not require special permissions. The installer can be downloaded from:"
   },
   "download_instructions_linux": {
     "message": "The installation does not require root permissions. The installer can be downloaded from:"
+  },
+  "download_instructions_mac": {
+    "message": "The installer can be downloaded from:"
   }
 }

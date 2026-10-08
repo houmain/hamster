@@ -1,25 +1,53 @@
-
 #include "Settings.h"
 #include "common.h"
+#include <regex>
 
 namespace {
-  const auto g_version =
-#if __has_include("_version.h")
-# include "_version.h"
-#endif
-    "";
+  constexpr auto hamster_version =
+#include "_version.h"
+  ;
 } // namespace
 
 bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
-  settings.version = g_version;
-
-  for (auto i = 1; i < argc; i++) {
-    const auto argument = std::string_view(argv[i]);
-    if (argument == "-p") {
-      settings.plain_stdio_interface = true;
-    }
-    else if (argument == "-h" || argument == "--help") {
+  const auto directory = std::filesystem::absolute(utf8_to_path(argv[0])).parent_path();
+  settings.ca_directory = directory / "ca";
+  settings.library_root = directory / "library";
+  for (auto i = 1; i < argc; ++i) {
+    const auto option = std::string(argv[i]);
+    if (option != "--bind" && option != "--port" && option != "--ca-dir" &&
+        option != "--library-root" && option != "--upstream-ca" && option != "--proxy" &&
+        option != "--impersonate" && option != "--request-timeout")
       return false;
+    if (++i == argc)
+      return false;
+    const auto value = std::string(unquote(argv[i]));
+    if (value.empty())
+      return false;
+    if (option == "--bind")
+      settings.listen_address = value;
+    else if (option == "--ca-dir")
+      settings.ca_directory = std::filesystem::absolute(utf8_to_path(value));
+    else if (option == "--library-root")
+      settings.library_root = std::filesystem::absolute(utf8_to_path(value));
+    else if (option == "--upstream-ca")
+      settings.upstream_ca = value;
+    else if (option == "--proxy")
+      settings.proxy_server = value;
+    else if (option == "--impersonate")
+      settings.impersonate = value;
+    else {
+      if (!std::regex_match(value, std::regex("[0-9]{1,5}")))
+        return false;
+      const auto number = std::stoi(value);
+      if (option == "--port") {
+        if (number > 65535)
+          return false;
+        settings.port = number;
+      } else {
+        if (number == 0)
+          return false;
+        settings.request_timeout = std::chrono::seconds(number);
+      }
     }
   }
   return true;
@@ -33,14 +61,21 @@ void print_help_message(const char* argv0) {
     program = program.substr(0, i);
 
   printf(
-    "hamster %s (c) 2020-2023 by Albert Kalchmair\n"
+    "hamster %s (c) 2020-2026 by Albert Kalchmair\n"
     "\n"
-    "Usage: %s [-options]\n"
-    "  -p          run plain stdio JSON command interface.\n"
-    "  -h, --help  print this help.\n"
+    "Usage: %s [--options]\n"
+    "  --bind <address>       Listener address (default 0.0.0.0).\n"
+    "  --port <port>          Listener port (default 8080).\n"
+    "  --ca-dir <directory>   Persistent certificate-authority directory.\n"
+    "  --library-root <dir>   Library directory.\n"
+    "  --upstream-ca <file>   Override upstream TLS trust bundle.\n"
+    "  --proxy <host:port>    Upstream proxy.\n"
+    "  --impersonate <name>   Upstream browser profile (default firefox147).\n"
+    "  --request-timeout <s>  Default upstream timeout (default 5 seconds).\n"
+    "  --help                 Show this help.\n"
     "\n"
     "All Rights Reserved.\n"
     "This program comes with absolutely no warranty.\n"
     "See the GNU General Public License, version 3 for details.\n"
-    "\n", g_version, program.c_str());
+    "\n", hamster_version, program.c_str());
 }

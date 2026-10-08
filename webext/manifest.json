@@ -1,28 +1,35 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Bookmark Hamster",
   "author": "Albert Kalchmair",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "description": "__MSG_extension_description__",
   "homepage_url": "https://github.com/houmain/hamster",
   "default_locale": "en",
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "hamster@houmain",
-      "strict_min_version": "64.0"
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": [
+          "bookmarksInfo",
+          "websiteActivity",
+          "websiteContent"
+        ]
+      }
     }
   },
   "permissions": [
+    "alarms",
     "nativeMessaging",
     "storage",
     "tabs",
     "bookmarks",
-    "history",
-    "webRequest",
-    "webRequestBlocking",
     "menus",
     "notifications",
-    "clipboardWrite",
+    "proxy"
+  ],
+  "host_permissions": [
     "<all_urls>"
   ],
   "icons": {
@@ -37,20 +44,28 @@
     "512": "icons/icon.svg",
     "1024": "icons/icon.svg"
   },
+  "action": {
+    "default_title": "Bookmark Hamster",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon.svg",
+      "32": "icons/icon.svg"
+    }
+  },
   "background": {
     "scripts": [
+      "BrowserApi.js",
       "Utils.js",
       "background/NativeClient.js",
       "background/Backend.js",
-      "background/injectScript.js",
       "background/BookmarkLibrary.js",
       "background/background.js"
     ]
   },
   "options_ui": {
-    "page": "options/options.html",
-    "browser_style": true,
-    "chrome_style": true
+    "page": "options/options.html"
   },
-  "omnibox": { "keyword" : "h" }
+  "omnibox": {
+    "keyword": "h"
+  }
 }

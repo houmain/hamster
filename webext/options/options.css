@@ -1,60 +1,124 @@
 
+:root {
+  color-scheme: light dark;
+  font: menu;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  font-size: 120%;
-  margin-bottom: 20px;
-  overflow: hidden;
+  min-width: 20rem;
+  margin: 0;
+  padding: 1rem;
+  overflow-x: hidden;
+  color: CanvasText;
+  background: Canvas;
+  font: inherit;
+  line-height: 1.4;
+}
+
+form,
+fieldset {
+  display: grid;
+  gap: 0.75rem;
 }
 
 fieldset {
-  border: 0px;
-  margin:0px;
-  margin-left: 4px;
-  padding:0px;
-}
-
-label {
-  display: inline-block;
-  margin-bottom: 2px;
-}
-
-#allow-lossy-compression {
-  margin-top: 0px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 fieldset:disabled {
-  color: #CCC;
+  color: GrayText;
 }
 
-fieldset:disabled #allow-lossy-compression {
-  background-color: #EEE;
-  border-color: #CCC;
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+label {
+  display: block;
+  margin-block-end: 0.25rem;
+}
+
+a {
+  color: LinkText;
+}
+
+p {
+  margin-block: 0.5rem 0;
+}
+
+.setting {
+  min-inline-size: 0;
+}
+
+.setting > input[type="text"],
+.setting > input[type="number"],
+.setting > select,
+.setting > textarea {
+  display: block;
+  max-inline-size: 100%;
+}
+
+.inline-setting,
+.checkbox-setting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-setting label {
+  margin: 0;
+}
+
+.port-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#server-options {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 0.75rem;
+}
+
+#bypass-hosts {
+  inline-size: min(100%, 32rem);
+  resize: vertical;
 }
 
 #notification-panel {
-  visibility: collapse;
-  margin-top: 8px;
-  padding: 8px;
-  border: 1px solid #CCC;
-  background-color: rgb(255, 255, 180);
-  color: #000;
+  display: none;
+  margin-block-end: 1rem;
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+  color: CanvasText;
+  background: color-mix(in srgb, CanvasText 8%, Canvas);
+  border: 1px solid color-mix(in srgb, CanvasText 25%, Canvas);
+  border-radius: 0.25rem;
 }
 
-textarea {
-  resize: none;
+#notification-message {
+  font-weight: 600;
 }
 
-@media (prefers-color-scheme: dark) {
-  body, fieldset * {
-    background-color: #202023;
-    color: #FFF;
-  }
+#download-instructions {
+  margin-block: 0.5rem;
+}
 
-  fieldset:disabled * {
-    color: #999;
-  }
-
-  fieldset:disabled #allow-lossy-compression {
-    background-color: #202023;
-    border-color: #333;
+@media (max-width: 26rem) {
+  #server-options {
+    grid-template-columns: 1fr;
   }
 }
