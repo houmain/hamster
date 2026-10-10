@@ -53,6 +53,7 @@ function(GetCurlImpersonate)
         PATH_SUFFIXES include)
 
     set(CURL_IMPERSONATE_LICENSES)
+    set(CURL_IMPERSONATE_RUNTIME_FILES)
     if(SYSTEM_CURL_IMPERSONATE_INCLUDE_DIR
        AND ((WIN32 AND SYSTEM_CURL_IMPERSONATE_IMPLIB
                     AND SYSTEM_CURL_IMPERSONATE_RUNTIME)
@@ -68,6 +69,8 @@ function(GetCurlImpersonate)
             set(CURL_IMPERSONATE_RUNTIME
                 "${SYSTEM_CURL_IMPERSONATE_LIBRARY}")
         endif()
+        set(CURL_IMPERSONATE_RUNTIME_FILES
+            "${CURL_IMPERSONATE_RUNTIME}")
         message(STATUS "Using system curl-impersonate: ${CURL_IMPERSONATE_RUNTIME}")
     else()
         if(POLICY CMP0135)
@@ -107,11 +110,24 @@ function(GetCurlImpersonate)
                 "${CURL_IMPERSONATE_PACKAGE_DIR}/lib/libcurl-impersonate.dll")
             set(CURL_IMPERSONATE_IMPLIB
                 "${CURL_IMPERSONATE_PACKAGE_DIR}/lib/libcurl-impersonate_imp.lib")
+            set(CURL_IMPERSONATE_RUNTIME_FILES
+                "${CURL_IMPERSONATE_RUNTIME}")
         else()
             find_library(CURL_IMPERSONATE_RUNTIME
                 NAMES curl-impersonate
-                PATHS "${CURL_IMPERSONATE_PACKAGE_DIR}/lib"
+                PATHS
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}"
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}/lib"
                 NO_DEFAULT_PATH)
+            if(APPLE)
+                file(GLOB CURL_IMPERSONATE_RUNTIME_FILES
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}/libcurl-impersonate*.dylib"
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}/lib/libcurl-impersonate*.dylib")
+            else()
+                file(GLOB CURL_IMPERSONATE_RUNTIME_FILES
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}/libcurl-impersonate.so*"
+                    "${CURL_IMPERSONATE_PACKAGE_DIR}/lib/libcurl-impersonate.so*")
+            endif()
         endif()
     endif()
 
@@ -130,7 +146,7 @@ function(GetCurlImpersonate)
             IMPORTED_LOCATION "${CURL_IMPERSONATE_RUNTIME}"
             IMPORTED_IMPLIB "${CURL_IMPERSONATE_IMPLIB}")
     else()
-        if(NOT CURL_IMPERSONATE_RUNTIME)
+        if(NOT EXISTS "${CURL_IMPERSONATE_RUNTIME}")
             message(FATAL_ERROR "curl-impersonate shared library not found")
         endif()
         set_target_properties(curl_impersonate PROPERTIES
@@ -138,5 +154,7 @@ function(GetCurlImpersonate)
     endif()
 
     set(CURL_IMPERSONATE_RUNTIME "${CURL_IMPERSONATE_RUNTIME}" PARENT_SCOPE)
+    set(CURL_IMPERSONATE_RUNTIME_FILES
+        "${CURL_IMPERSONATE_RUNTIME_FILES}" PARENT_SCOPE)
     set(CURL_IMPERSONATE_LICENSES "${CURL_IMPERSONATE_LICENSES}" PARENT_SCOPE)
 endfunction()

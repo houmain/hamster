@@ -290,9 +290,11 @@ if(USE_ICONV)
     target_link_libraries(hamster PRIVATE ${Iconv_LIBRARY})
 endif()
 
-add_custom_command(TARGET hamster POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CURL_IMPERSONATE_RUNTIME}" $<TARGET_FILE_DIR:hamster>)
+foreach(HAMSTER_CURL_IMPERSONATE_RUNTIME IN LISTS CURL_IMPERSONATE_RUNTIME_FILES)
+    add_custom_command(TARGET hamster POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${HAMSTER_CURL_IMPERSONATE_RUNTIME}" $<TARGET_FILE_DIR:hamster>)
+endforeach()
 
 if(WIN32)
     foreach(HAMSTER_SHARED_DEPENDENCY
@@ -318,7 +320,7 @@ install(TARGETS hamster DESTINATION .)
 install(TARGETS brotlicommon brotlidec libzstd_shared sqlite3 zlib
     RUNTIME DESTINATION .
     LIBRARY DESTINATION .)
-install(FILES "${CURL_IMPERSONATE_RUNTIME}" DESTINATION .)
+install(FILES ${CURL_IMPERSONATE_RUNTIME_FILES} DESTINATION .)
 if(CURL_IMPERSONATE_LICENSES)
     install(FILES ${CURL_IMPERSONATE_LICENSES}
         DESTINATION licenses/curl-impersonate)
