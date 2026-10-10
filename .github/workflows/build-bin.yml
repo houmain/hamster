@@ -35,6 +35,10 @@ jobs:
       with:
         args: install openssl --no-progress
 
+    - name: Install NSIS
+      if: runner.os == 'Windows'
+      uses: negrutiu/nsis-install@v2
+
     - name: Setup MacOS
       if: runner.os == 'macOS'
       run: |
