@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             package: makeself
           
           - os: windows-latest
@@ -34,15 +34,7 @@ jobs:
       uses: crazy-max/ghaction-chocolatey@v1.6.0
       with:
         args: install openssl --no-progress
-        
-    - name: Setup Linux/gcc-8
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get install g++-8
-        echo 'CC=gcc-8' >> $GITHUB_ENV
-        echo 'CXX=g++-8' >> $GITHUB_ENV      
-        sudo apt-get install libasio-dev libgtk-3-dev
-        
+
     - name: Setup MacOS
       if: runner.os == 'macOS'
       run: |
@@ -54,10 +46,9 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        submodules: recursive
         
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DBUILD_WEBRECORDER=true -DCMAKE_INSTALL_PREFIX=dist
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_INSTALL_PREFIX=dist
       
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config Release
@@ -73,18 +64,19 @@ jobs:
       if: matrix.config.package == 'makeself'
       run: |
         cd "${{github.workspace}}"
+        hamster_version="${GITHUB_REF_NAME%.*}"
         cp "deploy/makeself-setup.sh" "dist/setup.sh"
         cp "deploy/hamster-mozilla.json" "dist/"
+        cp "deploy/hamster-chromium.json" "dist/"
         wget "https://github.com/megastep/makeself/releases/download/release-2.4.5/makeself-2.4.5.run"
         chmod +x makeself-*.run && ./makeself-*.run --target .
-        ./makeself.sh "dist" "BookmarkHamster-${{ github.ref_name }}-${{ runner.os }}-${{ runner.arch }}.run" "Bookmark Hamster" "./setup.sh"      
+        ./makeself.sh "dist" "Hamster-${hamster_version}-${{ runner.os == 'Linux' && 'linux' || 'macos' }}-x64.run" "Hamster" "./setup.sh"
 
     - name: Upload to Github release
       uses: xresloader/upload-to-github-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: "BookmarkHamster-*"
+        file: "Hamster-*"
         tags: true
         draft: false
-
