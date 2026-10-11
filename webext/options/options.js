@@ -41,12 +41,28 @@ function updateControls (state) {
   document.getElementById('server-port').value = state.serverPort
   document.getElementById('bookmark-root-parent').value = state.rootParentId
   document.getElementById('bookmark-root-title').value = state.rootTitle
+  updateCertificateLink()
   if (state.status) updateStatus(state.status, state.serverAddress)
+}
+
+function updateCertificateLink () {
+  const link = document.getElementById('download-ca')
+  const hostname = document.getElementById('server-hostname').value.trim()
+  const port = document.getElementById('server-port').value.trim()
+  link.removeAttribute('href')
+  if (!hostname || hostname.includes('://') || hostname.includes('/') ||
+      !/^\d{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535) return
+
+  try {
+    const authority = hostname.includes(':') && !hostname.startsWith('[') ? `[${hostname}]` : hostname
+    const url = new URL(`http://${authority}:${port}`)
+    if (url.protocol === 'http:' && !url.username && !url.password && !url.search &&
+        !url.hash && url.pathname === '/') link.href = url.origin + '/ca.crt'
+  } catch {}
 }
 
 function updateStatus (status, serverAddress) {
   if (status.origin !== serverAddress) return
-  document.getElementById('download-ca').href = serverAddress + '/ca.crt'
   const notification = document.getElementById('notification-panel')
   const instructions = document.getElementById('download-instructions')
   const link = document.getElementById('download-link')
@@ -112,8 +128,12 @@ async function updateBypassUrls () {
 }
 
 async function initialize () {
-  document.getElementById('server-hostname').onchange = updateConnection
-  document.getElementById('server-port').onchange = updateConnection
+  const hostname = document.getElementById('server-hostname')
+  const port = document.getElementById('server-port')
+  hostname.oninput = updateCertificateLink
+  hostname.onchange = updateConnection
+  port.oninput = updateCertificateLink
+  port.onchange = updateConnection
   document.getElementById('rebuild-index').onclick = async () => {
     const button = document.getElementById('rebuild-index')
     const label = document.getElementById('index-status')
