@@ -2,6 +2,7 @@
 #include "proxy/run_proxy.h"
 #include "Settings.h"
 #include "platform.h"
+#include "libs/SimpleWeb/client_http.hpp"
 
 #include <cstdint>
 #include <atomic>
@@ -19,33 +20,32 @@
 #endif
 
 namespace {
+  bool read_message(std::vector<char>& buffer) {
+    auto length = uint32_t{};
+    if (std::fread(&length, sizeof(length), 1, stdin) != 1)
+      return false;
+    if (length > 1024 * 1024)
+      throw std::runtime_error("Native message is too large");
+    buffer.resize(length);
+    return std::fread(buffer.data(), 1, buffer.size(), stdin) == buffer.size();
+  }
 
-bool read_message(std::vector<char>& buffer) {
-  auto length = uint32_t{};
-  if (std::fread(&length, sizeof(length), 1, stdin) != 1)
-    return false;
-  if (length > 1024 * 1024)
-    throw std::runtime_error("Native message is too large");
-  buffer.resize(length);
-  return std::fread(buffer.data(), 1, buffer.size(), stdin) == buffer.size();
-}
-
-// Native messaging always JSON-encodes a JavaScript string. Decode only that
-// transport envelope; the payload itself is an ordinary command line.
-std::string decode_string(std::string_view message) {
-  if (message.size() < 2 || message.front() != '"' || message.back() != '"')
-    throw std::runtime_error("Native startup command must be a string");
-  auto result = std::string{};
-  for (size_t i = 1; i + 1 < message.size(); ++i) {
-    auto character = message[i];
-    if (character != '\\') {
-      result += character;
-      continue;
-    }
-    if (++i + 1 >= message.size())
-      throw std::runtime_error("Invalid native startup command");
-    character = message[i];
-    switch (character) {
+  // Native messaging always JSON-encodes a JavaScript string. Decode only that
+  // transport envelope; the payload itself is an ordinary command line.
+  std::string decode_string(std::string_view message) {
+    if (message.size() < 2 || message.front() != '"' || message.back() != '"')
+      throw std::runtime_error("Native startup command must be a string");
+    auto result = std::string{};
+    for (size_t i = 1; i + 1 < message.size(); ++i) {
+      auto character = message[i];
+      if (character != '\\') {
+        result += character;
+        continue;
+      }
+      if (++i + 1 >= message.size())
+        throw std::runtime_error("Invalid native startup command");
+      character = message[i];
+      switch (character) {
       case '"': case '\\': case '/': result += character; break;
       case 'b': result += '\b'; break;
       case 'f': result += '\f'; break;
@@ -53,50 +53,62 @@ std::string decode_string(std::string_view message) {
       case 'r': result += '\r'; break;
       case 't': result += '\t'; break;
       default: throw std::runtime_error("Unsupported escape in native startup command");
-    }
-  }
-  return result;
-}
-
-std::vector<std::string> split_commandline(std::string_view commandline) {
-  auto result = std::vector<std::string>{};
-  for (size_t i = 0; i < commandline.size();) {
-    while (i < commandline.size() && (commandline[i] == ' ' || commandline[i] == '\t'))
-      ++i;
-    if (i == commandline.size())
-      break;
-    auto argument = std::string{};
-    auto quoted = false;
-    auto backslashes = size_t{};
-    while (i < commandline.size()) {
-      const auto character = commandline[i++];
-      if (character == '\\') {
-        ++backslashes;
-        continue;
       }
-      if (character == '"') {
-        argument.append(backslashes / 2, '\\');
-        if (backslashes % 2)
-          argument += '"';
-        else
-          quoted = !quoted;
+    }
+    return result;
+  }
+
+  std::vector<std::string> split_commandline(std::string_view commandline) {
+    auto result = std::vector<std::string>{};
+    for (size_t i = 0; i < commandline.size();) {
+      while (i < commandline.size() && (commandline[i] == ' ' || commandline[i] == '\t'))
+        ++i;
+      if (i == commandline.size())
+        break;
+      auto argument = std::string{};
+      auto quoted = false;
+      auto backslashes = size_t{};
+      while (i < commandline.size()) {
+        const auto character = commandline[i++];
+        if (character == '\\') {
+          ++backslashes;
+          continue;
+        }
+        if (character == '"') {
+          argument.append(backslashes / 2, '\\');
+          if (backslashes % 2)
+            argument += '"';
+          else
+            quoted = !quoted;
+          backslashes = 0;
+          continue;
+        }
+        argument.append(backslashes, '\\');
         backslashes = 0;
-        continue;
+        if (!quoted && (character == ' ' || character == '\t'))
+          break;
+        argument += character;
       }
       argument.append(backslashes, '\\');
-      backslashes = 0;
-      if (!quoted && (character == ' ' || character == '\t'))
-        break;
-      argument += character;
+      if (quoted)
+        throw std::runtime_error("Unterminated quote in native startup command");
+      result.push_back(std::move(argument));
     }
-    argument.append(backslashes, '\\');
-    if (quoted)
-      throw std::runtime_error("Unterminated quote in native startup command");
-    result.push_back(std::move(argument));
+    return result;
   }
-  return result;
-}
 
+  void finish_all_recordings(int port) {
+    auto client = SimpleWeb::Client<SimpleWeb::HTTP>(
+      "127.0.0.1:" + std::to_string(port));
+    client.config.timeout = 1;
+    client.config.timeout_connect = 1;
+    for (;;) {
+      const auto response = client.request("POST", "/finish-all-recordings", "");
+      if (response->status_code.compare(0, 3, "202") != 0)
+        return;
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+  }
 } // namespace
 
 bool is_native_invocation(int argc, const char* const argv[]) {
@@ -122,21 +134,32 @@ int run_native_host(int, const char* const argv[]) {
 
   auto settings = Settings{};
   if (!interpret_commandline(
-      settings, static_cast<int>(argument_pointers.size()), argument_pointers.data()))
+    settings, static_cast<int>(argument_pointers.size()), argument_pointers.data()))
     throw std::runtime_error("Invalid native startup command line");
 
   // The native messaging connection is this browser's ownership lease. A
   // second browser keeps a standby host which takes over after the current
   // owner closes, while the instance lock guarantees one listener.
   auto connected = std::make_shared<std::atomic_bool>(true);
-  std::thread([connected] {
+  std::thread([connected, port = settings.port] {
     auto input = std::vector<char>();
     while (read_message(input)) {
       // The first message is the only command. Further input only keeps the pipe alive.
     }
+    // Firefox can stop an extension background task before its asynchronous
+    // window-close handler has finished. The native pipe closing is the reliable
+    // browser-lifetime signal, so flush the active proxy here as well. This also
+    // reaches a Hamster instance which was started manually while this native
+    // host was waiting on its instance lock.
+    try {
+      finish_all_recordings(port);
+    }
+    catch (const std::exception& ex) {
+      log(Event::error, "Finishing recordings after browser disconnect: ", ex.what());
+    }
     connected->store(false);
     request_proxy_stop();
-  }).detach();
+    }).detach();
 
   auto instance = ProxyInstanceLock(settings.port);
   while (connected->load()) {

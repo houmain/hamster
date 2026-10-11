@@ -33,10 +33,9 @@ class BookmarkLibrary {
       this._ready.then(() => this._queueUpdate(
         () => this._handleBookmarkMoved(id, info))).catch(console.error)
     })
-    browser.tabs.onRemoved.addListener(tabId => {
+    browser.tabs.onRemoved.addListener(tabId =>
       this._ready.then(() => this._queueUpdate(
-        () => this._handleTabRemoved(tabId))).catch(console.error)
-    })
+        () => this._handleTabRemoved(tabId))).catch(console.error))
     if (browser.proxy.onRequest) {
       browser.proxy.onRequest.addListener(details => this._routeProxy(details),
         { urls: ['http://*/*', 'https://*/*'] })
@@ -324,13 +323,13 @@ class BookmarkLibrary {
   }
 
   async _handleTabRemoved (tabId) {
-    await this._purgeTemporarilyBypassedBookmarks()
-    await this._refreshLibraryBookmarkList()
     // Firefox can briefly retain the closing tab in a tabs.query() result while
     // dispatching onRemoved. Excluding the event's tab ID makes last-tab closure
     // deterministic in every browser.
     const activePaths = await this._findBookmarksWithOpenTabs(tabId)
     await this._backend.finishUnlistedRecordings(activePaths)
+    await this._purgeTemporarilyBypassedBookmarks()
+    await this._refreshLibraryBookmarkList()
   }
 
   async _callOnRecordingFinished (path, action) {

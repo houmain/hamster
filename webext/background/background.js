@@ -346,7 +346,7 @@ browser.omnibox.onInputEntered.addListener(handleOmniBoxSelection)
 browser.notifications.onClicked.addListener(handleNotificationClicked)
 browser.runtime.onStartup.addListener(() => { monitorBackend().catch(console.error) })
 browser.windows.onCreated.addListener(() => { monitorBackend().catch(console.error) })
-browser.windows.onRemoved.addListener(() => { handleWindowRemoved().catch(console.error) })
+browser.windows.onRemoved.addListener(() => handleWindowRemoved().catch(console.error))
 browser.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === BACKEND_MONITOR_ALARM) monitorBackend()
 })
