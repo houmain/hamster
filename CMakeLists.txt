@@ -50,18 +50,18 @@ FetchContent_GetProperties(brotli SOURCE_DIR HAMSTER_BROTLI_SOURCE_DIR)
 
 set(HAMSTER_ZLIB_GIT_REPOSITORY "https://github.com/madler/zlib.git"
     CACHE STRING "zlib Git repository")
-set(HAMSTER_ZLIB_GIT_REVISION "cacf7f1d4e3d44d871b605da3b647f07d718623f"
-    CACHE STRING "zlib Git revision (1.2.11)")
+set(HAMSTER_ZLIB_GIT_REVISION "da607da739fa6047df13e66a2af6b8bec7c2a498"
+    CACHE STRING "zlib Git revision (1.3.2)")
 FetchSparse(zlib
     GIT_REPOSITORY ${HAMSTER_ZLIB_GIT_REPOSITORY}
     GIT_TAG ${HAMSTER_ZLIB_GIT_REVISION}
     EXCLUDE_FROM_ALL
     CACHE_OPTIONS
-        BUILD_SHARED_LIBS:BOOL=ON
-        CMAKE_POLICY_VERSION_MINIMUM:STRING=3.5
-        SKIP_INSTALL_ALL:BOOL=ON
+        ZLIB_BUILD_SHARED:BOOL=ON
+        ZLIB_BUILD_STATIC:BOOL=OFF
+        ZLIB_BUILD_TESTING:BOOL=OFF
+        ZLIB_INSTALL:BOOL=OFF
     SPARSE_EXCLUDE
-        contrib
         doc
         examples)
 FetchContent_GetProperties(zlib
