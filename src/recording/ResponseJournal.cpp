@@ -38,33 +38,38 @@ void ResponseJournal::evict_oldest_locked() {
   m_entries.erase(oldest);
 }
 
-void ResponseJournal::store(std::string url, StatusCode status_code, const Header& header,
-  ByteView data, time_t response_time) {
+void ResponseJournal::store(std::string response_url, std::string identifying_url,
+  StatusCode status_code, const Header& header, ByteView data, time_t response_time) {
   if (data.size() > m_maximum_response_bytes)
     return;
-  url = request_url(std::move(url));
+  response_url = request_url(std::move(response_url));
+  identifying_url = request_url(std::move(identifying_url));
   const auto now = std::chrono::steady_clock::now();
   auto copy = std::make_shared<ByteVector>(data.begin(), data.end());
   auto lock = std::lock_guard(m_mutex);
   purge_locked(now);
-  if (const auto existing = m_entries.find(url); existing != m_entries.end()) {
+  if (const auto existing = m_entries.find(identifying_url); existing != m_entries.end()) {
     m_bytes -= existing->second.response.data->size();
     m_entries.erase(existing);
   }
   m_bytes += copy->size();
-  m_entries.emplace(std::move(url), TimedEntry{
-    Entry{status_code, header, std::move(copy), response_time}, now + m_lifetime });
+  auto key = identifying_url;
+  m_entries.emplace(std::move(key), TimedEntry{
+    Entry{std::move(response_url), std::move(identifying_url), status_code, header,
+      std::move(copy), response_time}, now + m_lifetime });
   while (m_entries.size() > m_maximum_entries || m_bytes > m_maximum_bytes)
     evict_oldest_locked();
 }
 
-std::optional<ResponseJournal::Entry> ResponseJournal::find(std::string url) {
-  url = request_url(std::move(url));
+std::vector<ResponseJournal::Entry> ResponseJournal::find(std::string response_url) {
+  response_url = request_url(std::move(response_url));
   auto lock = std::lock_guard(m_mutex);
   purge_locked(std::chrono::steady_clock::now());
-  const auto found = m_entries.find(url);
-  return found == m_entries.end() ? std::nullopt
-    : std::optional<Entry>(found->second.response);
+  auto result = std::vector<Entry>{};
+  for (const auto& [_, entry] : m_entries)
+    if (entry.response.response_url == response_url)
+      result.push_back(entry.response);
+  return result;
 }
 
 void ResponseJournal::clear() {

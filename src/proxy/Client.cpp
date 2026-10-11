@@ -263,13 +263,18 @@ namespace {
       auto error = std::error_code{};
       if (result != CURLE_OK)
         error = curl_error(result);
+      auto error_message = std::string(transfer->error_buffer.data());
+      if (error_message.empty() && error)
+        error_message = error.message();
 
       asio::post(*transfer->io_context,
         [handler = std::move(transfer->handle_response), status,
         header = std::move(transfer->response_header), error,
+        error_message = std::move(error_message),
         data = std::move(transfer->response_data)]() mutable {
           handler(Client::Response(
-            static_cast<StatusCode>(status), std::move(header), error, std::move(data)));
+            static_cast<StatusCode>(status), std::move(header), error,
+            std::move(error_message), std::move(data)));
         });
     }
 
@@ -319,9 +324,10 @@ namespace {
 } // namespace
 
 Client::Response::Response(
-  StatusCode status_code, Header header, std::error_code error, ByteVector data)
+  StatusCode status_code, Header header, std::error_code error,
+  std::string error_message, ByteVector data)
   : m_status_code(status_code), m_header(std::move(header)), m_error(error),
-  m_data(std::move(data)) {}
+  m_error_message(std::move(error_message)), m_data(std::move(data)) {}
 
 Client::Response::Response(Response&&) = default;
 Client::Response& Client::Response::operator=(Response&&) = default;
@@ -337,6 +343,10 @@ const Header& Client::Response::header() const {
 
 std::error_code Client::Response::error() const {
   return m_error;
+}
+
+const std::string& Client::Response::error_message() const {
+  return m_error_message;
 }
 
 ByteView Client::Response::data() const {

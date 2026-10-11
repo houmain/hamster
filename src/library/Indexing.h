@@ -36,3 +36,5 @@ void for_each_html_resource(std::string_view document_url, std::string_view html
   std::function<void(std::string)> resource_callback);
 void for_each_css_resources(std::string_view stylesheet_url, std::string_view css,
   std::function<void(std::string)> resource_callback);
+void for_each_json_resource(std::string_view response_url, std::string_view json,
+  std::function<void(std::string)> resource_callback);

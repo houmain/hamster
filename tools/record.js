@@ -291,6 +291,7 @@ async function validateArchive (options, hamsterPath, browserPath, caDirectory,
   const ready = deferred()
   const loaded = deferred()
   const hits = new Set()
+  const served = new Set()
   const misses = new Set()
   const observed = new Set()
   const forwardFailures = new Set()
@@ -310,6 +311,7 @@ async function validateArchive (options, hamsterPath, browserPath, caDirectory,
       if (accepted) ready.resolve(Number(accepted[1]))
       if (line === `PAGE_LOADED ${archive}`) loaded.resolve()
       if (line.startsWith('ARCHIVE_HIT ')) hits.add(line.slice('ARCHIVE_HIT '.length))
+      if (line.startsWith('SERVED ')) served.add(line.slice('SERVED '.length))
       if (line.startsWith('ARCHIVE_MISS ')) misses.add(line.slice('ARCHIVE_MISS '.length))
       if (line.startsWith('FORWARD_FAILED ')) {
         forwardFailures.add(line.slice('FORWARD_FAILED '.length))
@@ -386,7 +388,7 @@ async function validateArchive (options, hamsterPath, browserPath, caDirectory,
     const unused = [...archived].filter(url => !hits.has(url)).sort()
     const failed = [...new Set([
       ...misses,
-      ...[...observed].filter(url => !hits.has(url))
+      ...[...observed].filter(url => !served.has(url))
     ])].sort()
     if (failed.length || unused.length) {
       for (const url of failed) console.error(`Validation missing: ${url}`)

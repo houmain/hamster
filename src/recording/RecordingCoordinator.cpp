@@ -24,71 +24,9 @@
 namespace {
   constexpr auto observer_path = std::string_view("/.hamster-observer/");
 
-  constexpr auto resource_observer_script = R"JS((() => {
-  const endpoint = document.currentScript.src;
-  const reportedUrls = new Set();
-  let reportQueue = Promise.resolve();
-  let pageLoaded = false;
-  let settleTimer;
-  let loadReported = false;
-
-  const sendReport = body => {
-    reportQueue = reportQueue
-      .catch(() => {})
-      .then(() => fetch(endpoint, {
-        method: "POST",
-        body,
-        credentials: "omit",
-        cache: "no-store",
-        keepalive: true
-      }));
-  };
-
-  const reportResources = entries => {
-    const newUrls = [];
-    for (const entry of entries) {
-      const url = entry.name;
-      const isHttp = url.startsWith("http://") || url.startsWith("https://");
-      if (isHttp && url !== endpoint && !reportedUrls.has(url)) {
-        reportedUrls.add(url);
-        newUrls.push(url);
-      }
-    }
-    if (newUrls.length)
-      sendReport(newUrls.join("\n"));
-    return newUrls.length > 0;
-  };
-
-  const scheduleLoadedReport = () => {
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-      if (reportResources(performance.getEntriesByType("resource"))) {
-        scheduleLoadedReport();
-        return;
-      }
-      if (!loadReported) {
-        loadReported = true;
-        sendReport("@loaded");
-      }
-    }, 500);
-  };
-
-  try {
-    new PerformanceObserver(entryList => {
-      reportResources(entryList.getEntries());
-      if (pageLoaded)
-        scheduleLoadedReport();
-    }).observe({ type: "resource", buffered: true });
-    reportResources(performance.getEntriesByType("resource"));
-    if (self === top) {
-      addEventListener("load", () => {
-        pageLoaded = true;
-        scheduleLoadedReport();
-      }, { once: true });
-    }
-  }
-  catch (_) {}
-})();)JS";
+  constexpr auto resource_observer_script =
+#include "ResourceObserverScript.inc"
+    ;
 
   char ascii_lower(char c) {
     return c >= 'A' && c <= 'Z' ? static_cast<char>(c - 'A' + 'a') : c;
@@ -210,7 +148,8 @@ namespace {
     if (content_type == header.end() || data.empty())
       return { resources.begin(), resources.end() };
     const auto [mime_type, charset] = split_content_type(content_type->second);
-    if (!iequals_any(mime_type, "text/html", "application/xhtml+xml", "text/css"))
+    if (!iequals_any(mime_type, "text/html", "application/xhtml+xml", "text/css",
+      "application/json", "text/json", "text/javascript", "application/javascript"))
       return { resources.begin(), resources.end() };
     const auto encoding = header.find("Content-Encoding");
     const auto decoded = decode_content(data, encoding == header.end() ? "" : encoding->second);
@@ -220,9 +159,21 @@ namespace {
     auto add = [&](std::string resource) { resources.insert(std::move(resource)); };
     if (iequals(mime_type, "text/css"))
       for_each_css_resources(response_url, text, add);
+    else if (iequals_any(mime_type,
+      "application/json", "text/json", "text/javascript", "application/javascript"))
+      for_each_json_resource(response_url, text, add);
     else
       for_each_html_resource(response_url, text, add);
     return { resources.begin(), resources.end() };
+  }
+
+  bool response_resources_should_be_prefetched(const Header& header) {
+    const auto content_type = header.find("Content-Type");
+    if (content_type == header.end())
+      return false;
+    const auto mime_type = split_content_type(content_type->second).first;
+    return iequals_any(mime_type,
+      "application/json", "text/json", "text/javascript", "application/javascript");
   }
 
   std::optional<ProxyRequest::TransformedResponse> inject_resource_observer(
@@ -436,10 +387,9 @@ void RecordingCoordinator::handle_observer_request(const std::string& id, ProxyR
     try {
       log(Event::resource, owner->second.bookmark, " ", reported_url);
       claimed = m_resource_graph->claim(owner->second, reported_url) || claimed;
-      if (const auto response = m_response_journal->find(reported_url)) {
-        lease->record_response(reported_url, response->status_code, response->header,
-          *response->data, response->response_time);
-      }
+      for (const auto& response : m_response_journal->find(reported_url))
+        lease->record_response(response.identifying_url, response.status_code, response.header,
+          *response.data, response.response_time);
     }
     catch (const std::exception& ex) {
       log(Event::error, "Late resource attribution: ", ex.what());
@@ -465,7 +415,7 @@ void RecordingCoordinator::forward(ProxyRequest request) {
   m_upstream.request(pending->target_url(), pending->method(), std::move(headers),
     pending->data(), m_settings.request_timeout, [pending](Client::Response response) {
       if (response.error()) {
-        log(Event::forward_failed, pending->target_url());
+        log(Event::forward_failed, response.error_message(), " ", pending->target_url());
         pending->send_response(StatusCode::server_error_bad_gateway, {}, {});
         return;
       }
@@ -536,9 +486,16 @@ void RecordingCoordinator::handle_request(ProxyRequest request) {
           try {
             const auto response_time = std::time(nullptr);
             const auto discovered = discover_response_resources(response_url, status, header, data);
+            const auto prefetch = response_resources_should_be_prefetched(header);
             for (const auto& matched : matched_sessions) {
-              for (const auto& url : discovered)
+              for (const auto& url : discovered) {
                 graph->claim(matched.owner, url);
+                if (prefetch) {
+                  auto request = ProxyRequest("GET", {}, {}, { {"Referer", response_url} }, {}, {}, url);
+                  request.hold_lifetime(matched.lease);
+                  matched.lease->handle_request(std::move(request));
+                }
+              }
               if (matched.id != primary_id)
                 matched.lease->record_response(
                   identifying_url, status, header, data, response_time);
@@ -552,12 +509,13 @@ void RecordingCoordinator::handle_request(ProxyRequest request) {
           }
       });
   }
-  else if (primary_id.empty() && request.method() == "GET") {
-    const auto identifying_url = request.target_url();
-    request.observe_response([journal = m_response_journal, identifying_url](StatusCode status,
-      const Header& header, ByteView data) {
+  else if (primary_id.empty() && request.method() != "HEAD") {
+    const auto response_url = request.target_url();
+    const auto request_url = get_identifying_url(request.target_url(), request.data());
+    request.observe_response([journal = m_response_journal, response_url, request_url](
+      StatusCode status, const Header& header, ByteView data) {
         try {
-          journal->store(identifying_url, status, header, data, std::time(nullptr));
+          journal->store(response_url, request_url, status, header, data, std::time(nullptr));
         }
         catch (const std::exception& ex) {
           log(Event::error, "Journaling unassigned response: ", ex.what());

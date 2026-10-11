@@ -6,7 +6,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <optional>
+#include <vector>
 
 // Keeps a bounded, short-lived copy of responses which had no recording owner
 // when they completed. A late browser observer report can then attach the same
@@ -14,6 +14,8 @@
 class ResponseJournal final {
 public:
   struct Entry {
+    std::string response_url;
+    std::string identifying_url;
     StatusCode status_code;
     Header header;
     std::shared_ptr<const ByteVector> data;
@@ -24,9 +26,9 @@ public:
     size_t maximum_bytes = 64 * 1024 * 1024, size_t maximum_entries = 512,
     size_t maximum_response_bytes = 8 * 1024 * 1024);
 
-  void store(std::string url, StatusCode status_code, const Header& header,
-    ByteView data, time_t response_time);
-  std::optional<Entry> find(std::string url);
+  void store(std::string response_url, std::string identifying_url,
+    StatusCode status_code, const Header& header, ByteView data, time_t response_time);
+  std::vector<Entry> find(std::string response_url);
   void clear();
   size_t size() const;
 

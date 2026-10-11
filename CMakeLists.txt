@@ -185,6 +185,23 @@ set(HAMSTER_VERSION_MINOR "${CMAKE_MATCH_2}")
 
 configure_file("src/version.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/src/_version.h")
 
+set(HAMSTER_RESOURCE_OBSERVER_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/recording/resource_observer.js")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${HAMSTER_RESOURCE_OBSERVER_SOURCE}")
+file(READ "${HAMSTER_RESOURCE_OBSERVER_SOURCE}" HAMSTER_RESOURCE_OBSERVER_SCRIPT)
+string(FIND "${HAMSTER_RESOURCE_OBSERVER_SCRIPT}" ")HAMSTER_JS\""
+    HAMSTER_RESOURCE_OBSERVER_DELIMITER_POSITION)
+if(NOT HAMSTER_RESOURCE_OBSERVER_DELIMITER_POSITION EQUAL -1)
+    message(FATAL_ERROR
+        "resource_observer.js contains the reserved raw-string delimiter )HAMSTER_JS\"")
+endif()
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated")
+configure_file(
+    "cmake/ResourceObserverScript.inc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/ResourceObserverScript.inc"
+    @ONLY)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -271,6 +288,7 @@ include_directories(src)
 include_directories(SYSTEM ${INCLUDES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
 add_executable(hamster ${SOURCES} ${HEADERS})
+target_include_directories(hamster PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(hamster PRIVATE
     asio::asio
     brotlidec

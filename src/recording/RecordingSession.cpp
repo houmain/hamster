@@ -287,8 +287,15 @@ void RecordingSession::handle_response(
     if (serve_from_archive(request, url, true))
       return log(Event::download_omitted, url);
 
-  if (response.error())
-    return serve_error(request, url, status_code);
+  if (response.error()) {
+    log(Event::download_failed, response.error_message(), " ", url);
+    request.send_response(
+      status_code == StatusCode::unknown
+        ? StatusCode::server_error_service_unavailable
+        : status_code,
+      basic_text_header, {});
+    return;
+  }
 
   log(Event::download_finished, status_code, " ", response.data().size(), " ", url);
   const auto response_time = std::time(nullptr);

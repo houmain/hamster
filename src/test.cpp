@@ -305,27 +305,60 @@ namespace {
         "https://frames.test/inside.html",
       }));
 
+    const auto json = R"JSON({
+      "relative": "\/images\/profile.jpeg",
+      "absolute": "https:\/\/cdn.example\/avatar.png",
+      "navigation": "https:\/\/example.test\/page-without-resource-extension",
+      "text": "not/a/resource",
+      "fragment": "#ignored"
+    })JSON";
+    auto json_resources = std::vector<std::string>{};
+    for_each_json_resource("https://example.test/api/comments", json,
+      [&](std::string resource) { json_resources.push_back(std::move(resource)); });
+    named_eq("JSON resources", json_resources, std::vector<std::string>({
+        "https://cdn.example/avatar.png",
+        "https://example.test/images/profile.jpeg",
+      }));
+
   }
 
   void test_response_journal() {
     auto journal = ResponseJournal(std::chrono::seconds(10), 1024, 4, 512);
     const auto body = std::string("late response");
-    journal.store("https://cdn.example/dynamic.js#ignored", StatusCode::success_ok,
+    journal.store("https://cdn.example/dynamic.js#ignored",
+      "https://cdn.example/dynamic.js", StatusCode::success_ok,
       Header{{"Content-Type", "text/javascript"}}, as_byte_view(body), 123);
     eq(journal.size(), size_t{1});
     const auto first = journal.find("https://cdn.example/dynamic.js");
     const auto second = journal.find("https://cdn.example/dynamic.js#other");
-    eq(first.has_value(), true);
-    eq(second.has_value(), true); // A response can be copied to multiple recordings.
-    eq(std::string(as_string_view(*first->data)), body);
-    eq(first->response_time, time_t{123});
+    eq(first.size(), size_t{1});
+    eq(second.size(), size_t{1}); // A response can be copied to multiple recordings.
+    eq(std::string(as_string_view(*first[0].data)), body);
+    eq(first[0].response_time, time_t{123});
+
+    const auto post_text_a = std::string("shader=first");
+    const auto post_text_b = std::string("shader=second");
+    const auto post_body_a = as_byte_view(post_text_a);
+    const auto post_body_b = as_byte_view(post_text_b);
+    const auto post_url = std::string("https://api.example/shader");
+    const auto post_id_a = get_identifying_url(post_url, post_body_a);
+    const auto post_id_b = get_identifying_url(post_url, post_body_b);
+    journal.store(post_url, post_id_a, StatusCode::success_ok, {}, post_body_a, 124);
+    journal.store(post_url, post_id_b, StatusCode::success_ok, {}, post_body_b, 125);
+    const auto posts = journal.find(post_url);
+    eq(posts.size(), size_t{2});
+    auto post_ids = std::set<std::string>{};
+    for (const auto& post : posts)
+      post_ids.insert(post.identifying_url);
+    eq(post_ids, std::set<std::string>({post_id_a, post_id_b}));
     journal.clear();
     eq(journal.size(), size_t{});
 
     auto expired = ResponseJournal(std::chrono::milliseconds(0), 1024, 4, 512);
-    expired.store("https://cdn.example/expired.js", StatusCode::success_ok,
+    expired.store("https://cdn.example/expired.js", "https://cdn.example/expired.js",
+      StatusCode::success_ok,
       {}, as_byte_view(body), 123);
-    eq(expired.find("https://cdn.example/expired.js").has_value(), false);
+    eq(expired.find("https://cdn.example/expired.js").empty(), true);
   }
 
   void test_response_transform() {

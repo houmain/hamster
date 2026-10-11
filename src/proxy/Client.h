@@ -17,12 +17,14 @@ class Client final {
 public:
   class Response final {
   public:
-    Response(StatusCode status_code, Header header, std::error_code error, ByteVector data);
+    Response(StatusCode status_code, Header header, std::error_code error,
+      std::string error_message, ByteVector data);
     Response(Response&&);
     Response& operator=(Response&&);
     ~Response();
 
     std::error_code error() const;
+    const std::string& error_message() const;
     StatusCode status_code() const;
     const Header& header() const;
     ByteView data() const;
@@ -31,6 +33,7 @@ public:
     StatusCode m_status_code{ StatusCode::unknown };
     Header m_header;
     std::error_code m_error;
+    std::string m_error_message;
     ByteVector m_data;
   };
 

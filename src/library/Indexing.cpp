@@ -380,6 +380,76 @@ void for_each_css_resources(std::string_view stylesheet_url, std::string_view cs
     resource_callback(resource);
 }
 
+void for_each_json_resource(std::string_view response_url, std::string_view json,
+  std::function<void(std::string)> resource_callback) {
+  auto resources = std::set<std::string>{};
+  for (auto offset = size_t{}; offset < json.size();) {
+    if (json[offset++] != '"')
+      continue;
+    auto value = std::string{};
+    auto valid = false;
+    while (offset < json.size()) {
+      auto character = json[offset++];
+      if (character == '"') {
+        valid = true;
+        break;
+      }
+      if (character != '\\') {
+        value += character;
+        continue;
+      }
+      if (offset == json.size())
+        break;
+      character = json[offset++];
+      switch (character) {
+      case '"': case '\\': case '/': value += character; break;
+      case 'b': value += '\b'; break;
+      case 'f': value += '\f'; break;
+      case 'n': value += '\n'; break;
+      case 'r': value += '\r'; break;
+      case 't': value += '\t'; break;
+      case 'u': {
+        if (offset + 4 > json.size()) {
+          offset = json.size();
+          break;
+        }
+        auto codepoint = 0u;
+        auto hex = true;
+        for (auto digit = 0; digit < 4; ++digit) {
+          const auto c = ascii_lower(json[offset++]);
+          if (!std::isxdigit(static_cast<unsigned char>(c))) {
+            hex = false;
+            break;
+          }
+          codepoint = codepoint * 16 + static_cast<unsigned>(
+            c >= '0' && c <= '9' ? c - '0' : c - 'a' + 10);
+        }
+        if (hex)
+          append_utf8(value, codepoint);
+        break;
+      }
+      default:
+        break;
+      }
+    }
+    if (!valid || value.empty())
+      continue;
+    if (value.front() != '/' && !starts_with(value, "http://") && !starts_with(value, "https://"))
+      continue;
+    const auto resolved = resolve_http_url(response_url, value);
+    if (!resolved)
+      continue;
+    const auto extension = get_file_extension(*resolved);
+    if (iequals_any(extension,
+      "png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico",
+      "css", "js", "mjs", "wasm", "woff", "woff2", "ttf", "otf",
+      "mp3", "ogg", "wav", "flac", "mp4", "webm", "mov", "bin"))
+      resources.insert(std::move(*resolved));
+  }
+  for (const auto& resource : resources)
+    resource_callback(resource);
+}
+
 void for_each_html_resource(std::string_view document_url, std::string_view html,
   std::function<void(std::string)> resource_callback) {
   auto resources = std::set<std::string>{};
