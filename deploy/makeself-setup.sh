@@ -76,8 +76,8 @@ choose_install_dir() {
 
   if [ -z "$requested" ]; then
     requested="$default_dir"
-    if [ -t 0 ] && [ -t 1 ]; then
-      printf 'Installation directory [%s]: ' "$default_dir"
+    if [ -t 0 ]; then
+      printf 'Installation directory [%s]: ' "$default_dir" >&2
       local answer=""
       IFS= read -r answer || true
       if [ -n "$answer" ]; then

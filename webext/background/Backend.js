@@ -240,7 +240,10 @@ class Backend {
 
   _archivePath (path) {
     const replacements = { '/': '╱', '\\': '╲', '<': '⟨', '>': '⟩', ':': '꞉', '"': 'ˮ', '|': '∣', '*': '∗', '?': '？' }
-    return path.map(part => part.replace(/[\\/<>:"|*?]/g, c => replacements[c])).join('/')
+    return path.map(part => part
+      .replace(/[\\/<>:"|*?]/g, c => replacements[c])
+      .replace(/\.+$/, periods => '․'.repeat(periods.length)))
+      .join('/')
   }
 
   async finishRecording (path) {
