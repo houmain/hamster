@@ -147,6 +147,12 @@ void RecordingSession::initialize() {
     throw std::runtime_error(
       m_settings.input_file.empty() ? "no URL specified" : "reading file failed");
 
+  // The browser may satisfy or bypass the initial navigation before the
+  // recording sees it, then request a successful challenge URL with the same
+  // document path and a temporary query. Treat that first document as the
+  // recording root even without observing a preceding redirect or error.
+  m_pending_documents.insert(m_settings.url);
+
   if (!m_settings.output_file.empty()) {
     m_archive_writer = std::make_unique<ArchiveWriter>();
     for (auto i = 0; i < 5; ++i)
@@ -428,15 +434,23 @@ std::optional<std::string> RecordingSession::archive_target_url(
   }
 
   if (is_success(status_code)) {
-    if (original_url != identifying_url)
+    if (original_url != identifying_url) {
+      m_pending_documents.erase(original_url);
       return original_url;
+    }
     if (is_document_response(header)) {
       if (m_pending_documents.count(m_settings.url) &&
-        same_document_path(m_settings.url, identifying_url))
+        same_document_path(m_settings.url, identifying_url)) {
+        m_pending_documents.erase(m_settings.url);
         return m_settings.url;
-      for (const auto& pending_url : m_pending_documents)
-        if (same_document_path(pending_url, identifying_url))
+      }
+      for (auto pending = m_pending_documents.begin();
+        pending != m_pending_documents.end(); ++pending)
+        if (same_document_path(*pending, identifying_url)) {
+          auto pending_url = *pending;
+          m_pending_documents.erase(pending);
           return pending_url;
+        }
     }
   }
   return identifying_url;

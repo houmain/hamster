@@ -484,6 +484,27 @@ namespace {
     const auto provisional_header = Header{{"Content-Type", "text/html"}};
     const auto final_header = Header{{"Content-Type", "text/html"}};
 
+    const auto tokenized_file = directory / "tokenized.zip";
+    auto tokenized_settings = RecordingSession::Settings{};
+    tokenized_settings.url = clean_url;
+    tokenized_settings.output_file = tokenized_file;
+    {
+      auto tokenized = RecordingSession(tokenized_settings);
+      tokenized.record_response(final_url, StatusCode::success_ok, final_header,
+        as_byte_view(final_data), std::time(nullptr));
+      tokenized.finish();
+    }
+    {
+      auto archive = ArchiveReader{};
+      eq(archive.open(tokenized_file), true);
+      eq(std::string(as_string_view(archive.read(to_local_filename(clean_url)))), final_data);
+      eq(archive.read(to_local_filename(final_url)).empty(), true);
+      auto headers = HeaderStore{};
+      headers.deserialize(as_string_view(archive.read("headers")));
+      eq(headers.read(clean_url)->status_code, StatusCode::success_ok);
+      eq(headers.read(final_url), nullptr);
+    }
+
     const auto captured_file = directory / "captured.zip";
     auto captured_settings = RecordingSession::Settings{};
     captured_settings.url = clean_url;
