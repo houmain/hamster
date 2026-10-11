@@ -19,7 +19,7 @@ jobs:
           - os: windows-latest
             package: NSIS
           
-          - os: macos-latest
+          - os: macos-15-intel
             package: makeself
           
     steps:
@@ -42,12 +42,11 @@ jobs:
     - name: Setup MacOS
       if: runner.os == 'macOS'
       run: |
-        brew install openssl
-        echo 'OPENSSL_INCLUDE_DIR=/usr/local/opt/openssl@3/include' >> $GITHUB_ENV
-        echo 'OPENSSL_ROOT_DIR=/usr/local/opt/openssl@3' >> $GITHUB_ENV
+        brew install openssl@3
+        echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> "$GITHUB_ENV"
         
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         
@@ -72,7 +71,7 @@ jobs:
         cp "deploy/makeself-setup.sh" "dist/setup.sh"
         cp "deploy/hamster-mozilla.json" "dist/"
         cp "deploy/hamster-chromium.json" "dist/"
-        wget "https://github.com/megastep/makeself/releases/download/release-2.4.5/makeself-2.4.5.run"
+        curl --fail --location --remote-name "https://github.com/megastep/makeself/releases/download/release-2.4.5/makeself-2.4.5.run"
         chmod +x makeself-*.run && ./makeself-*.run --target .
         ./makeself.sh "dist" "Hamster-${hamster_version}-${{ runner.os == 'Linux' && 'linux' || 'macos' }}-x64.run" "Hamster" "./setup.sh"
 
