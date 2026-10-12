@@ -69,8 +69,6 @@ jobs:
         cd "${{github.workspace}}"
         hamster_version="${GITHUB_REF_NAME%.*}"
         cp "deploy/makeself-setup.sh" "dist/setup.sh"
-        cp "deploy/hamster-mozilla.json" "dist/"
-        cp "deploy/hamster-chromium.json" "dist/"
         curl --fail --location --remote-name "https://github.com/megastep/makeself/releases/download/release-2.4.5/makeself-2.4.5.run"
         chmod +x makeself-*.run && ./makeself-*.run --target .
         ./makeself.sh "dist" "Hamster-${hamster_version}-${{ runner.os == 'Linux' && 'linux' || 'macos' }}-x64.run" "Hamster" "./setup.sh"
