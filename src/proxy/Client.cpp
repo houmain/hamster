@@ -12,6 +12,9 @@
 #include <thread>
 #include <utility>
 
+extern "C" CURL_EXTERN CURLcode curl_easy_impersonate(
+    CURL* curl, const char* target, int default_headers);
+
 namespace {
   class CurlErrorCategory final : public std::error_category {
   public:

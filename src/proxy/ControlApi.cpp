@@ -19,16 +19,15 @@ namespace {
   std::string json(std::string_view value) {
     auto out = std::string("\"");
     constexpr auto hex = "0123456789abcdef";
-    for (auto character : value) {
-      const auto c = static_cast<unsigned char>(character);
+    for (auto c : value) {
       if (c == '"' || c == '\\') {
         out += '\\';
         out += c;
       }
       else if (c < 32) {
         out += "\\u00";
-        out += hex[c >> 4];
-        out += hex[c & 15];
+        out += hex[static_cast<unsigned char>(c) >> 4];
+        out += hex[static_cast<unsigned char>(c) & 15];
       }
       else
         out += c;
