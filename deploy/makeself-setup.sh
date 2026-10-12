@@ -132,7 +132,7 @@ write_browser_manifest() {
   local sed_path
 
   mkdir -p "$destination"
-  cp -p "$PAYLOAD_DIR/$template" "$destination/hamster.json"
+  cp -p "$PAYLOAD_DIR/.hamster/$template" "$destination/hamster.json"
 
   json_path="$(json_escape "$executable_path")"
   sed_path="${json_path//\\/\\\\}"
@@ -152,22 +152,26 @@ write_browser_manifest() {
 
 install_runtime() {
   local install_dir="$1"
-  local installed_files="$install_dir/.hamster-installed-files"
+  local runtime_payload="$PAYLOAD_DIR/.hamster"
+  local runtime_dir="$install_dir/.hamster"
+  local installed_files="$runtime_dir/installed-files"
   local installed_files_tmp="$installed_files.tmp"
-  local runtime_files=("$PAYLOAD_DIR/hamster")
+  local runtime_files=("$runtime_payload/hamster")
   local curl_files=()
   local source_file
   local relative_path
 
-  [ -x "$PAYLOAD_DIR/hamster" ] || die "the installer payload does not contain hamster"
+  [ -x "$runtime_payload/hamster" ] || die "the installer payload does not contain hamster"
+  [ ! -L "$runtime_dir" ] || die "$runtime_dir must not be a symbolic link"
+  mkdir -p "$runtime_dir"
 
   shopt -s nullglob
   if [ "$(uname -s)" = "Darwin" ]; then
-    runtime_files+=("$PAYLOAD_DIR"/*.dylib)
-    curl_files=("$PAYLOAD_DIR"/libcurl-impersonate*.dylib)
+    runtime_files+=("$runtime_payload"/*.dylib)
+    curl_files=("$runtime_payload"/libcurl-impersonate*.dylib)
   else
-    runtime_files+=("$PAYLOAD_DIR"/*.so "$PAYLOAD_DIR"/*.so.*)
-    curl_files=("$PAYLOAD_DIR"/libcurl-impersonate.so*)
+    runtime_files+=("$runtime_payload"/*.so "$runtime_payload"/*.so.*)
+    curl_files=("$runtime_payload"/libcurl-impersonate.so*)
   fi
   shopt -u nullglob
 
@@ -176,19 +180,17 @@ install_runtime() {
 
   : > "$installed_files_tmp"
   for source_file in "${runtime_files[@]}"; do
-    cp -pP "$source_file" "$install_dir/"
-    printf '%s\n' "${source_file##*/}" >> "$installed_files_tmp"
+    cp -pP "$source_file" "$runtime_dir/"
+    printf '.hamster/%s\n' "${source_file##*/}" >> "$installed_files_tmp"
   done
 
-  if [ -d "$PAYLOAD_DIR/licenses/curl-impersonate" ]; then
-    [ ! -L "$install_dir/licenses" ] || die "$install_dir/licenses must not be a symbolic link"
-    [ ! -L "$install_dir/licenses/curl-impersonate" ] || \
-      die "$install_dir/licenses/curl-impersonate must not be a symbolic link"
-    mkdir -p "$install_dir/licenses/curl-impersonate"
+  if [ -d "$runtime_payload/licenses" ]; then
+    [ ! -L "$runtime_dir/licenses" ] || die "$runtime_dir/licenses must not be a symbolic link"
+    mkdir -p "$runtime_dir/licenses"
     shopt -s nullglob
-    for source_file in "$PAYLOAD_DIR"/licenses/curl-impersonate/*; do
+    for source_file in "$runtime_payload"/licenses/*; do
       [ -f "$source_file" ] || continue
-      relative_path="licenses/curl-impersonate/${source_file##*/}"
+      relative_path=".hamster/licenses/${source_file##*/}"
       cp -pP "$source_file" "$install_dir/$relative_path"
       printf '%s\n' "$relative_path" >> "$installed_files_tmp"
     done
@@ -200,11 +202,12 @@ install_runtime() {
 
 verify_runtime() {
   local install_dir="$1"
+  local runtime_dir="$install_dir/.hamster"
   local missing=""
 
   if [ "$(uname -s)" = "Linux" ] && command -v ldd >/dev/null 2>&1; then
-    missing="$(LD_LIBRARY_PATH="${install_dir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-      ldd "$install_dir/hamster" 2>/dev/null | \
+    missing="$(LD_LIBRARY_PATH="${runtime_dir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+      ldd "$runtime_dir/hamster" 2>/dev/null | \
       awk '$2 == "not" && $3 == "found" { print $1 }')"
     if [ -n "$missing" ]; then
       die "the installed program still has missing libraries: $(printf '%s' "$missing" | tr '\n' ' ')"
@@ -232,7 +235,7 @@ install_hamster() {
 
   while IFS='|' read -r kind destination; do
     write_browser_manifest \
-      "$destination" "hamster-${kind}.json" "$install_dir/hamster"
+      "$destination" "hamster-${kind}.json" "$install_dir/.hamster/hamster"
   done < <(browser_destinations)
 
   remember_install_dir "$install_dir"
@@ -243,7 +246,7 @@ install_hamster() {
 
 remove_installed_runtime() {
   local install_dir="$1"
-  local installed_files="$install_dir/.hamster-installed-files"
+  local installed_files="$install_dir/.hamster/installed-files"
   local relative_path
 
   if [ ! -f "$installed_files" ]; then
@@ -262,8 +265,8 @@ remove_installed_runtime() {
     esac
   done < "$installed_files"
   rm -f "$installed_files"
-  rmdir "$install_dir/licenses/curl-impersonate" 2>/dev/null || true
-  rmdir "$install_dir/licenses" 2>/dev/null || true
+  rmdir "$install_dir/.hamster/licenses" 2>/dev/null || true
+  rmdir "$install_dir/.hamster" 2>/dev/null || true
   rmdir "$install_dir" 2>/dev/null || true
 }
 

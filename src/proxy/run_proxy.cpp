@@ -35,7 +35,7 @@ int run_proxy(const Settings& settings) {
 
   const auto context = proxy_io_context();
   auto library = Library(settings.library_root);
-  auto catalog = Catalog(settings.library_root / ".hamster.sqlite", library);
+  auto catalog = Catalog(settings.catalog_database, library);
   auto recordings = RecordingCoordinator(settings, library, catalog);
   auto control = ControlApi(library, catalog, recordings);
   auto server = ProxyServer(settings,

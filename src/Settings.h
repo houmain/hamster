@@ -9,6 +9,7 @@ struct Settings {
   int port{8080};
   std::filesystem::path library_root;
   std::filesystem::path ca_directory;
+  std::filesystem::path catalog_database;
   std::string upstream_ca;
   std::string proxy_server;
   std::string impersonate{ "firefox147" };

@@ -329,20 +329,24 @@ if(WIN32 AND NOT MSVC)
     target_link_options(hamster BEFORE PUBLIC -municode)
 endif()
 
-install(TARGETS hamster DESTINATION .)
+set(HAMSTER_RUNTIME_DESTINATION ".hamster")
+install(TARGETS hamster DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
 install(TARGETS brotlicommon brotlidec libzstd_shared sqlite3 zlib
-    RUNTIME DESTINATION .
-    LIBRARY DESTINATION .)
-install(FILES ${CURL_IMPERSONATE_RUNTIME_FILES} DESTINATION .)
+    RUNTIME DESTINATION ${HAMSTER_RUNTIME_DESTINATION}
+    LIBRARY DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
+install(FILES ${CURL_IMPERSONATE_RUNTIME_FILES}
+    DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
 if(CURL_IMPERSONATE_LICENSES)
     install(FILES ${CURL_IMPERSONATE_LICENSES}
-        DESTINATION licenses/curl-impersonate)
+        DESTINATION ${HAMSTER_RUNTIME_DESTINATION}/licenses)
 endif()
 if(WIN32 AND OPENSSL_RUNTIME_DLLS)
-    install(FILES ${OPENSSL_RUNTIME_DLLS} DESTINATION .)
+    install(FILES ${OPENSSL_RUNTIME_DLLS}
+        DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
 endif()
-install(FILES deploy/hamster-mozilla.json deploy/hamster-chromium.json DESTINATION .)
-install(FILES webext/icons/icon.ico DESTINATION .)
+install(FILES deploy/hamster-mozilla.json deploy/hamster-chromium.json
+    DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
+install(FILES webext/icons/icon.ico DESTINATION ${HAMSTER_RUNTIME_DESTINATION})
 
 set(CPACK_PACKAGE_NAME "Hamster")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hamster recording proxy")
@@ -370,10 +374,12 @@ if(WIN32)
     # later directive overrides that default in the generated NSIS script.
     set(CPACK_NSIS_DEFINES "RequestExecutionLevel user")
     set(CPACK_NSIS_INSTALL_ROOT "$LOCALAPPDATA")
+    set(CPACK_NSIS_UNINSTALL_NAME ".hamster\\Uninstall")
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
-        "WriteRegStr HKCU \"Software\\Mozilla\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\hamster-mozilla.json\"
-         WriteRegStr HKCU \"Software\\Google\\Chrome\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\hamster-chromium.json\"
-         WriteRegStr HKCU \"Software\\Microsoft\\Edge\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\hamster-chromium.json\"")
+        "SetFileAttributes \"$INSTDIR\\.hamster\" HIDDEN
+         WriteRegStr HKCU \"Software\\Mozilla\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\.hamster\\hamster-mozilla.json\"
+         WriteRegStr HKCU \"Software\\Google\\Chrome\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\.hamster\\hamster-chromium.json\"
+         WriteRegStr HKCU \"Software\\Microsoft\\Edge\\NativeMessagingHosts\\hamster\" \"\" \"$INSTDIR\\.hamster\\hamster-chromium.json\"")
     set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
         "DeleteRegKey HKCU \"Software\\Mozilla\\NativeMessagingHosts\\hamster\"
          DeleteRegKey HKCU \"Software\\Google\\Chrome\\NativeMessagingHosts\\hamster\"

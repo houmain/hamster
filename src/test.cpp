@@ -401,14 +401,31 @@ namespace {
     const auto directory = std::filesystem::absolute("hamster").parent_path();
     eq(settings.ca_directory, directory / "ca");
     eq(settings.library_root, directory / "library");
+    eq(settings.catalog_database, directory / "catalog.sqlite");
     eq(settings.impersonate, "firefox147");
 
+    const auto installed_root = std::filesystem::absolute("installed-hamster");
+    const auto installed_program = path_to_utf8(installed_root / ".hamster" / "hamster");
+    const char* installed[] = { installed_program.c_str() };
+    settings = Settings{};
+    eq(interpret_commandline(settings, 1, installed), true);
+    eq(settings.ca_directory, installed_root / ".hamster" / "ca");
+    eq(settings.library_root, installed_root);
+    eq(settings.catalog_database, installed_root / ".hamster" / "catalog.sqlite");
+
     const char* configured[] = {
-      "hamster", "--library-root", "custom-library", "--impersonate", "chrome150"
+      "hamster", "--library-root", "custom-library", "--catalog", "custom-catalog.sqlite",
+      "--impersonate", "chrome150"
     };
-    eq(interpret_commandline(settings, 5, configured), true);
+    settings = Settings{};
+    eq(interpret_commandline(settings, 7, configured), true);
     eq(settings.library_root, std::filesystem::absolute("custom-library"));
+    eq(settings.catalog_database, std::filesystem::absolute("custom-catalog.sqlite"));
     eq(settings.impersonate, "chrome150");
+
+    const char* unknown[] = { "hamster", "--unknown", "value" };
+    settings = Settings{};
+    eq(interpret_commandline(settings, 3, unknown), false);
   }
 
   void test_impersonate_profiles() {
