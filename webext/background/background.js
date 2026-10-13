@@ -177,11 +177,20 @@ async function handleBackendStatus (status) {
   try { await updateBrowserProxy(status) } catch (error) {
     console.error('Updating browser proxy settings failed', error)
   }
-  await updateBackendNotification(status)
+  // Firefox utility windows, such as the Downloads/Library window, can keep
+  // the extension background alive after the last browser window is closed.
+  // The local proxy is deliberately stopped in that state, so its absence is
+  // not an error worth notifying about.
+  const hasBrowserWindows = (await browser.windows.getAll()).length > 0
+  await updateBackendNotification(hasBrowserWindows ? status : { valid: true })
 }
 
 async function monitorBackend () {
   await initialization
+  if (!(await browser.windows.getAll()).length) {
+    await updateBackendNotification({ valid: true })
+    return
+  }
   try { await backend.checkConnection() } catch (error) {
     console.error('Checking Hamster proxy failed', error)
   }
@@ -199,6 +208,7 @@ async function handleWindowRemoved () {
   if ((await browser.windows.getAll()).length) return
   // Closing the last browser window ends this browser's ownership lease even
   // when Chrome or Edge remains resident for background applications.
+  await updateBackendNotification({ valid: true })
   await bookmarkLibrary.stopAll().catch(error => {
     console.error('Flushing Hamster recordings failed', error)
   })
