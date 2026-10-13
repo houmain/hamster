@@ -67,13 +67,21 @@ async function restoreOptions () {
   }
 }
 
+function escapeOmniboxDescription (text) {
+  const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }
+  return String(text).replace(/[&<>"']/g, character => entities[character])
+}
+
 function createSuggestions (response) {
-  return response.matches.map(match => ({ content: match.url, description: match.snippet }))
+  return response.matches.map(match => ({
+    content: match.url,
+    description: escapeOmniboxDescription(match.snippet)
+  }))
 }
 
 function handleOmniBoxInput (text, addSuggestions) {
   browser.omnibox.setDefaultSuggestion({
-    description: browser.i18n.getMessage('omnibox_default_search')
+    description: escapeOmniboxDescription(browser.i18n.getMessage('omnibox_default_search'))
   })
   initialization.then(() => backend.executeSearch(text))
     .then(createSuggestions).then(addSuggestions).catch(() => addSuggestions([]))
@@ -139,7 +147,7 @@ function updateBackendNotification (status) {
     }
     await browser.notifications.create(BACKEND_NOTIFICATION_ID, {
       type: 'basic',
-      iconUrl: browser.runtime.getURL('icons/icon.svg'),
+      iconUrl: browser.runtime.getURL('icons/icon128.png'),
       title: browser.i18n.getMessage('notification_no_backend_title'),
       message: browser.i18n.getMessage(status.errorMessage)
     })
