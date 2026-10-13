@@ -1,0 +1,35 @@
+# Github Actions configuration file
+name: Build Chromium extension
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Build extension archive
+      shell: pwsh
+      env:
+        HAMSTER_VERSION: ${{ github.ref_name }}
+      run: |
+        $archive = Join-Path $env:GITHUB_WORKSPACE "BookmarkHamster-$env:HAMSTER_VERSION-chromium.zip"
+        ./deploy/build-chromium-extension.ps1 -Version $env:HAMSTER_VERSION -ArchivePath $archive
+
+    - name: Upload to Github release
+      uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: "BookmarkHamster-${{ github.ref_name }}-chromium.zip"
+        tags: true
+        draft: false
