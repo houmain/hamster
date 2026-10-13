@@ -9,7 +9,9 @@ namespace {
 } // namespace
 
 bool interpret_commandline(Settings& settings, int argc, const char* argv[]) {
-  const auto directory = std::filesystem::absolute(utf8_to_path(argv[0])).parent_path();
+  const auto executable = std::filesystem::weakly_canonical(
+    std::filesystem::absolute(utf8_to_path(argv[0])));
+  const auto directory = executable.parent_path();
   settings.ca_directory = directory / "ca";
   settings.catalog_database = directory / "catalog.sqlite";
   if (directory.filename() == ".hamster") {

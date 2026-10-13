@@ -41,6 +41,7 @@ bool iequals_any(T&& a, S&&... b) {
 
 std::filesystem::path utf8_to_path(std::string_view utf8_string);
 std::string path_to_utf8(const std::filesystem::path& path);
+std::string json_string(std::string_view value);
 StringViewPair split_content_type(std::string_view content_type);
 std::string convert_charset(std::string data, std::string_view from, std::string_view to);
 std::string convert_charset(ByteView data, std::string_view from, std::string_view to);

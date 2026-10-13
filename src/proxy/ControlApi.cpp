@@ -16,25 +16,6 @@ namespace {
 #include "_version.h"
     ;
 
-  std::string json(std::string_view value) {
-    auto out = std::string("\"");
-    constexpr auto hex = "0123456789abcdef";
-    for (auto c : value) {
-      if (c == '"' || c == '\\') {
-        out += '\\';
-        out += c;
-      }
-      else if (c < 32) {
-        out += "\\u00";
-        out += hex[static_cast<unsigned char>(c) >> 4];
-        out += hex[static_cast<unsigned char>(c) & 15];
-      }
-      else
-        out += c;
-    }
-    return out + '"';
-  }
-
   const std::string& get(const Header& fields, const std::string& name) {
     if (fields.count(name) != 1)
       throw std::runtime_error("Missing or duplicate field: " + name);
@@ -192,9 +173,9 @@ ControlResponse ControlApi::execute_search(const Header& fields) {
       result += ',';
     first = false;
     result += "{\"uid\":" + std::to_string(match.uid) +
-      ",\"url\":" + json(match.url) +
-      ",\"title\":" + json(match.title) +
-      ",\"snippet\":" + json(match.snippet) + "}";
+      ",\"url\":" + json_string(match.url) +
+      ",\"title\":" + json_string(match.title) +
+      ",\"snippet\":" + json_string(match.snippet) + "}";
   }
   return json_response(result + "],\"indexing\":" +
     (m_catalog.search_index_busy() ? "true" : "false") + "}");
@@ -252,7 +233,7 @@ ControlResponse ControlApi::get_archive_files(const Header& fields) {
     if (!first)
       result += ',';
     first = false;
-    result += "{\"url\":" + json(file.url) +
+    result += "{\"url\":" + json_string(file.url) +
       ",\"compressedSize\":" + std::to_string(file.compressed_size) +
       ",\"uncompressedSize\":" + std::to_string(file.uncompressed_size) +
       ",\"modificationTime\":" + std::to_string(file.modification_time) + "}";
@@ -267,8 +248,8 @@ ControlResponse ControlApi::get_archive_list() {
     if (!first)
       result += ',';
     first = false;
-    result += "{\"filename\":" + json(archive.filename) +
-      ",\"url\":" + json(archive.url) + "}";
+    result += "{\"filename\":" + json_string(archive.filename) +
+      ",\"url\":" + json_string(archive.url) + "}";
   }
   return json_response(result + "]}");
 }

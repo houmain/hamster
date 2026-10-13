@@ -27,6 +27,26 @@ std::string path_to_utf8(const std::filesystem::path& path) {
     reinterpret_cast<const char*>(u8string.data() + u8string.size()));
 }
 
+std::string json_string(std::string_view value) {
+  auto out = std::string("\"");
+  constexpr auto hex = "0123456789abcdef";
+  for (auto c : value) {
+    const auto byte = static_cast<unsigned char>(c);
+    if (c == '"' || c == '\\') {
+      out += '\\';
+      out += c;
+    }
+    else if (byte < 32) {
+      out += "\\u00";
+      out += hex[byte >> 4];
+      out += hex[byte & 15];
+    }
+    else
+      out += c;
+  }
+  return out + '"';
+}
+
 extern "C" int siphash(const uint8_t* in, const size_t inlen,
   const uint8_t* k, uint8_t* out, const size_t outlen);
 
